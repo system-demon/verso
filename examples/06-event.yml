@@ -1,0 +1,16 @@
+# 06 — Custom convention target (used by 05-register-convention.js)
+# class "event" is not built-in; the script registers it first.
+
+section:
+  class: "event"
+  id: "evt_1"
+  children:
+    - h1:
+        class: "name"
+        text: "render-tree meetup"
+    - time:
+        class: "startDate"
+        text: "2026-09-12T18:00:00-07:00"
+    - span:
+        class: "location"
+        text: "Portland, OR"

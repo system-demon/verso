@@ -1,0 +1,198 @@
+/**
+ * JSON-RPC 2.0 method handlers for YML-DOM
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { renderYaml, toDocument } from '../parser/yamlDom.js';
+import {
+  getItemState,
+  setItemState,
+  updateItemState,
+} from './state.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
+
+/**
+ * @param {string} name
+ */
+export function loadTemplate(name) {
+  const safe = name.replace(/[^a-zA-Z0-9_-]/g, '');
+  const filePath = path.join(TEMPLATES_DIR, `${safe}.yml`);
+  if (!fs.existsSync(filePath)) {
+    throw rpcError(-32001, `Template not found: ${safe}`);
+  }
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function rpcError(code, message, data) {
+  const err = new Error(message);
+  err.code = code;
+  err.data = data;
+  return err;
+}
+
+/**
+ * @type {Record<string, (params: any, ctx: { sessionId: string }) => unknown>}
+ */
+export const methods = {
+  /**
+   * Render a named template component with optional data injection.
+   */
+  renderComponent(params = {}, ctx) {
+    const componentId = params.componentId ?? params.template ?? 'product';
+    const data = params.data ?? {};
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    const itemId = data.id ?? params.itemId ?? 'default';
+
+    setItemState(sessionId, itemId, data);
+    const merged = { ...getItemState(sessionId, itemId), ...data };
+
+    const source = loadTemplate(componentId);
+    const result = renderYaml(source, { params: merged });
+
+    return {
+      html: result.html,
+      ldJson: result.ldJson,
+      contentMap: result.contentMap,
+      itemId,
+      sessionId,
+    };
+  },
+
+  /**
+   * Render a full HTML document from a template.
+   */
+  renderDocument(params = {}, ctx) {
+    const out = methods.renderComponent(params, ctx);
+    return {
+      ...out,
+      document: toDocument(
+        { html: out.html, ldJson: out.ldJson, contentMap: out.contentMap, ldScript: `<script type="application/ld+json">${JSON.stringify(out.ldJson, null, 2)}</script>` },
+        { title: params.title ?? 'YML-DOM' },
+      ),
+    };
+  },
+
+  /**
+   * Update live state and re-render the affected component.
+   */
+  updateState(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    const itemId = params.itemId;
+    const updates = params.updates ?? {};
+    const componentId = params.componentId ?? params.template ?? 'product';
+
+    if (!itemId) {
+      throw rpcError(-32602, 'itemId is required');
+    }
+
+    const merged = updateItemState(sessionId, itemId, updates);
+    const source = loadTemplate(componentId);
+    const result = renderYaml(source, { params: merged });
+
+    return {
+      target: `#${itemId}`,
+      newHtml: result.html,
+      newLdJson: result.ldJson,
+      contentMap: result.contentMap,
+      state: merged,
+      itemId,
+      sessionId,
+    };
+  },
+
+  /**
+   * Return current item state.
+   */
+  getState(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    const itemId = params.itemId ?? 'default';
+    return {
+      sessionId,
+      itemId,
+      state: getItemState(sessionId, itemId),
+    };
+  },
+
+  /**
+   * List available templates.
+   */
+  listTemplates() {
+    if (!fs.existsSync(TEMPLATES_DIR)) return { templates: [] };
+    const templates = fs
+      .readdirSync(TEMPLATES_DIR)
+      .filter((f) => f.endsWith('.yml'))
+      .map((f) => f.replace(/\.yml$/, ''));
+    return { templates };
+  },
+
+  /**
+   * Ping
+   */
+  ping() {
+    return { ok: true, pong: Date.now() };
+  },
+};
+
+/**
+ * Register a custom JSON-RPC method (for plugins / examples).
+ * @param {string} name
+ * @param {(params: any, ctx: { sessionId: string }) => unknown} handler
+ */
+export function registerMethod(name, handler) {
+  if (!name || typeof handler !== 'function') {
+    throw new Error('registerMethod(name, handler) requires a name and function');
+  }
+  if (methods[name]) {
+    throw new Error(`RPC method already exists: ${name}`);
+  }
+  methods[name] = handler;
+}
+
+/**
+ * Dispatch a JSON-RPC 2.0 request object.
+ * @param {object} request
+ * @param {{ sessionId?: string }} [ctx]
+ */
+export function handleRpc(request, ctx = {}) {
+  if (!request || request.jsonrpc !== '2.0') {
+    return {
+      jsonrpc: '2.0',
+      error: { code: -32600, message: 'Invalid Request' },
+      id: request?.id ?? null,
+    };
+  }
+
+  const method = methods[request.method];
+  if (!method) {
+    return {
+      jsonrpc: '2.0',
+      error: { code: -32601, message: `Method not found: ${request.method}` },
+      id: request.id ?? null,
+    };
+  }
+
+  try {
+    const result = method(request.params ?? {}, {
+      sessionId: ctx.sessionId ?? 'default',
+    });
+    return {
+      jsonrpc: '2.0',
+      result,
+      id: request.id ?? null,
+    };
+  } catch (err) {
+    return {
+      jsonrpc: '2.0',
+      error: {
+        code: err.code ?? -32000,
+        message: err.message ?? 'Server error',
+        data: err.data,
+      },
+      id: request.id ?? null,
+    };
+  }
+}

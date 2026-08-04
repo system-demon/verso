@@ -1,0 +1,34 @@
+# 04 — ld_if: metadata depends on content values
+# price 79 → BudgetProduct; change to 150 and re-render for PremiumProduct
+
+div:
+  id: "deal_1"
+  class: "offer"
+
+  ld_if:
+    condition:
+      ref: "#deal_1 .price"
+      operator: "<"
+      value: 100
+    then:
+      "@type": BudgetProduct
+      category: Value
+    else:
+      "@type": PremiumProduct
+      category: Luxury
+
+  ld:
+    "@type": Product
+    name: { ref: "#deal_1 .name" }
+    offers:
+      "@type": Offer
+      price: { ref: "#deal_1 .price" }
+      priceCurrency: USD
+
+  children:
+    - h1:
+        class: "name"
+        text: "Travel Mug"
+    - span:
+        class: "price"
+        text: "79.00"

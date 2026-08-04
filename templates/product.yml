@@ -1,0 +1,43 @@
+# Product card — Implicit Schema Mapping via class: product
+# Placeholders {{name}}, {{price}}, etc. filled by JSON-RPC params
+
+div:
+  class: "product"
+  id: "{{id}}"
+
+  ld_if:
+    condition:
+      ref: "#{{id}} .price"
+      operator: "<"
+      value: 100
+    then:
+      "@type": BudgetProduct
+      category: Affordable Tech
+      badge: Value Pick
+    else:
+      "@type": PremiumProduct
+      category: Luxury Tech
+      badge: High-End
+
+  ld:
+    "@type": Product
+    name: { ref: "#{{id}} .name" }
+    description: { ref: "#{{id}} .description" }
+    offers:
+      "@type": Offer
+      price: { ref: "#{{id}} .price" }
+      priceCurrency: USD
+
+  children:
+    - h1:
+        class: "name"
+        text: "{{name}}"
+    - p:
+        class: "description"
+        text: "{{description}}"
+    - span:
+        class: "price"
+        text: "{{price}}"
+    - span:
+        class: "finish"
+        text: "{{finish}}"

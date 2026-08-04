@@ -1,0 +1,15 @@
+# 07 — {{placeholders}} filled by CLI key=value or RPC data
+
+div:
+  class: "product"
+  id: "{{id}}"
+  children:
+    - h1:
+        class: "name"
+        text: "{{name}}"
+    - p:
+        class: "description"
+        text: "SKU {{sku}}"
+    - span:
+        class: "price"
+        text: "{{price}}"

@@ -1,0 +1,19 @@
+# 05 — Implicit conventions (no ld: keys)
+# class "article" → Schema.org Article from child classes
+
+"@context": "https://schema.org"
+
+article:
+  class: "article"
+  id: "post_1"
+  children:
+    - h1:
+        class: "headline"
+        text: "Why YAML trees beat angle brackets"
+    - span:
+        class: "author"
+        text: "Ada Lovelace"
+    - time:
+        class: "datePublished"
+        text: "2026-08-04"
+    - p: "A short note on structural markup."

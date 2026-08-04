@@ -1,0 +1,21 @@
+{
+  "name": "render-tree",
+  "version": "0.1.0",
+  "description": "YML-DOM: YAML structural markup that renders to HTML with reactive JSON-LD, JSON-RPC, and WebSocket sync",
+  "type": "module",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
+    "render": "node src/cli.js",
+    "examples": "node examples/05-register-convention.js && node examples/06-custom-rpc.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "js-yaml": "^4.1.0",
+    "socket.io": "^4.8.1"
+  }
+}

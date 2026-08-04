@@ -1,0 +1,46 @@
+# Static demo page with implicit product + review schemas
+"@context": "https://schema.org"
+"@type": "WebPage"
+"@name": "YML-DOM Demo"
+
+body:
+  style:
+    margin: "0"
+    font-family: "Georgia, serif"
+    background: "#0f1419"
+    color: "#e7ecf1"
+
+  main:
+    style:
+      max-width: "40rem"
+      margin: "3rem auto"
+      padding: "0 1.5rem"
+
+    children:
+      - h1: "YML-DOM"
+      - p: |
+          YAML structural markup that renders to HTML,
+          with reactive JSON-LD and real-time sync.
+      - div:
+          class: "product"
+          id: "item_55"
+          children:
+            - h1:
+                class: "name"
+                text: "Quantum Headphones"
+            - p:
+                class: "description"
+                text: "Noise-cancelling headphones from the future."
+            - span:
+                class: "price"
+                text: "299.00"
+      - div:
+          class: "review"
+          id: "review_1"
+          children:
+            - p:
+                class: "reviewBody"
+                text: "Absolutely incredible sound quality!"
+            - span:
+                class: "rating"
+                text: "5"

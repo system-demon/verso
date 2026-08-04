@@ -1,0 +1,16 @@
+# 02 — children: for sibling elements (YAML maps cannot repeat keys)
+
+div:
+  class: "stack"
+  id: "stack_1"
+  children:
+    - h2: "Three lines"
+    - p:
+        class: "line"
+        text: "First"
+    - p:
+        class: "line"
+        text: "Second"
+    - p:
+        class: "line"
+        text: "Third"

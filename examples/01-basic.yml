@@ -1,0 +1,15 @@
+# 01 — Basic markup: tags, attributes, text, block scalars
+
+body:
+  style:
+    font-family: "Georgia, serif"
+    margin: "2rem"
+
+  main:
+    h1: "Hello, YML-DOM"
+    p: |
+      This paragraph is a YAML literal block.
+      Line breaks are preserved in the source.
+    a:
+      href: "https://example.com"
+      text: "A link"

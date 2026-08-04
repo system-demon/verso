@@ -1,0 +1,24 @@
+# 03 — Reactive JSON-LD: LD fields reference UI text
+
+"@context": "https://schema.org"
+
+div:
+  class: "recipe-card"
+  id: "recipe_1"
+
+  ld:
+    "@type": Recipe
+    name: { ref: "#recipe_1 .name" }
+    description: { ref: "#recipe_1 .description" }
+    cookTime: { ref: "#recipe_1 .cookTime" }
+
+  children:
+    - h1:
+        class: "name"
+        text: "Skillet Eggs"
+    - p:
+        class: "description"
+        text: "Fast breakfast with whatever is in the fridge."
+    - span:
+        class: "cookTime"
+        text: "PT15M"

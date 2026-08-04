@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>render-tree · YML-DOM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="top">
+    <p class="brand">render-tree</p>
+    <p class="status" id="status">connecting…</p>
+  </header>
+
+  <main class="stage">
+    <section class="panel live" aria-labelledby="live-heading">
+      <h1 id="live-heading">Live component</h1>
+      <p class="lede">YAML template rendered over JSON-RPC. Change state below — HTML and JSON-LD update together.</p>
+      <div id="mount" class="mount" aria-live="polite"></div>
+    </section>
+
+    <section class="panel controls" aria-labelledby="ctrl-heading">
+      <h2 id="ctrl-heading">Update state</h2>
+      <form id="update-form" class="form">
+        <label>
+          Name
+          <input name="name" id="field-name" type="text" value="Quantum Headphones" autocomplete="off">
+        </label>
+        <label>
+          Price
+          <input name="price" id="field-price" type="text" value="299.00" inputmode="decimal" autocomplete="off">
+        </label>
+        <label>
+          Finish
+          <input name="finish" id="field-finish" type="text" value="Matte Black" autocomplete="off">
+        </label>
+        <label>
+          Description
+          <textarea name="description" id="field-description" rows="2">Noise-cancelling headphones from the future.</textarea>
+        </label>
+        <button type="submit">Push update</button>
+      </form>
+      <p class="hint">Open this page in two windows on the same session to see sync.</p>
+    </section>
+
+    <section class="panel meta" aria-labelledby="ld-heading">
+      <h2 id="ld-heading">JSON-LD</h2>
+      <pre id="ld-out" class="code"><code>{}</code></pre>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js" type="module"></script>
+</body>
+</html>
