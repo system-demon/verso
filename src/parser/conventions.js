@@ -59,8 +59,10 @@ export function unregisterConvention(triggerClass) {
 
 /**
  * Discover implicit JSON-LD entities from rendered nodes.
+ * Elements with an explicit `@id` (or an HTML `id`) carry it as the entity's
+ * graph node id, so they can merge with ld:/ld_if contributions on that node.
  * @param {import('./contentMap.js').ContentMap} contentMap
- * @param {Array<{ id?: string, classes: string[] }>} elements
+ * @param {Array<{ id?: string, classes: string[], graphId?: string }>} elements
  * @returns {object[]}
  */
 export function discoverImplicitSchemas(contentMap, elements) {
@@ -72,6 +74,8 @@ export function discoverImplicitSchemas(contentMap, elements) {
       if (!classList.includes(trigger)) continue;
 
       const entity = { '@type': schema.type };
+      const graphId = el.graphId ?? (el.id ? `#${el.id}` : undefined);
+      if (graphId) entity['@id'] = graphId;
       const scope = el.id ? `#${el.id}` : null;
 
       for (const [schemaKey, selector] of Object.entries(schema.fields)) {

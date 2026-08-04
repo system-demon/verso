@@ -1,0 +1,59 @@
+# 08 — Graph shaping: ld:, ld_if and conventions co-author one graph node
+# when they share an @id (here derived from the element's HTML id).
+# Also shows ld_if "exists" and operator-less truthiness conditions.
+
+"@context": "https://schema.org"
+
+article:
+  class: "article"
+  id: "post_1"
+
+  # Contributes to the SAME node as the convention-harvested Article below:
+  # both carry "@id": "#post_1" (derived from id: "post_1").
+  ld:
+    "@type": Article
+    wordCount: 1200
+    about: "Structural markup"
+
+  # "exists" — only assert the award when the .badge element has content
+  ld_if:
+    condition:
+      ref: "#post_1 .badge"
+      operator: exists
+    then:
+      award: { ref: "#post_1 .badge" }
+
+  children:
+    - h1:
+        class: "headline"
+        text: "Merging YAML trees into knowledge graphs"
+    - span:
+        class: "author"
+        text: "Ada Lovelace"
+    - time:
+        class: "datePublished"
+        text: "2026-08-04"
+    - span:
+        class: "badge"
+        text: "Editor's Choice"
+
+div:
+  class: "product"
+  id: "sku_mug"
+
+  # No operator → truthiness: availability is asserted because
+  # "#sku_mug .price" resolves to non-empty text.
+  ld_if:
+    condition: { ref: "#sku_mug .price" }
+    then:
+      offers:
+        "@type": Offer
+        availability: "https://schema.org/InStock"
+
+  children:
+    - span:
+        class: "name"
+        text: "Travel Mug"
+    - span:
+        class: "price"
+        text: "79.00"

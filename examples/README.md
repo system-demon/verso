@@ -45,7 +45,7 @@ npm run render -- examples/02-children.yml
 npm run render -- examples/03-reactive-ld.yml --json
 ```
 
-**Customize:** refs are CSS-like: `#id`, `#id tag`, `#id .class`, or `.class`. Keep an `id` on the scope element so node identity stays stable in the graph.
+**Customize:** refs are CSS-like: `#id`, `#id tag`, `#id .class`, or `.class`. Keep an `id` on the scope element so node identity stays stable in the graph. `@context` may be a string, an array, or a map (all preserved as-is; `@context` inside an `ld:` block is hoisted and merged into the document context), and an `@id` key on any element becomes the entity's graph node id.
 
 ---
 
@@ -57,7 +57,7 @@ npm run render -- examples/03-reactive-ld.yml --json
 npm run render -- examples/04-ld-if.yml --json
 ```
 
-Operators: `<`, `>`, `<=`, `>=`, `==`, `!=`, `contains`.
+Operators: `<`, `>`, `<=`, `>=`, `==`, `!=`, `contains`, `exists`. Omit the operator (and `value`) for a plain truthiness check on the ref.
 
 **Customize:** change `value` / `operator`, or add more properties inside `then` / `else`. Combine with a normal `ld:` block on the same element.
 
@@ -161,6 +161,18 @@ The demo mounts RPC HTML into `#mount`. Convention-driven cards are styled via `
 1. Add classes in your template YAML.
 2. Target them under `.mount` in CSS (or your own page).
 3. Listen for `pushUpdate` in `public/client.js` if you need extra client logic when the graph/view pair refreshes.
+
+---
+
+## 10. Graph shaping — `08-graph-merge.yml`
+
+Entities that share an `@id` merge into a single graph node instead of separate `@graph` entries — so `ld:`, `ld_if`, and convention-harvested entities can all co-author the same subject:
+
+```bash
+npm run render -- examples/08-graph-merge.yml --json
+```
+
+**Customize:** give two elements the same `@id` (explicit `@id:` key, or derived automatically as `#<id>` from the HTML `id`) and their properties deep-merge; differing `@type`s union into an array.
 
 ---
 

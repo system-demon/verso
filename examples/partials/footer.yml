@@ -1,0 +1,5 @@
+# Partial: a map — merged into the including node (main, here)
+footer:
+  p:
+    class: "legal"
+    text: "© 2026 Verso"

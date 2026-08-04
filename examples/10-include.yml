@@ -1,0 +1,14 @@
+# 10 — include: inlines another YAML tree (paths relative to this file)
+# Cycle-protected; includes resolve before {{params}} injection.
+# Map partials merge as defaults (local keys win); list partials become children.
+
+head:
+  title: "Verso — Include Demo"
+
+body:
+  main:
+    h1: "Includes"
+    ul:
+      class: "nav"
+      include: "partials/nav-items.yml"
+    include: "partials/footer.yml"

@@ -51,12 +51,13 @@ export const methods = {
     const merged = { ...getItemState(sessionId, itemId), ...data };
 
     const source = loadTemplate(componentId);
-    const result = renderYaml(source, { params: merged });
+    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR });
 
     return {
       html: result.html,
       ldJson: result.ldJson,
       contentMap: result.contentMap,
+      head: result.head,
       itemId,
       sessionId,
     };
@@ -70,8 +71,8 @@ export const methods = {
     return {
       ...out,
       document: toDocument(
-        { html: out.html, ldJson: out.ldJson, contentMap: out.contentMap, ldScript: `<script type="application/ld+json">${JSON.stringify(out.ldJson, null, 2)}</script>` },
-        { title: params.title ?? 'Verso' },
+        { html: out.html, ldJson: out.ldJson, contentMap: out.contentMap, ldScript: `<script type="application/ld+json">${JSON.stringify(out.ldJson, null, 2)}</script>`, head: out.head },
+        { title: params.title },
       ),
     };
   },
@@ -91,7 +92,7 @@ export const methods = {
 
     const merged = updateItemState(sessionId, itemId, updates);
     const source = loadTemplate(componentId);
-    const result = renderYaml(source, { params: merged });
+    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR });
 
     return {
       target: `#${itemId}`,
@@ -101,6 +102,25 @@ export const methods = {
       state: merged,
       itemId,
       sessionId,
+    };
+  },
+
+  /**
+   * Render inline YAML supplied in the request — no templates/ file needed.
+   * Server-side counterpart of examples/06-custom-rpc.js.
+   */
+  renderInline(params = {}, _ctx) {
+    if (typeof params?.yaml !== 'string' || !params.yaml.trim()) {
+      throw rpcError(-32602, 'params.yaml (non-empty string) is required');
+    }
+    const result = renderYaml(params.yaml, {
+      params: params.data ?? {},
+      strict: params.strict === true ? true : undefined,
+    });
+    return {
+      html: result.html,
+      ldJson: result.ldJson,
+      contentMap: result.contentMap,
     };
   },
 

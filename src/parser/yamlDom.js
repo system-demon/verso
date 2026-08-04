@@ -6,7 +6,9 @@
 import yaml from 'js-yaml';
 import { ContentMap } from './contentMap.js';
 import { buildLdDocument } from './ldResolver.js';
-import { discoverImplicitSchemas } from './conventions.js';
+import { discoverImplicitSchemas, ConventionRegistry } from './conventions.js';
+import { resolveIncludes } from './includes.js';
+import { validateTree, strictFromEnv } from './validate.js';
 
 const ATTR_KEYS = new Set([
   'id',
@@ -56,6 +58,26 @@ const VOID_TAGS = new Set([
 ]);
 
 const SPECIAL_SKIP = new Set(['ld', 'ld_if', '@context', '@type', '@name', '@id']);
+
+/**
+ * Standard HTML tags. Entity shorthand keys (product:, article:, …) that
+ * match a real tag keep it; anything else expands to a <div>.
+ */
+const KNOWN_TAGS = new Set([
+  'html', 'head', 'body', 'title', 'base', 'link', 'meta', 'style', 'script',
+  'main', 'section', 'article', 'aside', 'header', 'footer', 'nav', 'address',
+  'div', 'span', 'p', 'a', 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+  'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption', 'colgroup', 'col',
+  'form', 'input', 'button', 'label', 'select', 'optgroup', 'option', 'textarea',
+  'fieldset', 'legend', 'datalist', 'output', 'progress', 'meter',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup',
+  'img', 'picture', 'video', 'audio', 'source', 'track', 'canvas', 'svg',
+  'figure', 'figcaption', 'iframe', 'embed', 'object', 'param', 'portal',
+  'strong', 'em', 'b', 'i', 'u', 's', 'small', 'sub', 'sup', 'code', 'pre',
+  'blockquote', 'q', 'cite', 'abbr', 'time', 'data', 'mark', 'del', 'ins',
+  'kbd', 'samp', 'var', 'dfn', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'wbr', 'br', 'hr',
+  'details', 'summary', 'dialog', 'template', 'slot', 'map', 'area',
+]);
 
 let nodeCounter = 0;
 
@@ -124,6 +146,7 @@ function escapeAttr(s) {
  * @property {object} ldJson
  * @property {Record<string, string>} contentMap
  * @property {string} [ldScript]
+ * @property {{ title?: string, html: string }} [head] parsed top-level head: block
  */
 
 /**
@@ -141,7 +164,10 @@ export function preprocessYaml(source) {
 /**
  * Parse YAML string and render to HTML + JSON-LD.
  * @param {string} yamlSource
- * @param {{ params?: Record<string, unknown> }} [options]
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean }} [options]
+ *   baseDir enables `include: "file.yml"` resolution (relative to the source file).
+ *   strict (or VERSO_STRICT=1) validates the resolved tree before rendering —
+ *   pass strict: false to ignore the env var.
  * @returns {RenderResult}
  */
 export function renderYaml(yamlSource, options = {}) {
@@ -150,7 +176,11 @@ export function renderYaml(yamlSource, options = {}) {
     throw new Error('Verso root must be a mapping');
   }
 
-  const tree = injectParamsDeep(raw, options.params ?? {});
+  const withIncludes = resolveIncludes(raw, { baseDir: options.baseDir });
+  if (options.strict ?? strictFromEnv()) {
+    validateTree(withIncludes);
+  }
+  const tree = injectParamsDeep(withIncludes, options.params ?? {});
   return renderTree(/** @type {Record<string, unknown>} */ (tree));
 }
 
@@ -162,17 +192,27 @@ export function renderYaml(yamlSource, options = {}) {
 export function renderTree(tree) {
   nodeCounter = 0;
   const contentMap = new ContentMap();
-  /** @type {{ root: Record<string, unknown>, blocks: object[], conditionals: object[] }} */
+  /** @type {{ root: Record<string, unknown>, blocks: Array<{ block: object, graphId?: string }>, conditionals: Array<{ block: object, graphId?: string }> }} */
   const ldCollected = { root: {}, blocks: [], conditionals: [] };
-  /** @type {Array<{ id?: string, classes: string[] }>} */
+  /** @type {Array<{ id?: string, classes: string[], graphId?: string }>} */
   const trackedElements = [];
 
-  // Harvest root-level @* LD keys
+  // Harvest root-level @* LD keys and the head: block
   /** @type {Record<string, unknown>} */
   const visualRoot = {};
+  /** @type {{ title?: string, html: string } | undefined} */
+  let head;
   for (const [key, value] of Object.entries(tree)) {
     if (key.startsWith('@')) {
       ldCollected.root[key] = value;
+    } else if (key === 'head') {
+      head = parseHeadBlock(value, {
+        contentMap,
+        ldCollected,
+        trackedElements,
+        parentId: undefined,
+        ancestorIds: [],
+      });
     } else {
       visualRoot[key] = value;
     }
@@ -201,7 +241,133 @@ export function renderTree(tree) {
     ldJson,
     contentMap: contentMap.toObject(),
     ldScript,
+    head,
   };
+}
+
+/**
+ * Parse a top-level head: block into a title + raw <head> inner HTML.
+ *   head: "Title"                          → title only
+ *   head:
+ *     title: "..."
+ *     meta:  { description: "..." } | [ { name: ..., content: ... } ]
+ *     link:  { stylesheet: "a.css" } | [ { rel: ..., href: ... } ]
+ *     css:   "raw css" | { selector: { prop: value } }   → <style>
+ *     <anything else>                      → rendered as an element (script:, base:, …)
+ * @param {unknown} value
+ * @param {object} ctx
+ */
+function parseHeadBlock(value, ctx) {
+  /** @type {{ title?: string, html: string }} */
+  const head = { html: '' };
+  if (typeof value === 'string') {
+    head.title = value;
+    return head;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return head;
+
+  const parts = [];
+  for (const [k, v] of Object.entries(/** @type {Record<string, unknown>} */ (value))) {
+    if (k === 'title') {
+      head.title = String(v ?? '');
+    } else if (k === 'meta') {
+      parts.push(renderHeadMeta(v));
+    } else if (k === 'link') {
+      parts.push(renderHeadLink(v));
+    } else if (k === 'css' || k === 'style') {
+      const css = typeof v === 'string' ? v : cssMapToCss(v);
+      if (css.trim()) parts.push(`<style>\n${css}\n</style>`);
+    } else {
+      parts.push(renderNode(k, v, ctx));
+    }
+  }
+  head.html = parts.filter(Boolean).join('\n');
+  return head;
+}
+
+/**
+ * meta: map of name→content, or a list of attribute maps.
+ * @param {unknown} v
+ */
+function renderHeadMeta(v) {
+  if (Array.isArray(v)) {
+    return v
+      .map((item) => (item && typeof item === 'object' ? attrsTag('meta', item) : ''))
+      .filter(Boolean)
+      .join('\n');
+  }
+  if (v && typeof v === 'object') {
+    return Object.entries(/** @type {Record<string, unknown>} */ (v))
+      .map(([name, content]) =>
+        name === 'charset'
+          ? `<meta charset="${escapeAttr(content)}">`
+          : `<meta name="${escapeAttr(name)}" content="${escapeAttr(content)}">`,
+      )
+      .join('\n');
+  }
+  return '';
+}
+
+/**
+ * link: map of rel→href, a single attribute map ({ rel, href, … }), or a list of those.
+ * @param {unknown} v
+ */
+function renderHeadLink(v) {
+  if (Array.isArray(v)) {
+    return v
+      .map((item) => (item && typeof item === 'object' ? attrsTag('link', item) : ''))
+      .filter(Boolean)
+      .join('\n');
+  }
+  if (v && typeof v === 'object') {
+    const obj = /** @type {Record<string, unknown>} */ (v);
+    if ('rel' in obj && 'href' in obj) return attrsTag('link', obj);
+    return Object.entries(obj)
+      .map(([rel, href]) => `<link rel="${escapeAttr(rel)}" href="${escapeAttr(href)}">`)
+      .join('\n');
+  }
+  return '';
+}
+
+/**
+ * @param {string} tag
+ * @param {Record<string, unknown>} attrs
+ */
+function attrsTag(tag, attrs) {
+  const attrStr = Object.entries(attrs)
+    .map(([k, val]) => ` ${k}="${escapeAttr(val)}"`)
+    .join('');
+  return `<${tag}${attrStr}>`;
+}
+
+/**
+ * Selector → declarations map to plain CSS text (one level, no pipeline).
+ * @param {unknown} map
+ */
+function cssMapToCss(map) {
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return '';
+  return Object.entries(/** @type {Record<string, unknown>} */ (map))
+    .map(([selector, decls]) => {
+      if (typeof decls === 'string') return `${selector} { ${decls} }`;
+      if (!decls || typeof decls !== 'object') return '';
+      const body = Object.entries(/** @type {Record<string, unknown>} */ (decls))
+        .map(([prop, val]) => `  ${camelToKebab(prop)}: ${val};`)
+        .join('\n');
+      return `${selector} {\n${body}\n}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+/**
+ * Ensure the convention trigger class is present, keeping author classes.
+ * @param {string} trigger
+ * @param {unknown} existing
+ */
+function mergeClass(trigger, existing) {
+  const parts = String(existing ?? '').split(/\s+/).filter(Boolean);
+  if (!parts.includes(trigger)) parts.unshift(trigger);
+  return parts.join(' ');
 }
 
 /**
@@ -221,14 +387,35 @@ function renderNode(tag, value, ctx) {
     return '';
   }
 
+  // Entity shorthand: a key matching a registered convention (product:, article:, …)
+  // becomes an element carrying that class, so implicit JSON-LD still fires.
+  // Real HTML tags keep their tag (article: → <article class="article">),
+  // anything else expands to a <div> (product: → <div class="product">).
+  const key = tag.toLowerCase();
+  const entityClass = ConventionRegistry[key] ? key : null;
+  const outTag = entityClass && !KNOWN_TAGS.has(key) ? 'div' : tag;
+  const entityAttrs = entityClass ? { class: entityClass } : {};
+
   // String shorthand: h1: "Hello"
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-    return openClose(tag, {}, String(value), ctx);
+    return openClose(outTag, entityAttrs, String(value), ctx);
   }
 
   // Array of children under a tag — e.g. li: [ ... ] means multiple items?
   // Spec: li: [ a, a ] → multiple <li>. For a list parent like ul with array value:
   if (Array.isArray(value)) {
+    if (entityClass) {
+      // product: [ {...}, {...} ] → one entity element per item
+      return value
+        .map((item) => {
+          if (item && typeof item === 'object' && !Array.isArray(item)) {
+            const obj = /** @type {Record<string, unknown>} */ (item);
+            return renderNode(outTag, { ...obj, class: mergeClass(entityClass, obj.class) }, ctx);
+          }
+          return openClose(outTag, entityAttrs, String(item ?? ''), ctx);
+        })
+        .join('\n');
+    }
     return value
       .map((item) => {
         if (item && typeof item === 'object' && !Array.isArray(item)) {
@@ -243,17 +430,29 @@ function renderNode(tag, value, ctx) {
   }
 
   if (!value || typeof value !== 'object') {
-    return openClose(tag, {}, '', ctx);
+    return openClose(outTag, entityAttrs, '', ctx);
   }
 
   const obj = /** @type {Record<string, unknown>} */ (value);
 
-  // Harvest ld / ld_if on this element
+  // Graph node id for this element: explicit @id wins, else the HTML id
+  // attribute as a fragment IRI. Lets ld:, ld_if and conventions co-author
+  // the same graph node.
+  const elIdAttr =
+    obj.id !== undefined && obj.id !== null ? String(obj.id) : undefined;
+  const graphId =
+    typeof obj['@id'] === 'string' && obj['@id']
+      ? obj['@id']
+      : elIdAttr
+        ? `#${elIdAttr}`
+        : undefined;
+
+  // Harvest ld / ld_if on this element, tagged with its graph node id
   if (obj.ld && typeof obj.ld === 'object') {
-    ctx.ldCollected.blocks.push(obj.ld);
+    ctx.ldCollected.blocks.push({ block: obj.ld, graphId });
   }
   if (obj.ld_if && typeof obj.ld_if === 'object') {
-    ctx.ldCollected.conditionals.push(obj.ld_if);
+    ctx.ldCollected.conditionals.push({ block: obj.ld_if, graphId });
   }
 
   // Collect attributes vs children
@@ -298,12 +497,14 @@ function renderNode(tag, value, ctx) {
     children.push([k, v]);
   }
 
+  if (entityClass) attrs.class = mergeClass(entityClass, attrs.class);
+
   const id = attrs.id;
   const classes = (attrs.class ?? '').split(/\s+/).filter(Boolean);
   const nodeId = id || `__n${++nodeCounter}`;
 
   if (id || classes.length) {
-    ctx.trackedElements.push({ id, classes });
+    ctx.trackedElements.push({ id, classes, graphId });
   }
 
   // Build child HTML with updated parent context
@@ -325,7 +526,7 @@ function renderNode(tag, value, ctx) {
 
   ctx.contentMap.registerNode({
     nodeId,
-    tag,
+    tag: outTag,
     id,
     classes,
     text: mapText || textContent,
@@ -335,13 +536,13 @@ function renderNode(tag, value, ctx) {
   // Also register scoped selectors for nested text fields onto nearest id ancestor
   const scopeId = id || ctx.parentId;
   if (scopeId && textContent) {
-    ctx.contentMap.set(`#${scopeId} ${tag}`, textContent.trim());
+    ctx.contentMap.set(`#${scopeId} ${outTag}`, textContent.trim());
     for (const cls of classes) {
       ctx.contentMap.set(`#${scopeId} .${cls}`, textContent.trim());
     }
   }
 
-  return openClose(tag, attrs, inner, ctx, { rawInner: true });
+  return openClose(outTag, attrs, inner, ctx, { rawInner: true });
 }
 
 /**
@@ -434,19 +635,27 @@ function openClose(tag, attrs, inner, ctx, opts = {}) {
 
 /**
  * Wrap rendered body HTML into a full document with LD script in <head>.
+ * A parsed head: block (result.head) supplies title/meta/link/style;
+ * charset and viewport defaults are skipped when the block provides them.
  * @param {RenderResult} result
  * @param {{ title?: string }} [meta]
  */
 export function toDocument(result, meta = {}) {
-  const title = meta.title ?? 'Verso';
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${escapeHtml(title)}</title>
-  ${result.ldScript}
-</head>
-${result.html.includes('<body') ? result.html : `<body>\n${result.html}\n</body>`}
-</html>`;
+  const head = result.head;
+  const title = head?.title ?? meta.title ?? 'Verso';
+  const headHtml = head?.html ?? '';
+
+  const lines = ['<!DOCTYPE html>', '<html lang="en">', '<head>'];
+  if (!/charset/i.test(headHtml)) lines.push('  <meta charset="utf-8">');
+  if (!/name="viewport"/i.test(headHtml)) {
+    lines.push('  <meta name="viewport" content="width=device-width, initial-scale=1">');
+  }
+  lines.push(`  <title>${escapeHtml(title)}</title>`);
+  if (headHtml) lines.push(...headHtml.split('\n').map((l) => `  ${l}`));
+  lines.push(`  ${result.ldScript}`, '</head>');
+  lines.push(
+    result.html.includes('<body') ? result.html : `<body>\n${result.html}\n</body>`,
+    '</html>',
+  );
+  return lines.join('\n');
 }

@@ -1,0 +1,22 @@
+# 09 — head: block → real <head> in --doc / toDocument
+# title, meta (name→content map or attr list), link (rel→href or attr list),
+# css as a raw string or a selector → declarations map (one level, no pipeline)
+
+head:
+  title: "Verso — Head Demo"
+  meta:
+    description: "A page whose <head> is declared in YAML"
+    viewport: "width=device-width, initial-scale=1"
+  link:
+    stylesheet: "https://example.com/verso.css"
+  css:
+    body:
+      margin: "0"
+      fontFamily: "system-ui, sans-serif"
+    h1:
+      color: "#5b3df5"
+
+body:
+  main:
+    h1: "Head blocks"
+    p: "View source: title, meta, link and <style> all came from the head: block."

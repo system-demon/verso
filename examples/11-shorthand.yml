@@ -1,0 +1,27 @@
+# 11 — Entity shorthand: a key matching a registered convention becomes
+# an element carrying that class, so convention-based JSON-LD still fires.
+#   product: → <div class="product">     (not a real HTML tag)
+#   article: → <article class="article"> (real tag is kept)
+
+product:
+  id: "sku_42"
+  children:
+    - h2:
+        class: "name"
+        text: "Verso Tee"
+    - p:
+        class: "description"
+        text: "Soft markup, strong opinions."
+    - span:
+        class: "price"
+        text: "24.50"
+
+article:
+  id: "post_9"
+  children:
+    - h1:
+        class: "headline"
+        text: "Shorthand entities"
+    - span:
+        class: "author"
+        text: "Grace Hopper"

@@ -8,6 +8,7 @@
     "start": "node src/server/index.js",
     "dev": "node --watch src/server/index.js",
     "render": "node src/cli.js",
+    "watch": "node src/cli.js --watch",
     "examples": "node examples/05-register-convention.js && node examples/06-custom-rpc.js"
   },
   "engines": {

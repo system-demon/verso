@@ -1,10 +1,15 @@
 # 03 — Reactive JSON-LD: graph properties reference presentational text
+# Shows multiple @contexts (array: string + prefix map, preserved as-is)
+# and an explicit @id giving the entity a stable graph node IRI.
 
-"@context": "https://schema.org"
+"@context":
+  - "https://schema.org"
+  - kitchen: "https://example.org/kitchen#"
 
 div:
   class: "recipe-card"
   id: "recipe_1"
+  "@id": "https://example.org/recipes/skillet-eggs"
 
   ld:
     "@type": Recipe

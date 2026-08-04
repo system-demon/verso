@@ -1,0 +1,4 @@
+# Partial: a bare list — spliced in as children of the including node
+- li: "Home"
+- li: "Docs"
+- li: "About"
