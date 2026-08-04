@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 /**
  * CLI: render a .yml file to HTML (+ optional JSON-LD dump)
- * Usage: node src/cli.js templates/product.yml [--json] [--doc] [--strict] [--watch] [--profile key=value ...] [KEY=value ...]
+ * Usage: node src/cli.js templates/product.yml [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]
  *
  *   --json     print { html, ldJson, contentMap } as JSON
  *   --doc      print a full HTML document
  *   --strict   validate the tree first (also VERSO_STRICT=1)
  *   --watch    re-render on file change; keeps stdout parseable (markers on stderr)
+ *   --emit resolved
+ *              print the resolved intermediate tree as YAML instead of
+ *              rendering — includes inlined, profile filtering applied,
+ *              params/keys substituted (maps: assembled section/nav tree).
+ *              Mutually exclusive with --json/--doc; pairs with --strict,
+ *              --profile, KEY=value and --watch.
  *   --profile  profiling attributes for if:/flag: — collect key=value pairs
  *              after the flag until the next --flag, e.g.
  *              --profile audience=admin platform=web
@@ -15,7 +21,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { renderYaml, toDocument } from './parser/yamlDom.js';
+import yaml from 'js-yaml';
+import { renderYaml, resolveTree, toDocument } from './parser/yamlDom.js';
 
 const args = process.argv.slice(2);
 const PARAM_RE = /^([A-Za-z_]\w*)=(.*)$/;
@@ -33,14 +40,38 @@ if (profileIdx !== -1) {
   }
 }
 
-const file = args.find((a, i) => !profileSpan.has(i) && !a.startsWith('--') && !PARAM_RE.test(a));
+// --emit <target> — print an intermediate form instead of rendering
+const emitIdx = args.indexOf('--emit');
+/** @type {string | undefined} */
+let emitTarget;
+let emitValueIdx = -1;
+if (emitIdx !== -1) {
+  emitValueIdx = emitIdx + 1;
+  const value = args[emitValueIdx];
+  if (value === undefined || value.startsWith('--')) {
+    console.error('verso: --emit needs a target (available: resolved)');
+    process.exit(1);
+  }
+  if (value !== 'resolved') {
+    console.error(`verso: unknown --emit target "${value}" (available: resolved)`);
+    process.exit(1);
+  }
+  emitTarget = value;
+}
+
+const file = args.find((a, i) => !profileSpan.has(i) && i !== emitValueIdx && !a.startsWith('--') && !PARAM_RE.test(a));
 const asJson = args.includes('--json');
 const asDoc = args.includes('--doc');
 const strict = args.includes('--strict') ? true : undefined;
 const watch = args.includes('--watch');
 
+if (emitTarget && (asJson || asDoc)) {
+  console.error('verso: --emit resolved is mutually exclusive with --json and --doc');
+  process.exit(1);
+}
+
 if (!file) {
-  console.error('Usage: node src/cli.js <file.yml> [--json] [--doc] [--strict] [--watch] [--profile key=value ...] [KEY=value ...]');
+  console.error('Usage: node src/cli.js <file.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]');
   process.exit(1);
 }
 
@@ -56,6 +87,18 @@ for (let i = 0; i < args.length; i++) {
 
 function renderOnce() {
   const source = fs.readFileSync(filePath, 'utf8');
+
+  if (emitTarget === 'resolved') {
+    const tree = resolveTree(source, {
+      params,
+      strict,
+      baseDir: path.dirname(filePath),
+      profile: profilePairs,
+    });
+    process.stdout.write(yaml.dump(tree));
+    return;
+  }
+
   const result = renderYaml(source, {
     params,
     strict,

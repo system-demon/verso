@@ -338,6 +338,43 @@ Semantics:
 
 ---
 
+## 16. Debug target: `--emit resolved`
+
+`--emit resolved` prints the **resolved intermediate tree** — the document exactly as the renderer consumes it — serialized back to YAML, instead of rendering HTML. This is tooling pattern #1 from `docs/dita-research.md` ("normalize-then-emit with a documented intermediate + debug target"): the same idea as DITA-OT's preprocess/`dita` transtype or mdBook's debug renderer. Use it to debug includes, profiles, params, and keys — or to pipe the normalized tree into other tooling.
+
+```bash
+node src/cli.js examples/12-keys.yml --emit resolved
+```
+
+```yaml
+div:
+  class: product
+  id: item_1
+  ld:
+    '@type': Product
+    name: WonderWidget            # { key: product-name } substituted
+    offers:
+      '@type': Offer
+      price:
+        ref: '#item_1 .price'     # ref-valued key rewritten to { ref }
+  children:
+    - h1: { class: name, text: WonderWidget }
+    # ...
+```
+
+What you get, and why:
+
+- **Exactly the renderer's input.** The emitted tree is the first argument `renderTree` receives: includes inlined (fragment pulls applied), profile filtering done (`if:`/`flag:` keys stripped, failed conditions pruned), `{{params}}` injected, `{ key }` references substituted. `KEY=value` params and `--profile` apply — e.g. `--emit resolved --profile audience=novice` on `16-profiles.yml` emits a tree with the admin panel absent and `flag-novice` classes already merged.
+- **Maps emit the assembled synthetic tree.** For a `map:` document you get the `{ fragment: [nav, section…] }` tree after assembly: nav/pager/related-link nodes generated, fragments included, map-level key/convention cascades applied. (The publication-level root JSON-LD — `CollectionPage` + `hasPart` — is computed alongside the tree and passed to the renderer separately, so it is not in the output.)
+- **Harvested blocks are stripped.** File-root `keys:` / `conventions:` blocks are collected into the per-render key map and convention registry during include resolution — they never reach the renderer, so they never reach the emitted tree either. (Conventions therefore still affect the *render* of an emitted tree via the registry; they just aren't data in it.) Likewise, map fragments' `head:`/`@context` are consumed by the cascade and don't appear.
+- **Ref-valued keys stay as `{ ref }`.** They resolve post-render against the ContentMap, so the emitted tree shows them in their rewritten `{ ref: "selector" }` form inside `ld:`/`ld_if`.
+- **`--strict` still validates.** `--strict --emit resolved` runs the same tree validation and exits non-zero on the same errors a render would.
+- **Mutually exclusive with `--json` / `--doc`** (a clear error — there is no HTML or JSON-LD to print). Pairs with `--profile`, `KEY=value`, and `--watch` (re-emits on change, handy for watching a tree normalize).
+
+The JS-side entry point is `resolveTree(source, options)` in `src/parser/yamlDom.js`, which shares the render pipeline with `renderYaml` up to (but not including) the render pass.
+
+---
+
 ## Extension checklist
 
 | Goal | Where |
@@ -354,5 +391,6 @@ Semantics:
 | New remote publish API | `registerMethod(...)` in RPC |
 | Real-time push of view + graph | `src/server/index.js` `pushUpdate` emit |
 | Parser / attribute rules | `ATTR_KEYS` / `TEXT_KEYS` in `yamlDom.js` |
+| Debug the tree the renderer receives | `--emit resolved` (`resolveTree()` in `yamlDom.js`) |
 
 When in doubt: start from a YAML example, render with `--json`, inspect `html` + `ldJson` + `contentMap`, then add a convention or RPC method only if the markup alone is not enough.

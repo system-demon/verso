@@ -69,6 +69,34 @@ export function isMapDocument(raw) {
  * @returns {import('./yamlDom.js').RenderResult & { item?: string }}
  */
 export function renderMap(raw, options = {}) {
+  const resolved = resolveMapTree(raw, options);
+  const result = renderTree(resolved.tree, {
+    registry: resolved.registry,
+    strict: resolved.strict,
+    refKeyUsages: resolved.refKeyUsages,
+    rootLd: resolved.rootLd,
+  });
+
+  const item = typeof options.item === 'string' ? options.item : undefined;
+  if (item === undefined) return result;
+  return extractItem(result, resolved.tree, resolved.model, resolved.registry, item);
+}
+
+/**
+ * Run the map pipeline up to (but not including) renderTree: build the
+ * render model, assemble the synthetic section/nav tree, resolve fragment
+ * includes, then apply profile filtering, {{params}} injection and { key }
+ * substitution — plus the publication-level root JSON-LD that renderTree
+ * receives as a separate option. This is the map half of resolveTree()
+ * (yamlDom.js): `tree` is the resolved intermediate `--emit resolved`
+ * prints for `map:` documents.
+ * @param {Record<string, unknown>} raw parsed YAML root carrying `map:`
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, profile?: Record<string, unknown> | string[] }} [options]
+ *   profile: profiling attributes for `if:`/`flag:` (see profiles.js); applied
+ *   over the assembled tree right after includes resolve.
+ * @returns {{ tree: Record<string, unknown>, registry: Record<string, import('./conventions.js').ResolvedConvention>, refKeyUsages: Array<{ name: string, selector: string, path: string }>, rootLd: Record<string, unknown>, model: { sections: Array<{ key: string, navText: string }> }, strict: boolean }}
+ */
+export function resolveMapTree(raw, options = {}) {
   const strict = options.strict ?? strictFromEnv();
   const profile = parseProfile(options.profile);
   const model = buildMapModel(raw.map, { strict });
@@ -112,16 +140,14 @@ export function renderMap(raw, options = {}) {
     strict,
   });
   const rootLd = buildRootLd(raw, model, collect.contexts);
-  const result = renderTree(/** @type {Record<string, unknown>} */ (keyed), {
+  return {
+    tree: /** @type {Record<string, unknown>} */ (keyed),
     registry,
-    strict,
     refKeyUsages,
     rootLd,
-  });
-
-  const item = typeof options.item === 'string' ? options.item : undefined;
-  if (item === undefined) return result;
-  return extractItem(result, keyed, model, registry, item);
+    model,
+    strict,
+  };
 }
 
 /* ---------------------------------------------------------------- model */

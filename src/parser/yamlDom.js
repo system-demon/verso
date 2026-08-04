@@ -9,7 +9,7 @@ import { buildLdDocument } from './ldResolver.js';
 import { discoverImplicitSchemas, buildRenderRegistry, ConventionRegistry } from './conventions.js';
 import { resolveIncludes } from './includes.js';
 import { resolveKeys } from './keys.js';
-import { isMapDocument, renderMap } from './map.js';
+import { isMapDocument, renderMap, resolveMapTree } from './map.js';
 import { filterTree, parseProfile } from './profiles.js';
 import { validateTree, validateRendered, strictFromEnv } from './validate.js';
 
@@ -209,6 +209,59 @@ export function preprocessYaml(source) {
 }
 
 /**
+ * Parse a YAML source string into its root mapping (preprocessed so bare
+ * @keys load). Shared entry point for renderYaml / resolveTree.
+ * @param {string} yamlSource
+ * @returns {Record<string, unknown>}
+ */
+function parseRoot(yamlSource) {
+  const raw = yaml.load(preprocessYaml(yamlSource));
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Verso root must be a mapping');
+  }
+  return /** @type {Record<string, unknown>} */ (raw);
+}
+
+/**
+ * The standalone-document pipeline up to (but not including) renderTree:
+ * profile filtering → include resolution (+ file-root keys:/conventions:
+ * harvest) → strict validation → {{param}} injection → { key } substitution.
+ * Shared by renderYaml (which renders the result) and resolveTree (which
+ * returns it as the documented intermediate).
+ * @param {Record<string, unknown>} raw parsed YAML root (non-map document)
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean }} options
+ * @param {Record<string, string> | undefined} profile normalized profile
+ */
+function prepareDocument(raw, options, profile) {
+  const strict = options.strict ?? strictFromEnv();
+  // Profile filtering is the first pipeline step: excluded content never
+  // reaches includes, params, keys, render, or the graph. Condition keys are
+  // stripped even without a profile; strict shape validation runs always.
+  const filtered = filterTree(raw, profile, { strict });
+  const collect = { keys: {}, conventions: {} };
+  const withIncludes = resolveIncludes(filtered, {
+    baseDir: options.baseDir,
+    collect,
+  });
+  const registry = buildRenderRegistry(ConventionRegistry, collect.conventions);
+  if (strict) {
+    validateTree(withIncludes, {
+      registry,
+      conventions: collect.conventions,
+      keys: collect.keys,
+    });
+  }
+  const tree = injectParamsDeep(withIncludes, options.params ?? {});
+  const { tree: keyed, refKeyUsages } = resolveKeys(tree, collect.keys, { strict });
+  return {
+    tree: /** @type {Record<string, unknown>} */ (keyed),
+    registry,
+    strict,
+    refKeyUsages,
+  };
+}
+
+/**
  * Parse YAML string and render to HTML + JSON-LD.
  * @param {string} yamlSource
  * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, item?: string, profile?: Record<string, unknown> | string[] }} [options]
@@ -233,41 +286,54 @@ export function preprocessYaml(source) {
  * @returns {RenderResult}
  */
 export function renderYaml(yamlSource, options = {}) {
-  const raw = yaml.load(preprocessYaml(yamlSource));
-  if (!raw || typeof raw !== 'object') {
-    throw new Error('Verso root must be a mapping');
-  }
+  const raw = parseRoot(yamlSource);
 
   const profile = parseProfile(options.profile);
   if (isMapDocument(raw)) {
     return renderMap(raw, { ...options, profile });
   }
 
-  const strict = options.strict ?? strictFromEnv();
-  // Profile filtering is the first pipeline step: excluded content never
-  // reaches includes, params, keys, render, or the graph. Condition keys are
-  // stripped even without a profile; strict shape validation runs always.
-  const filtered = filterTree(raw, profile, { strict });
-  const collect = { keys: {}, conventions: {} };
-  const withIncludes = resolveIncludes(filtered, {
-    baseDir: options.baseDir,
-    collect,
-  });
-  const registry = buildRenderRegistry(ConventionRegistry, collect.conventions);
-  if (strict) {
-    validateTree(withIncludes, {
-      registry,
-      conventions: collect.conventions,
-      keys: collect.keys,
-    });
-  }
-  const tree = injectParamsDeep(withIncludes, options.params ?? {});
-  const { tree: keyed, refKeyUsages } = resolveKeys(tree, collect.keys, { strict });
-  return renderTree(/** @type {Record<string, unknown>} */ (keyed), {
+  const { tree, registry, strict, refKeyUsages } = prepareDocument(raw, options, profile);
+  return renderTree(tree, {
     registry,
     strict,
     refKeyUsages,
   });
+}
+
+/**
+ * Parse YAML source and return the RESOLVED INTERMEDIATE TREE — the document
+ * exactly as renderTree consumes it — without rendering. This is the
+ * normalize-then-emit debug target behind the CLI's `--emit resolved`
+ * (docs/dita-research.md, tooling pattern #1).
+ *
+ * The pipeline runs to completion short of the render pass: includes inlined,
+ * profile filtering applied (`if:`/`flag:` keys stripped, excluded content
+ * pruned), {{params}} injected, `{ key }` references substituted, and — for
+ * `map:` documents — the synthetic section/nav tree assembled with fragment
+ * cascades applied. Strict validation still runs when strict is set, so
+ * `--strict --emit resolved` fails on the same errors a render would.
+ *
+ * Fidelity note: the returned tree is exactly renderTree's first argument.
+ * Things renderTree receives through other channels are absent by design —
+ * harvested file-root `keys:`/`conventions:` blocks (they live in the
+ * per-render collector/registry), and, for maps, the publication-level root
+ * JSON-LD (a separate renderTree option built by map.js).
+ * @param {string} yamlSource
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, profile?: Record<string, unknown> | string[] }} [options]
+ *   Same option semantics as renderYaml; `item` does not apply (chunking is
+ *   a post-render projection).
+ * @returns {Record<string, unknown>}
+ */
+export function resolveTree(yamlSource, options = {}) {
+  const raw = parseRoot(yamlSource);
+
+  const profile = parseProfile(options.profile);
+  if (isMapDocument(raw)) {
+    return resolveMapTree(raw, { ...options, profile }).tree;
+  }
+
+  return prepareDocument(raw, options, profile).tree;
 }
 
 /**
