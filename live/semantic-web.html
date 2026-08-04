@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verso · Semantic Web (Wikipedia, mocked up)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/verso.css">
+  <style>
+    /* wikipedia mockup — the skin is the point; it lives on a single leaf */
+    .book.single { max-width: 54rem; }
+    #view h1 { font-size: 1.9rem; font-weight: normal; border-bottom: 1px solid #a2a9b1; padding-bottom: 0.2rem; margin: 0 0 1rem; }
+    #view h2 { font-size: 1.4rem; font-weight: normal; border-bottom: 1px solid #a2a9b1; padding-bottom: 0.15rem; margin: 2rem 0 0.8rem; }
+    #view a { color: #3366cc; text-decoration: none; }
+    #view a:hover { text-decoration: underline; }
+    #view .lead { margin-top: 0; }
+    #view .infobox { float: right; width: 15rem; margin: 0 0 1rem 1.5rem; font-size: 0.82rem; background: #f8f9fa; border: 1px solid #a2a9b1; }
+    #view .infobox table { border-collapse: collapse; width: 100%; }
+    #view .infobox caption { font-weight: bold; padding: 0.5rem; background: #eaecf0; font-size: 0.95rem; }
+    #view .infobox th, #view .infobox td { border: 1px solid #a2a9b1; padding: 0.35rem 0.6rem; text-align: left; vertical-align: top; }
+    #view .infobox th { background: #eaecf0; width: 40%; }
+    #view blockquote.dream { margin: 1.2rem 2rem; padding: 0.8rem 1.2rem; background: #f8f9fa; border-left: 4px solid #a2a9b1; font-style: italic; }
+    #view blockquote.dream footer { font-style: normal; font-size: 0.85rem; color: #54595d; margin-top: 0.5rem; }
+    #view pre { background: #f8f9fa; border: 1px solid #a2a9b1; padding: 0.9rem 1.1rem; overflow: auto; }
+    #view pre code { font-size: 0.76rem; line-height: 1.5; }
+    #view ul { padding-left: 1.4rem; }
+    #view li { margin: 0.35rem 0; }
+    #view q::before { content: "\201C"; }
+    #view q::after { content: "\201D"; }
+    #view .source-note { clear: both; border-top: 1px solid #a2a9b1; margin-top: 2.5rem; padding-top: 0.8rem; font-size: 0.85rem; color: #54595d; }
+    @media (max-width: 640px) { #view .infobox { float: none; width: 100%; margin: 1rem 0; } }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Verso</h1>
+    <p class="imprint">mockup: “Semantic Web” — presentation + real JSON-LD, one tree</p>
+    <nav>
+      <a href="https://en.wikipedia.org/wiki/Semantic_Web">original ↗</a>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+    </nav>
+  </header>
+
+  <div class="book single">
+    <section class="page page--recto">
+      <div class="running-head"><span>after wikipedia</span><span class="face">Recto</span></div>
+      <main id="view"></main>
+    </section>
+  </div>
+
+  <div class="colophon">
+    <details>
+      <summary>Source · semantic-web.verso.yml</summary>
+      <pre id="src">loading…</pre>
+    </details>
+    <details>
+      <summary>Graph · JSON-LD (compare with the original article’s structured data)</summary>
+      <pre id="graph"></pre>
+    </details>
+    <p class="folio"><span>verso press — reading room</span><span>leaf iii</span></p>
+  </div>
+
+  <script type="module">
+    const viewEl = document.getElementById('view');
+    const srcEl = document.getElementById('src');
+    const graphEl = document.getElementById('graph');
+
+    const source = await fetch('/live/semantic-web.verso.yml').then((r) => r.text());
+    srcEl.textContent = source;
+
+    const res = await fetch('/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'renderInline',
+        params: { yaml: source },
+        id: 1,
+      }),
+    }).then((r) => r.json());
+
+    if (res.error) {
+      viewEl.innerHTML = `<p style="color:#7a2e2e">render error: ${res.error.message}</p>`;
+    } else {
+      viewEl.innerHTML = res.result.html;
+      graphEl.textContent = JSON.stringify(res.result.ldJson, null, 2);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+# Hello, World — a tour of Verso in one file
+# One tree, two projections: what browsers paint + what machines can assert.
+
+"@context": "https://schema.org"
+"@type": "WebPage"
+"@name": "Hello, Verso"
+
+# Indirection: one fact, referenced everywhere. Change it once.
+keys:
+  product-name: "Verso"
+  tagline: { ref: "#hello .tagline" }   # ref-valued key (ld: positions)
+
+# Vocabulary declared in the file itself: greeting → Thing,
+# launch extends it (single inheritance, @type union in the graph).
+conventions:
+  greeting:
+    type: Thing
+    fields:
+      name: ".name"
+      tagline: ".tagline"
+  launch:
+    extends: greeting
+    type: CreativeWork
+    fields:
+      version: ".version"
+    requires: [.name]
+
+body:
+  main:
+    children:
+      - launch:                          # entity shorthand → <div class="launch">
+          id: "hello"
+
+          # Graph assertions that bind to the presentation above.
+          ld:
+            description: { key: tagline }
+
+          # Conditional typing: version 0.9 < 1 → EarlyAccess.
+          ld_if:
+            condition: { ref: "#hello .version", operator: "<", value: 1 }
+            then: { additionalType: "EarlyAccess" }
+            else: { additionalType: "Stable" }
+
+          children:
+            - h1:
+                class: "name"
+                text: { key: product-name }
+            - p:
+                class: "tagline"
+                text: "The other side of the page is meaning."
+            - span:
+                class: "version"
+                text: "0.9"
+
+            # Presentation profiles (P4): excluded content never asserts.
+            - aside:
+                class: "admin-note"
+                if: { audience: admin }
+                ld:
+                  "@type": "Comment"
+                  text: "Admin-visible assertion"
+                text: "Admin note: this panel and its graph node only exist for admins."
+            - p:
+                class: "novice-hint"
+                flag: { audience: novice }
+                text: "Everything on this page came from one YAML tree."

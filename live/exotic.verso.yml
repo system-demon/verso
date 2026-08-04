@@ -1,0 +1,317 @@
+# A field guide to exotic HTML5 — authored entirely in Verso
+# Every element below was written as a YAML key; no HTML was typed.
+
+"@context": "https://schema.org"
+"@type": "WebPage"
+"@name": "Exotic HTML5, via Verso"
+
+keys:
+  specimen-count: "twenty"
+
+body:
+  ld:
+    "@type": "TechArticle"
+    headline: "A field guide to exotic HTML5"
+    keywords: "dialog, details, meter, datalist, output, ruby, wbr, bdi, picture, search, mark, data, time, del, ins, progress"
+    about:
+      "@type": "SoftwareSourceCode"
+      codeRepository: "https://github.com/system-demon/verso"
+
+  main:
+    children:
+      - h1: "Exotic HTML5"
+      - p: |
+          A field guide to the elements nobody uses, authored entirely
+          in Verso. Each specimen below was a YAML key a moment ago.
+
+      - section:
+          id: "interactive"
+          children:
+            - h2: "Interactive"
+
+            - details:
+                open: ""
+                children:
+                  - summary: "What is <details>?"
+                  - p: "A native disclosure widget. You clicked a <summary> to read this. No JavaScript."
+
+            - div:
+                class: "specimen"
+                children:
+                  - button:
+                      id: "open-dialog"
+                      text: "Open <dialog>"
+                  - dialog:
+                      id: "demo-dialog"
+                      children:
+                        - h3: "Native modal"
+                        - p: "This is a top-layer <dialog> element. Backdrop, focus trap, Esc to close — all built in."
+                        - button:
+                            id: "close-dialog"
+                            text: "Close"
+
+            - search:
+                children:
+                  - form:
+                      action: "/live/exotic.html"
+                      method: "get"
+                      children:
+                        - input:
+                            type: "search"
+                            name: "q"
+                            placeholder: "The <search> element wraps this form"
+                        - button:
+                            type: "submit"
+                            text: "Search"
+
+            - div:
+                class: "specimen"
+                children:
+                  - label:
+                      for: "lang"
+                      text: "Type an element name:"
+                  - input:
+                      id: "lang"
+                      list: "element-list"
+                      placeholder: "<datalist> suggests as you type"
+                  - datalist:
+                      id: "element-list"
+                      children:
+                        - option: { value: "dialog" }
+                        - option: { value: "meter" }
+                        - option: { value: "datalist" }
+                        - option: { value: "output" }
+                        - option: { value: "ruby" }
+
+            - div:
+                class: "specimen"
+                children:
+                  - label:
+                      for: "vol"
+                      text: "Range feeding <output>:"
+                  - input:
+                      id: "vol"
+                      type: "range"
+                      min: "0"
+                      max: "100"
+                      value: "42"
+                  - output:
+                      id: "vol-out"
+                      for: "vol"
+                      text: "42"
+
+            - div:
+                class: "specimen"
+                children:
+                  - label:
+                      for: "swatch-input"
+                      text: "input[type=color]:"
+                  - input:
+                      id: "swatch-input"
+                      type: "color"
+                      value: "#4a6b2a"
+                  - span:
+                      id: "swatch"
+                      class: "swatch"
+                      text: "#4a6b2a"
+
+      - section:
+          id: "gauges"
+          children:
+            - h2: "Gauges"
+            - p:
+                children:
+                  - span: { text: "A " }
+                  - code: "<meter>"
+                  - span: { text: " is a gauge within a known range (low/high/optimum coloring): " }
+                  - meter:
+                      value: "0.7"
+                      min: "0"
+                      max: "1"
+                      low: "0.3"
+                      high: "0.8"
+                      optimum: "0.9"
+                      text: "70%"
+            - p:
+                children:
+                  - span: { text: "A " }
+                  - code: "<progress>"
+                  - span: { text: " is task completion: " }
+                  - progress:
+                      value: "42"
+                      max: "100"
+                      text: "42%"
+
+      - section:
+          id: "text-level"
+          children:
+            - h2: "Text level"
+
+            - p:
+                children:
+                  - span: { text: "Ruby annotations: " }
+                  - ruby:
+                      text: "意味"
+                      children:
+                        - rt: "いみ"
+                  - span: { text: " (meaning) — " }
+                  - ruby:
+                      text: "言語"
+                      children:
+                        - rt: "げんご"
+                  - span: { text: " (language)" }
+
+            - p:
+                children:
+                  - span: { text: "Bidirectional isolation — " }
+                  - bdi: "العربية"
+                  - span: { text: " — stays inside its " }
+                  - code: "<bdi>"
+                  - span: { text: " boundary, and " }
+                  - wbr: ""
+                  - span: { text: "supercalifragilistic" }
+                  - wbr: ""
+                  - span: { text: "expialidocious breaks only at " }
+                  - code: "<wbr>"
+                  - span: { text: " hints." }
+
+            - p:
+                children:
+                  - mark: "<mark> highlights"
+                  - span: { text: " relevant text, " }
+                  - abbr:
+                      title: "HyperText Markup Language"
+                      text: "HTML"
+                  - span: { text: " abbreviates, and " }
+                  - data:
+                      value: "398"
+                      text: "a <data> element carries a machine value"
+                  - span: { text: "." }
+
+            - p:
+                children:
+                  - kbd: "Ctrl"
+                  - span: { text: " + " }
+                  - kbd: "K"
+                  - span: { text: " is keyboard input (" }
+                  - code: "<kbd>"
+                  - span: { text: "), " }
+                  - samp: "hello, world"
+                  - span: { text: " is sample output (" }
+                  - code: "<samp>"
+                  - span: { text: "), and " }
+                  - var: "x"
+                  - sup: "2"
+                  - span: { text: " + y" }
+                  - sub: "1"
+                  - span: { text: " mixes " }
+                  - code: "<var>"
+                  - span: { text: ", " }
+                  - code: "<sup>"
+                  - span: { text: ", " }
+                  - code: "<sub>"
+                  - span: { text: "." }
+
+            - p:
+                children:
+                  - time:
+                      datetime: "2026-08-04"
+                      text: "August 4, 2026"
+                  - span: { text: " is a " }
+                  - code: "<time>"
+                  - span: { text: " with a machine-readable datetime. " }
+                  - small: "The <small> print is right here."
+
+            - blockquote:
+                cite: "https://html.spec.whatwg.org/"
+                children:
+                  - p: "The cite attribute is metadata; it does not render."
+            - p:
+                children:
+                  - q:
+                      cite: "https://example.com"
+                      text: "Inline quotes get quotation marks for free."
+
+            - p:
+                children:
+                  - del:
+                      cite: "https://example.com/edit/1"
+                      datetime: "2026-08-01"
+                      text: "This sentence was removed."
+                  - ins:
+                      cite: "https://example.com/edit/2"
+                      datetime: "2026-08-04"
+                      text: "This sentence was inserted."
+                  - span: { text: " — " }
+                  - code: "<del>"
+                  - span: { text: " and " }
+                  - code: "<ins>"
+                  - span: { text: " with provenance." }
+
+            - ol:
+                reversed: ""
+                start: "7"
+                li:
+                  - "Countdown lists count backward (reversed + start=7)"
+                  - "Six"
+                  - "Five"
+
+      - section:
+          id: "media-figures"
+          children:
+            - h2: "Media & figures"
+            - figure:
+                children:
+                  - picture:
+                      children:
+                        - source:
+                            media: "(min-width: 700px)"
+                            srcset: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%234a6b2a'/%3E%3C/svg%3E"
+                        - img:
+                            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' fill='%23b3541e'/%3E%3C/svg%3E"
+                            alt: "A green circle on wide viewports, a rust square on narrow ones"
+                            width: "64"
+                            height: "64"
+                  - figcaption: "<picture> art-directs the source; <figure> + <figcaption> give it a caption. Resize the window."
+
+      - section:
+          id: "tabular"
+          children:
+            - h2: "Tabular"
+            - table:
+                children:
+                  - caption: "Specimens by section"
+                  - thead:
+                      children:
+                        - tr:
+                            children:
+                              - th: { scope: "col", text: "Section" }
+                              - th: { scope: "col", text: "Count" }
+                  - tbody:
+                      children:
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Interactive" }
+                              - td: "7"
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Text level" }
+                              - td: "13"
+            - p:
+                children:
+                  - code: "<caption>"
+                  - span: { text: " titles the table; " }
+                  - code: "scope"
+                  - span: { text: " ties headers to rows and columns." }
+
+      - footer:
+          children:
+            - p:
+                children:
+                  - span: { text: "All " }
+                  - span:
+                      text: { key: specimen-count }
+                  - span: { text: " specimens, one YAML tree. " }
+                  - a:
+                      href: "/live/"
+                      text: "← back to hello, world"
