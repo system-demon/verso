@@ -1,5 +1,5 @@
 /**
- * JSON-RPC 2.0 method handlers for YML-DOM
+ * JSON-RPC 2.0 method handlers for Verso
  */
 
 import fs from 'node:fs';
@@ -71,7 +71,7 @@ export const methods = {
       ...out,
       document: toDocument(
         { html: out.html, ldJson: out.ldJson, contentMap: out.contentMap, ldScript: `<script type="application/ld+json">${JSON.stringify(out.ldJson, null, 2)}</script>` },
-        { title: params.title ?? 'YML-DOM' },
+        { title: params.title ?? 'Verso' },
       ),
     };
   },

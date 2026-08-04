@@ -1,5 +1,5 @@
 /**
- * YML-DOM server — Express HTTP JSON-RPC + Socket.IO
+ * Verso server — Express HTTP JSON-RPC + Socket.IO
  * Serves presentational HTML and linked-data (JSON-LD) from the same tree
  */
 
@@ -29,7 +29,7 @@ app.post('/rpc', (req, res) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'yml-dom', port: PORT });
+  res.json({ ok: true, service: 'verso', port: PORT });
 });
 
 const httpServer = createServer(app);
@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`render-tree listening on http://localhost:${PORT}`);
+  console.log(`Verso listening on http://localhost:${PORT}`);
   console.log(`  JSON-RPC  POST /rpc`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);
   console.log(`  Demo      http://localhost:${PORT}/`);

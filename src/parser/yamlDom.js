@@ -1,5 +1,5 @@
 /**
- * YML-DOM core parser
+ * Verso core parser
  * Recursive YAML object → HTML (presentation) + ContentMap + JSON-LD (graph)
  */
 
@@ -147,7 +147,7 @@ export function preprocessYaml(source) {
 export function renderYaml(yamlSource, options = {}) {
   const raw = yaml.load(preprocessYaml(yamlSource));
   if (!raw || typeof raw !== 'object') {
-    throw new Error('YML-DOM root must be a mapping');
+    throw new Error('Verso root must be a mapping');
   }
 
   const tree = injectParamsDeep(raw, options.params ?? {});
@@ -438,7 +438,7 @@ function openClose(tag, attrs, inner, ctx, opts = {}) {
  * @param {{ title?: string }} [meta]
  */
 export function toDocument(result, meta = {}) {
-  const title = meta.title ?? 'YML-DOM';
+  const title = meta.title ?? 'Verso';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

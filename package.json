@@ -1,7 +1,7 @@
 {
-  "name": "render-tree",
+  "name": "verso",
   "version": "0.1.0",
-  "description": "YAML structural markup that renders to HTML and publishes JSON-LD from the same tree — presentation and Semantic Web graph in sync",
+  "description": "The other side of the page is meaning — YAML markup that renders HTML and publishes JSON-LD from the same tree",
   "type": "module",
   "main": "src/server/index.js",
   "scripts": {

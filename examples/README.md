@@ -9,7 +9,7 @@ node examples/05-register-convention.js
 node examples/06-custom-rpc.js
 ```
 
-These samples show how to grow the **presentational tree** and the **linked-data graph** together — not as separate authoring passes.
+These samples show how **Verso** grows the **presentational tree** and the **linked-data graph** together — not as separate authoring passes.
 
 ---
 

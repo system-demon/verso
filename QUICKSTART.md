@@ -1,6 +1,8 @@
 # Quickstart
 
-**render-tree** turns a YAML tree into HTML for browsers and **JSON-LD** for the Semantic Web — from the same source. Optional JSON-RPC and WebSockets keep the presentational view and the linked-data graph in sync when state changes.
+**Verso** turns a YAML tree into HTML for browsers and **JSON-LD** for the Semantic Web — from the same source. Optional JSON-RPC and WebSockets keep the presentational view and the linked-data graph in sync when state changes.
+
+> The other side of the page is meaning.
 
 ## Requirements
 
@@ -31,7 +33,7 @@ npm run render -- templates/demo.yml --doc
 npm run render -- templates/product.yml --json id=item_1 name="Widget" price=19.99 description="A thing" finish=Steel
 ```
 
-## Minimal YML-DOM file
+## Minimal Verso file
 
 ```yaml
 body:

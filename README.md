@@ -1,14 +1,16 @@
-# render-tree
+# Verso
 
 YAML structural markup that renders to HTML — and publishes **JSON-LD** from the same tree.
 
-The web has always had two layers that rarely stay aligned: a **presentational tree** (what browsers paint) and a **knowledge graph** (what machines can interpret). render-tree treats them as views of one source. You author an indentation-based structure; the runtime emits DOM for humans and linked data for the Semantic Web.
+The web has always had two layers that rarely stay aligned: a **presentational tree** (what browsers paint) and a **knowledge graph** (what machines can interpret). Verso treats them as two faces of one leaf. You author an indentation-based structure; the runtime emits DOM for humans and linked data for the Semantic Web.
 
 Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, so presentation and assertions update together.
 
+> The other side of the page is meaning.
+
 ## Features
 
-- **YML-DOM** — keys are tags; indentation is the tree; `children:` for sibling elements
+- **Verso markup** — keys are tags; indentation is the tree; `children:` for sibling elements
 - **Linked data from structure** — `@context` / `@type`, `ld:` blocks, and class→vocabulary conventions
 - **Reactive assertions** — `{ ref: "#id .class" }` binds graph properties to the same content the UI shows
 - **Conditional assertions** — `ld_if` chooses types or properties from the data in the tree
@@ -35,7 +37,7 @@ npm run render -- templates/product.yml --json \
 
 Requires **Node.js 18+**.
 
-Full walkthrough: [QUICKSTART.md](QUICKSTART.md)
+Full walkthrough: [QUICKSTART.md](QUICKSTART.md)  
 Extend & customize: [examples/README.md](examples/README.md)
 
 ## Example
@@ -67,7 +69,7 @@ The runtime renders the HTML card and a JSON-LD document: implicit `Product` pro
 
 ## Why this shape?
 
-HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. render-tree keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
+HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. Verso keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
 
 Crawlers and rich-result consumers are one audience for that graph. Agents, datasets, and interoperable APIs are others.
 

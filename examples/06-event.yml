@@ -7,7 +7,7 @@ section:
   children:
     - h1:
         class: "name"
-        text: "render-tree meetup"
+        text: "Verso meetup"
     - time:
         class: "startDate"
         text: "2026-09-12T18:00:00-07:00"

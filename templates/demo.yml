@@ -1,7 +1,7 @@
 # Static demo: presentational tree + implicit Product / Review graph entities
 "@context": "https://schema.org"
 "@type": "WebPage"
-"@name": "render-tree Demo"
+"@name": "Verso Demo"
 
 body:
   style:
@@ -17,10 +17,10 @@ body:
       padding: "0 1.5rem"
 
     children:
-      - h1: "render-tree"
+      - h1: "Verso"
       - p: |
-          YAML structural markup: one tree for presentation
-          and for linked data on the Semantic Web.
+          The other side of the page is meaning.
+          One tree for presentation and for linked data.
       - div:
           class: "product"
           id: "item_55"
