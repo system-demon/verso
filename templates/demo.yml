@@ -1,7 +1,7 @@
-# Static demo page with implicit product + review schemas
+# Static demo: presentational tree + implicit Product / Review graph entities
 "@context": "https://schema.org"
 "@type": "WebPage"
-"@name": "YML-DOM Demo"
+"@name": "render-tree Demo"
 
 body:
   style:
@@ -17,10 +17,10 @@ body:
       padding: "0 1.5rem"
 
     children:
-      - h1: "YML-DOM"
+      - h1: "render-tree"
       - p: |
-          YAML structural markup that renders to HTML,
-          with reactive JSON-LD and real-time sync.
+          YAML structural markup: one tree for presentation
+          and for linked data on the Semantic Web.
       - div:
           class: "product"
           id: "item_55"

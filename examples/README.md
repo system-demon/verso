@@ -9,6 +9,8 @@ node examples/05-register-convention.js
 node examples/06-custom-rpc.js
 ```
 
+These samples show how to grow the **presentational tree** and the **linked-data graph** together — not as separate authoring passes.
+
 ---
 
 ## 1. Basic markup — `01-basic.yml`
@@ -37,19 +39,19 @@ npm run render -- examples/02-children.yml
 
 ## 3. Reactive JSON-LD — `03-reactive-ld.yml`
 
-`{ ref: "#id .class" }` pulls text from the ContentMap after the HTML pass:
+`{ ref: "#id .class" }` binds a graph property to presentational text after the HTML pass (same fact, two consumers):
 
 ```bash
 npm run render -- examples/03-reactive-ld.yml --json
 ```
 
-**Customize:** refs are CSS-like: `#id`, `#id tag`, `#id .class`, or `.class`. Keep an `id` on the scope element so refs stay stable.
+**Customize:** refs are CSS-like: `#id`, `#id tag`, `#id .class`, or `.class`. Keep an `id` on the scope element so node identity stays stable in the graph.
 
 ---
 
-## 4. Conditional metadata — `04-ld-if.yml`
+## 4. Conditional assertions — `04-ld-if.yml`
 
-`ld_if` picks `then` or `else` from a comparison against the ContentMap:
+`ld_if` picks `then` or `else` from a comparison against the ContentMap — typed claims that depend on the data in the tree:
 
 ```bash
 npm run render -- examples/04-ld-if.yml --json
@@ -57,13 +59,13 @@ npm run render -- examples/04-ld-if.yml --json
 
 Operators: `<`, `>`, `<=`, `>=`, `==`, `!=`, `contains`.
 
-**Customize:** change `value` / `operator`, or add more fields inside `then` / `else`. Combine with a normal `ld:` block on the same element.
+**Customize:** change `value` / `operator`, or add more properties inside `then` / `else`. Combine with a normal `ld:` block on the same element.
 
 ---
 
-## 5. Built-in conventions — `05-implicit.yml`
+## 5. Vocabulary conventions — `05-implicit.yml`
 
-Trigger classes in `ConventionRegistry` auto-emit Schema.org entities:
+Trigger classes in `ConventionRegistry` auto-emit typed JSON-LD entities (built-ins use the Schema.org vocabulary as `@context`):
 
 | Class | Type | Looks for |
 |-------|------|-----------|
@@ -75,13 +77,13 @@ Trigger classes in `ConventionRegistry` auto-emit Schema.org entities:
 npm run render -- examples/05-implicit.yml --json
 ```
 
-**Customize without code:** use those class names in your YAML. **Customize with code:** see example 6.
+**Customize without code:** use those class names in your YAML. **Customize with code:** see example 6 — register any vocabulary type you need.
 
 ---
 
 ## 6. Register a new convention — `05-register-convention.js`
 
-Adds an `event` trigger → Schema.org `Event`, then renders `06-event.yml`:
+Adds an `event` trigger → typed `Event` (Schema.org terms here), then renders `06-event.yml`:
 
 ```bash
 node examples/05-register-convention.js
@@ -100,7 +102,7 @@ registerConvention('event', {
     startDate: '.startDate',
     location: '.location',
   },
-  // optional post-process
+  // optional: shape blank nodes / nested entities
   transform(entity) {
     if (entity.location) {
       entity.location = { '@type': 'Place', name: entity.location };
@@ -110,13 +112,13 @@ registerConvention('event', {
 });
 ```
 
-Put `class: "event"` on a container and child classes matching `fields`.
+Put `class: "event"` on a container and child classes matching `fields`. Point `@context` at whatever vocabulary those types belong to.
 
 ---
 
 ## 7. Parameterized templates — `07-template.yml`
 
-`{{name}}` placeholders are filled from CLI `key=value` or RPC `params.data`:
+`{{name}}` placeholders are filled from CLI `key=value` or RPC `params.data` — inject entity values into both the view and the derived graph:
 
 ```bash
 npm run render -- examples/07-template.yml --json id=sku_1 name="Bolt" price=4.50 sku="B-100"
@@ -128,7 +130,7 @@ npm run render -- examples/07-template.yml --json id=sku_1 name="Bolt" price=4.5
 
 ## 8. Custom JSON-RPC method — `06-custom-rpc.js`
 
-Registers `renderSnippet` (renders inline YAML from the request body):
+Registers `renderSnippet` (renders inline YAML from the request body; returns HTML + JSON-LD):
 
 ```bash
 node examples/06-custom-rpc.js
@@ -152,13 +154,13 @@ Wire `registerMethod` in `src/server/index.js` (or an imported plugin) before ac
 
 ## 9. Live client styling — `public/`
 
-The demo mounts RPC HTML into `#mount`. Product cards are styled via `.mount .product …` in `public/styles.css`.
+The demo mounts RPC HTML into `#mount`. Convention-driven cards are styled via `.mount .product …` in `public/styles.css` (presentation only; the graph is in the JSON-LD panel).
 
 **Customize:**
 
 1. Add classes in your template YAML.
 2. Target them under `.mount` in CSS (or your own page).
-3. Listen for `pushUpdate` in `public/client.js` if you need extra client logic (analytics, form sync, etc.).
+3. Listen for `pushUpdate` in `public/client.js` if you need extra client logic when the graph/view pair refreshes.
 
 ---
 
@@ -167,11 +169,11 @@ The demo mounts RPC HTML into `#mount`. Product cards are styled via `.mount .pr
 | Goal | Where |
 |------|--------|
 | New page/component markup | `templates/*.yml` or `examples/*.yml` |
-| New Schema.org shape from classes | `registerConvention(...)` |
-| New conditional SEO rules | `ld_if` in the YAML |
-| Tie LD to UI text | `ld:` + `{ ref }` |
-| New remote API | `registerMethod(...)` in RPC |
-| Real-time push behavior | `src/server/index.js` `pushUpdate` emit |
+| New vocabulary type from classes | `registerConvention(...)` |
+| Conditional assertions | `ld_if` in the YAML |
+| Bind graph properties to UI text | `ld:` + `{ ref }` |
+| New remote publish API | `registerMethod(...)` in RPC |
+| Real-time push of view + graph | `src/server/index.js` `pushUpdate` emit |
 | Parser / attribute rules | `ATTR_KEYS` / `TEXT_KEYS` in `yamlDom.js` |
 
 When in doubt: start from a YAML example, render with `--json`, inspect `html` + `ldJson` + `contentMap`, then add a convention or RPC method only if the markup alone is not enough.

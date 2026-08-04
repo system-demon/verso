@@ -1,6 +1,6 @@
 /**
  * YML-DOM core parser
- * Recursive YAML object → HTML string + ContentMap + LD buffers
+ * Recursive YAML object → HTML (presentation) + ContentMap + JSON-LD (graph)
  */
 
 import yaml from 'js-yaml';

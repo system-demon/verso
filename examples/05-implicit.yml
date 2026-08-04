@@ -1,5 +1,5 @@
-# 05 — Implicit conventions (no ld: keys)
-# class "article" → Schema.org Article from child classes
+# 05 — Vocabulary conventions (no ld: keys)
+# class "article" → typed Article entity harvested from child classes
 
 "@context": "https://schema.org"
 

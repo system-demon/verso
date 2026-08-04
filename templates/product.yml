@@ -1,4 +1,4 @@
-# Product card — Implicit Schema Mapping via class: product
+# Entity card — class: product convention emits typed JSON-LD
 # Placeholders {{name}}, {{price}}, etc. filled by JSON-RPC params
 
 div:

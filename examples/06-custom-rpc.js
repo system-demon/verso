@@ -1,5 +1,6 @@
 /**
- * Example: register a custom JSON-RPC method that renders inline YAML.
+ * Example: register a custom JSON-RPC method that renders inline YAML
+ * and returns both presentational HTML and the JSON-LD graph.
  *
  *   node examples/06-custom-rpc.js
  *

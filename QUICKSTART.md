@@ -1,6 +1,6 @@
 # Quickstart
 
-**render-tree** turns YAML into HTML, and can derive JSON-LD from the same tree. Optional JSON-RPC + WebSockets keep the UI and metadata in sync when state changes.
+**render-tree** turns a YAML tree into HTML for browsers and **JSON-LD** for the Semantic Web — from the same source. Optional JSON-RPC and WebSockets keep the presentational view and the linked-data graph in sync when state changes.
 
 ## Requirements
 
@@ -13,21 +13,21 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3847](http://localhost:3847). Edit name/price/finish and submit — the HTML card and the JSON-LD panel update together. Open a second tab to see live sync.
+Open [http://localhost:3847](http://localhost:3847). Edit the fields and submit — the rendered fragment and the JSON-LD panel update together. Open a second tab to see live sync of both layers.
 
 ## Render a file from the CLI
 
 ```bash
-# HTML + JSON-LD script comment
+# HTML + JSON-LD script
 npm run render -- templates/demo.yml
 
-# Structured output
+# Structured output (html + ldJson + contentMap)
 npm run render -- templates/demo.yml --json
 
-# Full HTML document
+# Full HTML document with JSON-LD in <head>
 npm run render -- templates/demo.yml --doc
 
-# Fill {{placeholders}}
+# Fill {{placeholders}} (entity / graph data)
 npm run render -- templates/product.yml --json id=item_1 name="Widget" price=19.99 description="A thing" finish=Steel
 ```
 
@@ -58,9 +58,11 @@ Notes:
 - YAML maps cannot repeat the same key — put siblings in a `children:` list.
 - Bare `@context` / `@type` keys are fine; the parser quotes them for `js-yaml`.
 
-## Add Schema.org without duplicating copy
+## Assert linked data without a second document
 
-**Implicit** — a trigger class fills JSON-LD from child classes:
+The same tree can carry JSON-LD. Schema.org is used below as a familiar `@context`; any vocabulary works the same way.
+
+**Implicit** — a convention maps a presentational class to a typed entity and harvests child fields:
 
 ```yaml
 div:
@@ -75,7 +77,7 @@ div:
         text: "19.99"
 ```
 
-**Reactive** — point LD fields at the UI:
+**Reactive** — graph properties reference the presentational content (one fact, two views):
 
 ```yaml
 ld:
@@ -87,7 +89,7 @@ ld:
     priceCurrency: USD
 ```
 
-**Conditional** — branch metadata on content:
+**Conditional** — assertions depend on values in the tree:
 
 ```yaml
 ld_if:
@@ -101,7 +103,7 @@ ld_if:
     "@type": PremiumProduct
 ```
 
-## Call the renderer over JSON-RPC
+## Publish over JSON-RPC
 
 ```bash
 curl -s http://localhost:3847/rpc -H "Content-Type: application/json" -d "{
@@ -121,7 +123,7 @@ curl -s http://localhost:3847/rpc -H "Content-Type: application/json" -d "{
 }"
 ```
 
-Built-in methods: `renderComponent`, `renderDocument`, `updateState`, `getState`, `listTemplates`, `ping`.
+The result includes both `html` (presentation) and `ldJson` (graph). Built-in methods: `renderComponent`, `renderDocument`, `updateState`, `getState`, `listTemplates`, `ping`.
 
 Templates live in `templates/<name>.yml` and are selected by `componentId`.
 
@@ -130,7 +132,7 @@ Templates live in `templates/<name>.yml` and are selected by `componentId`.
 | Path | Role |
 |------|------|
 | `src/parser/yamlDom.js` | YAML → HTML + ContentMap + LD harvest |
-| `src/parser/conventions.js` | Implicit Schema.org class → type map |
+| `src/parser/conventions.js` | Class → vocabulary type conventions |
 | `src/parser/ldResolver.js` | `{ ref }` + `ld_if` |
 | `src/server/rpc.js` | JSON-RPC methods |
 | `src/server/index.js` | HTTP + Socket.IO |

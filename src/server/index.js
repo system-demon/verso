@@ -1,5 +1,6 @@
 /**
- * YML-DOM server — Express HTTP JSON-RPC + Socket.IO real-time sync
+ * YML-DOM server — Express HTTP JSON-RPC + Socket.IO
+ * Serves presentational HTML and linked-data (JSON-LD) from the same tree
  */
 
 import express from 'express';
@@ -80,7 +81,7 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`YML-DOM listening on http://localhost:${PORT}`);
+  console.log(`render-tree listening on http://localhost:${PORT}`);
   console.log(`  JSON-RPC  POST /rpc`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);
   console.log(`  Demo      http://localhost:${PORT}/`);

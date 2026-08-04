@@ -1,5 +1,6 @@
 /**
- * Example: register a custom Schema.org convention, then render YAML that uses it.
+ * Example: register a vocabulary convention (class → typed JSON-LD entity),
+ * then render YAML that uses it.
  *
  *   node examples/05-register-convention.js
  */

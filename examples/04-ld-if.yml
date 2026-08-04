@@ -1,4 +1,4 @@
-# 04 — ld_if: metadata depends on content values
+# 04 — ld_if: graph assertions depend on values in the tree
 # price 79 → BudgetProduct; change to 150 and re-render for PremiumProduct
 
 div:

@@ -1,17 +1,19 @@
 # render-tree
 
-YAML structural markup that renders to HTML — with reactive JSON-LD, JSON-RPC, and WebSocket sync.
+YAML structural markup that renders to HTML — and publishes **JSON-LD** from the same tree.
 
-Write indentation-based trees instead of angle-bracket HTML. The same source can drive the visible DOM and Schema.org metadata, so UI copy and SEO stay one source of truth. Optional live transport re-renders components when state changes and pushes HTML + linked data to connected clients.
+The web has always had two layers that rarely stay aligned: a **presentational tree** (what browsers paint) and a **knowledge graph** (what machines can interpret). render-tree treats them as views of one source. You author an indentation-based structure; the runtime emits DOM for humans and linked data for the Semantic Web.
+
+Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, so presentation and assertions update together.
 
 ## Features
 
 - **YML-DOM** — keys are tags; indentation is the tree; `children:` for sibling elements
-- **Reactive JSON-LD** — `{ ref: "#id .class" }` pulls values from rendered content
-- **Conditional metadata** — `ld_if` branches Schema.org types on content (e.g. price thresholds)
-- **Implicit conventions** — classes like `product` / `review` / `article` emit Schema.org entities
-- **Templates** — `{{placeholders}}` filled from CLI args or RPC params
-- **JSON-RPC + Socket.IO** — remote render and real-time `pushUpdate`
+- **Linked data from structure** — `@context` / `@type`, `ld:` blocks, and class→vocabulary conventions
+- **Reactive assertions** — `{ ref: "#id .class" }` binds graph properties to the same content the UI shows
+- **Conditional assertions** — `ld_if` chooses types or properties from the data in the tree
+- **Vocabulary conventions** — map presentational classes to types in Schema.org (or your own context)
+- **Live graph views** — JSON-RPC renders fragments; Socket.IO pushes HTML + JSON-LD on update
 
 ## Quick start
 
@@ -20,13 +22,13 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3847](http://localhost:3847) for the live demo.
+Open [http://localhost:3847](http://localhost:3847) for the live demo: change state and watch the presentational tree and the JSON-LD graph update together.
 
 ```bash
-# Render a file
+# Render a file (HTML + linked data)
 npm run render -- templates/demo.yml --json
 
-# With placeholder data
+# Inject graph/entity data into placeholders
 npm run render -- templates/product.yml --json \
   id=item_1 name="Widget" price=19.99 description="A thing" finish=Steel
 ```
@@ -37,6 +39,8 @@ Full walkthrough: [QUICKSTART.md](QUICKSTART.md)
 Extend & customize: [examples/README.md](examples/README.md)
 
 ## Example
+
+A presentational subtree that also asserts typed entities in a shared vocabulary (`https://schema.org` here — any JSON-LD `@context` fits the same pattern):
 
 ```yaml
 "@context": "https://schema.org"
@@ -59,11 +63,17 @@ div:
         text: "79.00"
 ```
 
-Renders HTML for the card and JSON-LD that reflects both the implicit `Product` convention and the `ld_if` branch (`BudgetProduct` here).
+The runtime renders the HTML card and a JSON-LD document: implicit `Product` properties from the convention, plus the conditional type from `ld_if`. Presentation and graph share one tree.
+
+## Why this shape?
+
+HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. render-tree keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
+
+Crawlers and rich-result consumers are one audience for that graph. Agents, datasets, and interoperable APIs are others.
 
 ## JSON-RPC
 
-With the server running:
+Publish or refresh a fragment and its linked data:
 
 ```bash
 curl -s http://localhost:3847/rpc \
@@ -93,14 +103,16 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 
 | Path | Role |
 |------|------|
-| `src/parser/` | YAML → HTML, ContentMap, LD resolution, conventions |
-| `src/server/` | Express JSON-RPC + Socket.IO |
+| `src/parser/` | YAML → HTML, ContentMap, JSON-LD resolution, vocabulary conventions |
+| `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
 | `src/cli.js` | Offline render |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
 | `examples/` | Syntax and extension samples |
 
 ## Extend
+
+Bind a new presentational class to a vocabulary type, or add an RPC method that returns HTML + JSON-LD:
 
 ```js
 import { registerConvention } from './src/parser/conventions.js';

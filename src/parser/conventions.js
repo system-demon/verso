@@ -1,6 +1,7 @@
 /**
- * Convention Registry — Implicit Schema Mapping
- * CSS trigger classes → Schema.org types + field selectors
+ * Convention Registry — presentational class → vocabulary type
+ * Maps CSS trigger classes to JSON-LD @type + field selectors
+ * (built-ins use Schema.org terms; registerConvention() for any vocabulary)
  */
 
 /**

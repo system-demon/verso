@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>render-tree · YML-DOM</title>
+  <title>render-tree · presentation + linked data</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
@@ -19,13 +19,13 @@
 
   <main class="stage">
     <section class="panel live" aria-labelledby="live-heading">
-      <h1 id="live-heading">Live component</h1>
-      <p class="lede">YAML template rendered over JSON-RPC. Change state below — HTML and JSON-LD update together.</p>
+      <h1 id="live-heading">Live view</h1>
+      <p class="lede">One YAML tree, two projections: HTML for browsers and JSON-LD for the Semantic Web. Change state — both update together.</p>
       <div id="mount" class="mount" aria-live="polite"></div>
     </section>
 
     <section class="panel controls" aria-labelledby="ctrl-heading">
-      <h2 id="ctrl-heading">Update state</h2>
+      <h2 id="ctrl-heading">Update entity state</h2>
       <form id="update-form" class="form">
         <label>
           Name
@@ -45,11 +45,11 @@
         </label>
         <button type="submit">Push update</button>
       </form>
-      <p class="hint">Open this page in two windows on the same session to see sync.</p>
+      <p class="hint">Open this page in two windows on the same session to see the view and graph sync.</p>
     </section>
 
     <section class="panel meta" aria-labelledby="ld-heading">
-      <h2 id="ld-heading">JSON-LD</h2>
+      <h2 id="ld-heading">Linked data (JSON-LD)</h2>
       <pre id="ld-out" class="code"><code>{}</code></pre>
     </section>
   </main>
