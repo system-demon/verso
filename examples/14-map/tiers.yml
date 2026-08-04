@@ -1,0 +1,19 @@
+# Nested fragment: sits inside the pricing section via the map's items tree,
+# so it gets no pager of its own — nested items participate in their parent's
+# sequence only. Its @context dedupes into the publication context.
+
+"@context": "https://schema.org"
+
+div:
+  class: "doc-topic"
+  ld:
+    "@id": "#tiers"
+    "@type": "TechArticle"
+    headline: "Tiers"
+  children:
+    - h2: "Tiers"
+    - ul:
+        children:
+          - li: "Community — free, forum support"
+          - li: "Team — shared workspaces"
+          - li: "Enterprise — SSO and audit logs"

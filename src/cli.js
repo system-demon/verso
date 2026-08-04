@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 /**
  * CLI: render a .yml file to HTML (+ optional JSON-LD dump)
- * Usage: node src/cli.js templates/product.yml [--json] [--doc] [--strict] [--watch] [KEY=value ...]
+ * Usage: node src/cli.js templates/product.yml [--json] [--doc] [--strict] [--watch] [--profile key=value ...] [KEY=value ...]
  *
- *   --json    print { html, ldJson, contentMap } as JSON
- *   --doc     print a full HTML document
- *   --strict  validate the tree first (also VERSO_STRICT=1)
- *   --watch   re-render on file change; keeps stdout parseable (markers on stderr)
+ *   --json     print { html, ldJson, contentMap } as JSON
+ *   --doc      print a full HTML document
+ *   --strict   validate the tree first (also VERSO_STRICT=1)
+ *   --watch    re-render on file change; keeps stdout parseable (markers on stderr)
+ *   --profile  profiling attributes for if:/flag: — collect key=value pairs
+ *              after the flag until the next --flag, e.g.
+ *              --profile audience=admin platform=web
+ *              (vocabulary: audience, platform, product; omit → everything renders)
  */
 
 import fs from 'node:fs';
@@ -15,23 +19,38 @@ import { renderYaml, toDocument } from './parser/yamlDom.js';
 
 const args = process.argv.slice(2);
 const PARAM_RE = /^([A-Za-z_]\w*)=(.*)$/;
-const file = args.find((a) => !a.startsWith('--') && !PARAM_RE.test(a));
+
+// --profile key=value ... — pairs after the flag until the next --flag
+const profileIdx = args.indexOf('--profile');
+/** @type {string[] | undefined} */
+let profilePairs;
+const profileSpan = new Set();
+if (profileIdx !== -1) {
+  profilePairs = [];
+  for (let i = profileIdx + 1; i < args.length && !args[i].startsWith('--'); i++) {
+    profilePairs.push(args[i]);
+    profileSpan.add(i);
+  }
+}
+
+const file = args.find((a, i) => !profileSpan.has(i) && !a.startsWith('--') && !PARAM_RE.test(a));
 const asJson = args.includes('--json');
 const asDoc = args.includes('--doc');
 const strict = args.includes('--strict') ? true : undefined;
 const watch = args.includes('--watch');
 
 if (!file) {
-  console.error('Usage: node src/cli.js <file.yml> [--json] [--doc] [--strict] [--watch] [KEY=value ...]');
+  console.error('Usage: node src/cli.js <file.yml> [--json] [--doc] [--strict] [--watch] [--profile key=value ...] [KEY=value ...]');
   process.exit(1);
 }
 
 const filePath = path.resolve(file);
 
-// Optional KEY=value params after --
+// Optional KEY=value params (profile pairs are a separate channel)
 const params = {};
-for (const a of args) {
-  const m = a.match(PARAM_RE);
+for (let i = 0; i < args.length; i++) {
+  if (profileSpan.has(i)) continue;
+  const m = args[i].match(PARAM_RE);
   if (m) params[m[1]] = m[2];
 }
 
@@ -41,6 +60,7 @@ function renderOnce() {
     params,
     strict,
     baseDir: path.dirname(filePath),
+    profile: profilePairs,
   });
 
   if (asJson) {

@@ -1,0 +1,15 @@
+# Partial with addressable elements — pull one element via
+#   include: "partials/legal.yml#copyright"
+# (see 15-include-id.yml). Whole-file include still works too: the footer
+# below renders with both paragraphs.
+footer:
+  id: "legal-footer"
+  class: "legal"
+  children:
+    - p:
+        id: "copyright"
+        class: "legal"
+        text: "© 2026 Verso"
+    - p:
+        id: "license"
+        text: "Released under the MIT License"

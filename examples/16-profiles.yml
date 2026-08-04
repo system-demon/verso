@@ -1,0 +1,60 @@
+# 16 — if:/flag: presentation-side profiling (ditaval-lite)
+# Conditions evaluate against a per-render PROFILE, before includes/params —
+# excluded content never renders and never asserts into the graph.
+# Contrast with 04-ld-if.yml: ld_if is graph-side and reads the ContentMap.
+#
+# Try:
+#   node src/cli.js examples/16-profiles.yml                       # no profile → all render
+#   node src/cli.js examples/16-profiles.yml --profile audience=admin
+#   node src/cli.js examples/16-profiles.yml --profile audience=novice
+#   node src/cli.js examples/16-profiles.yml --profile platform=web
+#   node src/cli.js examples/16-profiles.yml --profile audience=novice platform=web
+
+head:
+  title: "Verso — Profiles"
+
+body:
+  main:
+    h1: "WonderWidget Manual"
+
+    children:
+      # Object form: every key must match the profile.
+      # The ld: block vanishes from the graph when the panel is filtered out.
+      - div:
+          class: "admin-panel"
+          id: "admin_panel"
+          if: { audience: admin }
+          ld:
+            "@type": SoftwareApplication
+            name: "WonderWidget Admin Console"
+            applicationCategory: "Administration"
+          children:
+            - h2: "Admin Console"
+            - p: "Danger zone: manage tenants, billing, and feature flags."
+
+      # String form: <attribute> ==|!= 'value' (quotes optional)
+      - p:
+          class: "platform-note"
+          if: "platform == 'web'"
+          text: "This paragraph ships only in the web build."
+
+      - p:
+          class: "platform-note"
+          if: "platform != 'web'"
+          text: "This paragraph ships in every non-web build (platform absent counts as not-web)."
+
+      # flag: always renders; gains class flag-novice when the profile matches.
+      - p:
+          class: "hint"
+          flag: { audience: novice }
+          text: "New in 2.0 — press ? anywhere for keyboard shortcuts."
+
+      # Multi-pair flag: the whole condition must match; each pair adds a class
+      # (audience=novice platform=web → class "cta flag-novice flag-web").
+      - div:
+          class: "cta"
+          flag: { audience: novice, platform: web }
+          children:
+            - a:
+                href: "/tour"
+                text: "Take the guided tour"

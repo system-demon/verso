@@ -1,0 +1,39 @@
+# Fragment with its own conventions: block — file-root declarations merge
+# into the render's registry (a same-named map-level declaration would win).
+# The "plan" convention types each plan card as an Offer in the graph;
+# requires: is enforced under --strict.
+
+"@context": "https://schema.org"
+
+conventions:
+  plan:
+    type: Offer
+    fields:
+      name: ".plan-name"
+      price: ".plan-price"
+    requires: [.plan-name, .plan-price]
+
+div:
+  class: "doc-topic"
+  ld:
+    "@id": "#pricing"
+    "@type": "TechArticle"
+    headline: "Pricing"
+  children:
+    - h1: "Pricing"
+    - p:
+        children:
+          - span: { text: { key: product-name } }
+          - span: " comes in two plans:"
+    - div:
+        class: "plan"
+        id: "plan_basic"
+        children:
+          - h2: { class: "plan-name", text: "Basic" }
+          - span: { class: "plan-price", text: "9" }
+    - div:
+        class: "plan"
+        id: "plan_pro"
+        children:
+          - h2: { class: "plan-name", text: "Pro" }
+          - span: { class: "plan-price", text: "29" }
