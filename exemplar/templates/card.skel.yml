@@ -1,0 +1,44 @@
+# Skeletal typed card — convention class, graph identity, reactive ref.
+# Local PracticeCanvas vocabulary (see /exemplar/schema.jsonld) — no Schema.org commerce types.
+
+"@context": "/exemplar/schema.jsonld"
+
+keys:
+  canvas-name: "«name»"
+
+conventions:
+  practice:
+    type: PracticeCanvas
+    fields:
+      name: ".name"
+      description: ".description"
+      purpose: ".purpose"
+      author: ".author"
+      status: ".status"
+    requires: [.name]
+
+practice:                       # shorthand → <div class="practice">
+  id: "entity_1"
+
+  ld:
+    name: { key: canvas-name }
+    relatedDocs:
+      - "/exemplar/quickref.html"
+      - "/exemplar/schema.jsonld"
+
+  children:
+    - h2:
+        class: "name"
+        text: { key: canvas-name }
+    - p:
+        class: "description"
+        text: "«one-line description — harvested into the graph»"
+    - p:
+        class: "purpose"
+        text: "«purpose — what you are practicing»"
+    - span:
+        class: "author"
+        text: "«author»"
+    - span:
+        class: "status"
+        text: "draft"

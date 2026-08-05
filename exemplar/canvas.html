@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · exemplar canvas</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    /* Canvas-only desk surround — clear dark grey (not twinseed.css charcoal). */
+    body {
+      --desk: #3c3c3c;
+      background:
+        radial-gradient(ellipse 120% 60% at 50% -20%, #4a4a4a 0%, transparent 60%),
+        var(--desk);
+    }
+
+    /*
+      Canvas-scoped Comeau reset (https://www.joshwcomeau.com/css/custom-css-reset/)
+      — only rules that keep desk track math honest. Not the full reset:
+      twinseed book styles keep their own line-height / type defaults.
+    */
+    .desk, .desk *, .desk *::before, .desk *::after {
+      box-sizing: border-box;
+    }
+    /* Zero UA / inherited margins on desk chrome (not dialog). Avoids margin
+       collapse and auto side margins inventing a wider visual gutter. */
+    .desk, .desk *:not(dialog) {
+      margin-block: 0;
+    }
+    /* Grid children only — don't strip intentional inner spacing (graph, strips). */
+    .desk > .sheet {
+      margin-inline: 0;
+    }
+    /* Replaced media: block + max-width so iframe/svg don't leave inline gaps
+       or blow past their track (Comeau #6). Graph SVG re-centers below. */
+    .desk img, .desk picture, .desk video, .desk iframe, .desk svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    /* Top: equal columns + 5% gap; genotype spans full width below.
+       Prior 45|10|45 (and 4.5fr|1fr|4.5fr) was already pixel-true (~45/10/45 on the
+       user’s screenshot). Empty dark desk between light sheets reads ~1.5–2× wider,
+       so math-10% looked like ~15–20%. Not space-between / max-width / bad spans.
+       5% column-gap → sides 47.5% each so the perceived gutter lands nearer 10%. */
+    .desk {
+      max-width: 100rem;
+      margin-block: 0;
+      margin-inline: auto; /* centers the desk block under max-width — not the panels */
+      padding: 0;
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: 1fr;
+      justify-items: stretch;
+      justify-content: stretch;
+      align-items: stretch;
+      width: 100%;
+    }
+    @media (min-width: 1100px) {
+      .desk {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 5%;
+        row-gap: 1.25rem;
+      }
+      .desk > .sheet--genome { grid-column: 1; grid-row: 1; }
+      .desk > .page--recto { grid-column: 2; grid-row: 1; }
+      .desk > .page--verso { grid-column: 1 / -1; grid-row: 2; }
+    }
+    /* Flush fill of each track — neutralize L/R auto margins, float, and place-self. */
+    .desk > .sheet {
+      justify-self: stretch;
+      align-self: stretch;
+      place-self: stretch;
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      margin: 0;
+      margin-inline: 0;
+      float: none;
+      text-align: start;
+    }
+    .sheet {
+      background: var(--paper);
+      border-radius: 3px;
+      box-shadow: 0 14px 32px -10px rgba(0,0,0,0.42);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-width: 0;
+      margin: 0;
+    }
+    /* twinseed.css .page adds book-spread padding (2.6rem sides) — that insets
+       phenotype/genotype chrome and makes the dark middle read wider than 10%. */
+    .desk > .sheet.page {
+      padding: 0;
+      padding-inline: 0;
+      min-height: 0;
+      background: var(--paper);
+      border-right: none;
+      border-bottom: none;
+    }
+    /* space-between is within-sheet chrome (title | tabs), not a gutter invent.
+       Keep heads full-bleed; only symmetric internal padding. */
+    .sheet .running-head {
+      margin: 0;
+      margin-inline: 0;
+      padding: 0.7rem 1.1rem;
+      width: 100%;
+      box-sizing: border-box;
+      border-bottom: 1px solid var(--rule);
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    /*
+      Editor projection grid — cell size maps 1∶1 onto type, not arbitrary px.
+      col = 1ch  (one monospace glyph advance of this face)
+      row = 1lh  (one manuscript line = line-height 1.55)
+      Soft rules stay under ink; text contrast wins.
+    */
+    .entry {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+    }
+    .sheet textarea {
+      --grid-col: 1ch;
+      --grid-row: 1lh;
+      --grid-line: color-mix(in srgb, var(--rule) 55%, transparent);
+      font-family: var(--mono); font-size: 0.78rem; line-height: 1.55;
+      border: none; outline: none; resize: none; width: 100%; flex: 1;
+      margin: 0; margin-inline: 0; float: none; align-self: stretch;
+      padding: 0.9rem 1.1rem; color: var(--ink);
+      background-color: var(--paper);
+      background-origin: content-box; background-attachment: local;
+      background-image:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent calc(var(--grid-col) - 1px),
+          var(--grid-line) calc(var(--grid-col) - 1px),
+          var(--grid-line) var(--grid-col)
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent calc(var(--grid-row) - 1px),
+          var(--grid-line) calc(var(--grid-row) - 1px),
+          var(--grid-line) var(--grid-row)
+        );
+    }
+    .grid-key {
+      position: absolute;
+      right: 0.7rem;
+      bottom: 0.55rem;
+      z-index: 1;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: auto minmax(2.8rem, 3.6rem) auto;
+      gap: 0.18rem 0.4rem;
+      align-items: center;
+      padding: 0.4rem 0.55rem 0.45rem;
+      max-width: min(14rem, calc(100% - 1.4rem));
+      background: color-mix(in srgb, var(--paper) 94%, transparent);
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      line-height: 1.25;
+      color: var(--ink-soft);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--paper-deep) 70%, transparent);
+    }
+    .grid-key__title {
+      grid-column: 1 / -1;
+      margin: 0 0 0.12rem;
+      color: var(--accent-2);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.52rem;
+    }
+    .grid-key__gloss {
+      grid-column: 1 / -1;
+      margin: 0 0 0.2rem;
+      color: var(--ink-soft);
+      font-size: 0.52rem;
+      letter-spacing: 0.02em;
+    }
+    .grid-key__axis { display: contents; }
+    .grid-key__axis > span:first-child {
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.52rem;
+    }
+    .grid-key__axis > span:last-child {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+    .grid-key meter {
+      width: 100%;
+      height: 0.48rem;
+      vertical-align: middle;
+      background: var(--paper-deep);
+      border: 1px solid color-mix(in srgb, var(--rule) 80%, var(--accent-2));
+      border-radius: 1px;
+    }
+    .grid-key meter::-webkit-meter-inner-element { display: block; }
+    .grid-key meter::-webkit-meter-bar {
+      background: var(--paper-deep);
+      border: none;
+      border-radius: 0;
+    }
+    .grid-key meter::-webkit-meter-optimum-value,
+    .grid-key meter::-webkit-meter-suboptimum-value,
+    .grid-key meter::-webkit-meter-even-less-good-value {
+      background: var(--accent-2);
+      border-radius: 0;
+    }
+    .grid-key meter::-moz-meter-bar {
+      background: var(--accent-2);
+      border-radius: 0;
+    }
+    #yaml { min-height: 28rem; }
+    #css-entry { display: none; min-height: 22rem; }
+    #css { min-height: 22rem; }
+    .sheet--genome { min-height: 0; }
+    .page--recto { min-height: 0; }
+    .page--recto .pheno-body {
+      flex: 1; display: flex; flex-direction: column; align-items: stretch;
+      min-height: 0; min-width: 0; margin: 0; width: 100%;
+    }
+    .strip {
+      display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;
+      padding: 0.55rem 1.1rem; margin: 0; width: 100%; box-sizing: border-box;
+      border-top: 1px dashed var(--rule); font-family: var(--mono); font-size: 0.68rem; flex-wrap: wrap;
+    }
+    .strip select, .strip button {
+      font: inherit; padding: 0.25rem 0.55rem; border: 1px solid var(--rule);
+      background: #fff; border-radius: 2px; color: var(--ink); cursor: pointer;
+    }
+    #status { color: var(--accent); min-height: 1em; }
+    #frame {
+      width: 100%; height: 100%; min-height: 28rem; border: none; background: #fff; flex: 1;
+      margin: 0; margin-inline: 0; align-self: stretch; display: block;
+    }
+    .profiles button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+    .profiles button { font: inherit; letter-spacing: 0.04em; padding: 0.3rem 0.65rem; border: 1px solid #6b5f49; background: transparent; color: #d8cdb4; border-radius: 2px; cursor: pointer; }
+    .view-toggle { display: flex; gap: 0.3rem; }
+    .view-toggle button {
+      font: inherit; letter-spacing: 0.1em; padding: 0.15rem 0.5rem;
+      border: 1px solid var(--rule); background: transparent; color: var(--ink-soft);
+      border-radius: 2px; cursor: pointer; text-transform: uppercase; font-size: 0.6rem;
+    }
+    .view-toggle button.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+    .graph-diagram {
+      overflow: auto;
+      max-height: min(72vh, 48rem);
+      flex: 1;
+      min-height: 22rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* PlantUML sets width/height attrs; max-width alone can crush width without
+       rescaling height. Force height:auto so viewBox aspect is preserved; scroll if needed. */
+    .graph-diagram svg {
+      display: block;
+      margin-block: 0;
+      margin-inline: auto; /* re-center after Comeau media block default */
+      max-width: 100%;
+      width: auto;
+      height: auto !important;
+    }
+    .desk .graph-json,
+    .desk .graph-diagram {
+      margin: 1rem 1.1rem 1.4rem;
+    }
+    .graph-diagram .diagram-status { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">exemplar — a scratch canvas for the flow</p>
+    <nav>
+      <span class="profiles" id="profiles">
+        profile:
+        <button data-profile="" class="active">none</button>
+        <button data-profile='{"audience":"admin"}'>audience=admin</button>
+        <button data-profile='{"audience":"novice"}'>audience=novice</button>
+      </span>
+      <a href="/exemplar/quickref.html">quickref</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/">reading room</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+  </header>
+
+  <main class="desk" id="desk">
+    <section class="sheet sheet--genome" aria-label="genome — YAML manuscript">
+      <div class="running-head"><span>manuscript</span><span>genome · yaml</span></div>
+      <div class="entry" id="yaml-entry">
+        <textarea id="yaml" spellcheck="false" wrap="off" aria-label="genome"></textarea>
+        <aside class="grid-key" aria-label="Manuscript grid projection">
+          <p class="grid-key__title">projection · 1∶1 to type</p>
+          <p class="grid-key__gloss">cell → glyph / line · scale in em of this face</p>
+          <div class="grid-key__axis">
+            <span>col</span>
+            <meter min="0" max="1.55" value="1" optimum="1" aria-label="Column cell: 1ch, one monospace character"></meter>
+            <span>1ch</span>
+          </div>
+          <div class="grid-key__axis">
+            <span>row</span>
+            <meter min="0" max="1.55" value="1.55" optimum="1.55" aria-label="Row cell: 1lh, one manuscript line at 1.55em"></meter>
+            <span>1lh</span>
+          </div>
+        </aside>
+      </div>
+      <div class="strip">
+        <select id="template">
+          <option value="practice">practice.skel.yml</option>
+          <option value="card">card.skel.yml</option>
+          <option value="page">page.skel.yml</option>
+          <option value="entity">entity.skel.yml</option>
+          <option value="map">map.skel.yml</option>
+        </select>
+        <button id="load-template">load skeleton</button>
+        <span id="status"></span>
+      </div>
+    </section>
+
+    <section class="page page--recto sheet" aria-label="phenotype — HTML presentation and stylesheet">
+      <div class="running-head">
+        <span><span class="face">Recto</span> · phenotype</span>
+        <span class="view-toggle" id="pheno-toggle" role="group" aria-label="phenotype views">
+          <button data-pheno="preview" class="active" aria-label="rendered phenotype">html5</button>
+          <button data-pheno="css" aria-label="stylesheet">css</button>
+        </span>
+      </div>
+      <div class="pheno-body">
+        <iframe id="frame" title="phenotype preview"></iframe>
+        <div class="entry" id="css-entry">
+          <textarea id="css" spellcheck="false" wrap="off" aria-label="stylesheet"></textarea>
+          <aside class="grid-key" aria-label="Stylesheet grid projection">
+            <p class="grid-key__title">projection · 1∶1 to type</p>
+            <p class="grid-key__gloss">cell → glyph / line · scale in em of this face</p>
+            <div class="grid-key__axis">
+              <span>col</span>
+              <meter min="0" max="1.55" value="1" optimum="1" aria-label="Column cell: 1ch, one monospace character"></meter>
+              <span>1ch</span>
+            </div>
+            <div class="grid-key__axis">
+              <span>row</span>
+              <meter min="0" max="1.55" value="1.55" optimum="1.55" aria-label="Row cell: 1lh, one manuscript line at 1.55em"></meter>
+              <span>1lh</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div class="strip" id="css-hint" style="display: none;"><span>applies to the phenotype preview instantly — no server · same 1ch × 1lh grid as manuscript</span></div>
+    </section>
+
+    <section class="page page--verso sheet" aria-label="genotype — JSON-LD and diagram">
+      <div class="running-head">
+        <span><span class="face">Verso</span> · genotype</span>
+        <span class="view-toggle" id="view-toggle" role="group" aria-label="genotype views">
+          <button data-view="json" class="active" aria-label="genotype as JSON-LD">json</button>
+          <button data-view="diagram" aria-label="genotype as diagram">diagram</button>
+        </span>
+      </div>
+      <pre class="graph-json" id="graph" style="margin: 1rem 1.1rem 1.4rem;" aria-label="JSON-LD genotype">…</pre>
+      <div class="graph-diagram" id="diagram" style="margin: 1rem 1.1rem 1.4rem; display: none;" aria-label="diagram genotype"></div>
+    </section>
+  </main>
+
+  <div class="colophon">
+    <p class="folio"><span>twinseed press — exemplar</span><span>PracticeCanvas</span></p>
+  </div>
+
+  <script type="module">
+    const yamlEl = document.getElementById('yaml');
+    const cssEl = document.getElementById('css');
+    const cssEntryEl = document.getElementById('css-entry');
+    const graphEl = document.getElementById('graph');
+    const diagramEl = document.getElementById('diagram');
+    const frameEl = document.getElementById('frame');
+    const statusEl = document.getElementById('status');
+    const templateEl = document.getElementById('template');
+    const profilesEl = document.getElementById('profiles');
+    const toggleEl = document.getElementById('view-toggle');
+    const phenoToggleEl = document.getElementById('pheno-toggle');
+    const cssHintEl = document.getElementById('css-hint');
+
+    let versoView = 'json';
+    let phenoView = 'preview';
+    let diagramSeq = 0;
+
+    function syncPhenoView() {
+      const showCss = phenoView === 'css';
+      frameEl.style.display = showCss ? 'none' : 'block';
+      cssEntryEl.style.display = showCss ? 'flex' : 'none';
+      cssHintEl.style.display = showCss ? '' : 'none';
+    }
+
+    const IFRAME_BASE_CSS = `
+      body { font-family: Georgia, serif; color: #221d15; margin: 0; padding: 1.5rem 1.75rem; line-height: 1.55; }
+      h1, h2, h3 { line-height: 1.25; }
+      code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+      ul { padding-left: 1.3rem; }
+      details { margin: 0.75rem 0; border: 1px solid #d8cdb4; border-radius: 2px; padding: 0.5rem 0.75rem; }
+      summary { cursor: pointer; font-weight: 600; }
+      dialog { border: none; border-radius: 4px; padding: 1.25rem 1.5rem; max-width: 22rem; box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
+      dialog::backdrop { background: rgba(34,29,21,0.45); }
+      button { font: inherit; padding: 0.4rem 0.8rem; cursor: pointer; }
+      table { border-collapse: collapse; margin: 0.75rem 0; width: 100%; }
+      th, td { border: 1px solid #d8cdb4; padding: 0.35rem 0.7rem; text-align: left; }
+      thead th { background: #f3eee3; }
+      table.sortable thead th { cursor: pointer; user-select: none; }
+      table.sortable thead th[aria-sort="ascending"]::after { content: " ↑"; }
+      table.sortable thead th[aria-sort="descending"]::after { content: " ↓"; }
+      mark { background: #f0e3a0; padding: 0 0.15rem; }
+      meter, progress { width: 8rem; height: 0.9rem; vertical-align: middle; }
+      figure { margin: 0.75rem 0; }
+      figcaption { font-size: 0.9rem; color: #66705c; font-style: italic; margin-top: 0.35rem; }
+      dt { font-weight: 600; margin-top: 0.6rem; }
+      dd { margin-left: 1rem; color: #66705c; }
+    `;
+
+    const IFRAME_WIRE_JS = `
+      (function () {
+        const root = document;
+        const dlg = root.querySelector('#practice-dialog, #demo-dialog');
+        root.querySelector('#open-dialog')?.addEventListener('click', () => dlg?.showModal());
+        root.querySelector('#close-dialog')?.addEventListener('click', () => dlg?.close());
+        // Hash links (nav, area maps, pager) must stay inside about:srcdoc —
+        // native href="#…" resolves against the parent page and leaves the preview.
+        root.addEventListener('click', (e) => {
+          const link = e.target.closest('a[href^="#"], area[href^="#"]');
+          if (!link) return;
+          const href = link.getAttribute('href');
+          if (!href || href === '#') return;
+          const id = decodeURIComponent(href.slice(1));
+          const target = root.getElementById(id);
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          try { history.replaceState(null, '', href); } catch (_) { /* srcdoc may forbid */ }
+        });
+        root.querySelectorAll('table.sortable').forEach((table) => {
+          const thead = table.tHead;
+          const tbody = table.tBodies[0];
+          if (!thead || !tbody) return;
+          thead.querySelectorAll('th').forEach((th, colIdx) => {
+            th.addEventListener('click', () => {
+              const asc = th.getAttribute('aria-sort') !== 'ascending';
+              thead.querySelectorAll('th').forEach((h) => h.removeAttribute('aria-sort'));
+              th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+              const rows = Array.from(tbody.rows);
+              rows.sort((a, b) => {
+                const av = a.cells[colIdx]?.textContent.trim() ?? '';
+                const bv = b.cells[colIdx]?.textContent.trim() ?? '';
+                const an = Number(av), bn = Number(bv);
+                let cmp;
+                if (!Number.isNaN(an) && !Number.isNaN(bn) && av !== '' && bv !== '') cmp = an - bn;
+                else cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+                return asc ? cmp : -cmp;
+              });
+              rows.forEach((row) => tbody.appendChild(row));
+            });
+          });
+        });
+      })();
+    `;
+
+    let currentProfile = '';
+    let lastGood = { html: '', ld: null };
+    let seq = 0;
+
+    function paint() {
+      const S = 'script'; // tag pieces kept apart so this module block isn't terminated early
+      const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${IFRAME_BASE_CSS}</style><style>${cssEl.value}</style></head><body><main class="canvas-view">${lastGood.html}</main><${S}>${IFRAME_WIRE_JS}</${S}></body></html>`;
+      frameEl.srcdoc = doc;
+    }
+
+    async function render() {
+      const mySeq = ++seq;
+      // baseDir lets include: resolve against the skeleton directory (clamped server-side)
+      const params = { yaml: yamlEl.value, baseDir: 'exemplar/templates' };
+      if (currentProfile) params.profile = JSON.parse(currentProfile);
+      let res;
+      try {
+        res = await fetch('/rpc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', method: 'renderInline', params, id: Date.now() }),
+        }).then((r) => r.json());
+      } catch (err) {
+        statusEl.textContent = `network: ${err.message}`;
+        return;
+      }
+      if (mySeq !== seq) return;
+      if (res.error) {
+        statusEl.textContent = res.error.message.split('\n')[0];
+        return;
+      }
+      statusEl.textContent = '';
+      lastGood = { html: res.result.html, ld: res.result.ldJson };
+      graphEl.textContent = JSON.stringify(lastGood.ld, null, 2);
+      paint();
+      renderDiagram();
+    }
+
+    async function renderDiagram() {
+      if (versoView !== 'diagram') return;
+      const mySeq = ++diagramSeq;
+      diagramEl.innerHTML = '<p class="diagram-status">drawing…</p>';
+      const params = { yaml: yamlEl.value, baseDir: 'exemplar/templates' };
+      if (currentProfile) params.profile = JSON.parse(currentProfile);
+      try {
+        const resp = await fetch('/diagram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        if (mySeq !== diagramSeq) return;
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          diagramEl.innerHTML = `<p class="diagram-status">diagram unavailable: ${err.error ?? resp.status}</p>`;
+          return;
+        }
+        diagramEl.innerHTML = await resp.text();
+        const svg = diagramEl.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+          // Drop fixed height so CSS height:auto can honor the viewBox.
+          svg.removeAttribute('height');
+        }
+      } catch (err) {
+        if (mySeq === diagramSeq) {
+          diagramEl.innerHTML = `<p class="diagram-status">diagram unavailable: ${err.message}</p>`;
+        }
+      }
+    }
+
+    phenoToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      phenoView = btn.dataset.pheno;
+      phenoToggleEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      syncPhenoView();
+    });
+
+    toggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      versoView = btn.dataset.view;
+      toggleEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      graphEl.style.display = versoView === 'json' ? '' : 'none';
+      diagramEl.style.display = versoView === 'diagram' ? '' : 'none';
+      if (versoView === 'diagram') renderDiagram();
+    });
+
+    function debounce(fn, ms) {
+      let t;
+      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    }
+    const renderSoon = debounce(render, 300);
+
+    yamlEl.addEventListener('input', renderSoon);
+    cssEl.addEventListener('input', paint);
+
+    document.getElementById('load-template').addEventListener('click', async () => {
+      const name = templateEl.value;
+      const text = await fetch(`/exemplar/templates/${name}.skel.yml`).then((r) => r.text());
+      yamlEl.value = text;
+      render();
+    });
+
+    profilesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      profilesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      currentProfile = btn.dataset.profile;
+      render();
+    });
+
+    // starter: practice skeleton (PracticeCanvas) + blank.css
+    const [skel, blank] = await Promise.all([
+      fetch('/exemplar/templates/practice.skel.yml').then((r) => r.text()),
+      fetch('/exemplar/blank.css').then((r) => r.text()),
+    ]);
+    yamlEl.value = skel;
+    cssEl.value = blank;
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Map fragment — pulled in by map.skel.yml as "deep" (nested under "next")
+
+div:
+  class: "doc-topic"
+  children:
+    - h3: "Going deeper"
+    - p: "Nested items nest sections: this one renders inside its parent's <section>. The nav tree mirrors the same shape."

@@ -24,6 +24,7 @@ const NON_TAG_TOP_LEVEL = new Set([
   'action', 'method', 'target', 'rel', 'role', 'width', 'height', 'for',
   'checked', 'disabled', 'readonly', 'required', 'colspan', 'rowspan',
   'contenteditable',
+  'usemap', 'shape', 'coords',
   'text', 'content', '_text',
   'children', '$',
 ]);
@@ -37,6 +38,7 @@ const SCALAR_VALUE_KEYS = new Set([
   'action', 'method', 'target', 'rel', 'role', 'width', 'height', 'for',
   'checked', 'disabled', 'readonly', 'required', 'colspan', 'rowspan',
   'contenteditable',
+  'usemap', 'shape', 'coords',
   'text', 'content', '_text',
   'title',
 ]);

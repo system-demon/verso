@@ -1,0 +1,32 @@
+# Skeletal map — a composition document over fragment files
+# Create the fragment files (intro.yml, next.yml) beside this map.
+# Local vocabulary; CollectionPage framing is Twinseed map furniture,
+# nested under our PracticeCanvas context for the publication label.
+
+"@context": "/exemplar/schema.jsonld"
+
+map:
+  title: "«publication name»"
+  ld:
+    "@type": PracticeCanvas
+    name: "«publication name»"
+    purpose: "compose fragments into a small practice publication"
+    status: "draft"
+
+  keys:                         # visible inside every fragment
+    author: "«your name»"
+
+  items:
+    - key: intro
+      include: "intro.yml"      # fragment file to create
+      nav: "Introduction"
+    - key: next
+      include: "next.yml"
+      nav: "Next steps"
+      items:                    # nesting = nested sections
+        - key: deep
+          include: "deep.yml"
+          nav: "Going deeper"
+
+  relations:                    # undirected related-links
+    - [intro, next]
