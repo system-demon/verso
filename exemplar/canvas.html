@@ -223,7 +223,7 @@
       if (versoView !== 'diagram') return;
       const mySeq = ++diagramSeq;
       diagramEl.innerHTML = '<p class="diagram-status">drawing…</p>';
-      const params = { yaml: yamlEl.value };
+      const params = { yaml: yamlEl.value, baseDir: 'exemplar/templates' };
       if (currentProfile) params.profile = JSON.parse(currentProfile);
       try {
         const resp = await fetch('/diagram', {

@@ -8,11 +8,34 @@ import zlib from 'node:zlib';
 const PLANTUML_BASE = 'https://www.plantuml.com/plantuml';
 
 /**
+ * Soften root-relative Twinseed paths ("/exemplar/...") for PlantUML @startjson.
+ * Absolute path-like strings can be treated as include/file paths by the renderer;
+ * stripping the leading slash keeps them readable without that hazard.
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+export function sanitizeLdForDiagram(value) {
+  if (typeof value === 'string') {
+    if (value.startsWith('/') && !value.startsWith('//')) return value.slice(1);
+    return value;
+  }
+  if (Array.isArray(value)) return value.map((v) => sanitizeLdForDiagram(v));
+  if (value && typeof value === 'object') {
+    /** @type {Record<string, unknown>} */
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = sanitizeLdForDiagram(v);
+    return out;
+  }
+  return value;
+}
+
+/**
  * @param {unknown} ldJson
  * @returns {string} PlantUML diagram source
  */
 export function jsonDiagramText(ldJson) {
-  return `@startjson\n${JSON.stringify(ldJson ?? {}, null, 2)}\n@endjson`;
+  const safe = sanitizeLdForDiagram(ldJson) ?? {};
+  return `@startjson\n${JSON.stringify(safe, null, 2)}\n@endjson`;
 }
 
 /**

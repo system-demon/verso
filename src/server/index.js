@@ -111,7 +111,11 @@ app.post(
         });
       }
 
-      const result = renderYaml(source, { params: data, profile });
+      const result = renderYaml(source, {
+        params: data,
+        profile,
+        baseDir: clampBaseDir(req.body?.baseDir ?? req.query.baseDir),
+      });
       const uml = jsonDiagramText(result.ldJson);
 
       if (req.query.format === 'uml') return res.type('text/plain').send(uml);
@@ -125,6 +129,10 @@ app.post(
           .json({ error: `PlantUML server returned ${upstream.status}` });
       }
       const svg = await upstream.text();
+      // PlantUML returns 200 with an error SVG for many bad diagrams
+      if (/Syntax Error/i.test(svg) && !/data-diagram-type/i.test(svg)) {
+        return res.status(502).json({ error: 'PlantUML failed to render diagram' });
+      }
       return res.type('image/svg+xml').send(svg);
     } catch (err) {
       const status = err.name === 'TimeoutError' || err.name === 'AbortError' ? 504 : 400;
