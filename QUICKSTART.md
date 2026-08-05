@@ -203,7 +203,7 @@ Examples: [examples/15-include-id.yml](examples/15-include-id.yml), [examples/10
 
 ## Profiles — `if:` / `flag:`
 
-Presentation-side conditionality against a per-render profile (fixed vocabulary: `audience`, `platform`, `product`). `if:` excludes before includes/params/keys resolve — filtered content never renders and never asserts into the graph. `flag:` never excludes; it adds a `flag-<value>` class when the whole condition matches. No profile supplied → everything renders, unflagged.
+Presentation-side conditionality against a per-render profile (fixed vocabulary: `audience`, `platform`, `product`, `version`). `if:` excludes before includes/params/keys resolve — filtered content never renders and never asserts into the graph. `flag:` never excludes; it adds a `flag-<value>` class when the whole condition matches. No profile supplied → everything renders, unflagged.
 
 ```yaml
 div:

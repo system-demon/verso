@@ -238,20 +238,20 @@ A top-level `map:` key makes the file a **composition document**: it owns public
 ```yaml
 "@context": "https://schema.org"
 map:
-  title: "WonderWidget Docs"
+  title: "Twinseed Docs"
   ld: { "@type": CollectionPage }        # the publication node
-  keys: { product-name: "WonderWidget" } # cascades into all fragments
+  keys: { seed-name: "Twinseed" }        # cascades into all fragments
   items:
     - key: intro
       include: "intro.yml"               # relative to the map file
       nav: "Introduction"
-    - key: pricing
-      include: "pricing.yml"
-      nav: "Pricing"
+    - key: concepts
+      include: "concepts.yml"
+      nav: "Concepts"
       items:                             # nesting = nested sections
-        - { key: tiers, include: "tiers.yml", nav: "Tiers" }
+        - { key: glossary, include: "glossary.yml", nav: "Glossary" }
   relations:
-    - [intro, pricing]                   # undirected related-links pair
+    - [intro, concepts]                  # undirected related-links pair
 ```
 
 ```bash
@@ -331,10 +331,10 @@ Semantics:
 - **Default-include.** No profile supplied → everything renders, unflagged (filtering is opt-in per render). A supplied-but-empty profile excludes every `if:`.
 - **Object form** is AND: every key must equal the profile value (string equality). **String form** supports `==` and `!=` only — left side a profiling attribute, right side a quoted or bare string (no numeric operators, no ContentMap selectors). A profile attribute that is absent compares as missing: `==` fails, `!=` holds.
 - **`flag:`** never excludes. When the whole condition matches, the element gains one `flag-<value>` class per condition pair (string form: the right-hand side) — `flag: { audience: novice, platform: web }` adds `flag-novice flag-web`, but only when both match.
-- **Fixed vocabulary:** `audience`, `platform`, `product` only (for profiles and conditions alike; unknown keys in a supplied profile are a caller error).
+- **Fixed vocabulary:** `audience`, `platform`, `product`, `version` only (for profiles and conditions alike; unknown keys in a supplied profile are a caller error). Conventional `version` values for docs slices: `stable` | `beta` | `deprecated` (open string equality — same as the other attributes).
 - **Include boundary:** in standalone files the filter runs before `include:` resolves, so gate includes with `if:` at the include site rather than authoring conditions inside partials (partials' own conditions are honored when rendered through a `map:` document, where filtering runs over the assembled tree).
 
-**Strict mode:** every `if:`/`flag:` must be a non-empty map using only `audience`/`platform`/`product` keys with string values, or a valid string condition — checked whenever strict is on, with or without a profile. Unknown vocabulary keys, empty maps, and malformed strings are validation errors naming the path. **Lenient mode** treats malformed conditions as non-matching: excluded for `if:`, unflagged for `flag:`.
+**Strict mode:** every `if:`/`flag:` must be a non-empty map using only vocabulary keys with string values, or a valid string condition — checked whenever strict is on, with or without a profile. Unknown vocabulary keys, empty maps, and malformed strings are validation errors naming the path. **Lenient mode** treats malformed conditions as non-matching: excluded for `if:`, unflagged for `flag:`.
 
 ---
 
@@ -404,6 +404,30 @@ RPC: `addWatch` / `removeWatch` / `listWatches` / `evaluateWatches`. Modes: `cha
 
 ---
 
+## 19. Versioned docs — `examples/19-versions/`
+
+Technical-docs deliverable slices reuse the same `if:` / `flag:` profile axis as example 16, with profiling attribute **`version`**: `stable` | `beta` | `deprecated`. Excluded slices never render and never assert into the graph; concept / article nodes that remain carry Schema.org `version` and `creativeWorkStatus` in `ld:` so the genotype matches the phenotype.
+
+```yaml
+section:
+  if: { version: stable }
+  ld:
+    "@type": DefinedTerm
+    name: "authenticate"
+    version: "1.0"
+    creativeWorkStatus: "stable"
+```
+
+```bash
+node src/cli.js examples/19-versions/api.yml --profile version=stable
+node src/cli.js examples/19-versions/api.yml --profile version=beta --json
+node src/cli.js examples/19-versions/api.yml --emit resolved --profile version=deprecated
+```
+
+No new subsystem: one seed, three profiles. Combine with other attributes when needed (`--profile version=beta audience=admin`).
+
+---
+
 ## Extension checklist
 
 | Goal | Where |
@@ -418,6 +442,7 @@ RPC: `addWatch` / `removeWatch` / `listWatches` / `evaluateWatches`. Modes: `cha
 | Atom / RSS knowledge feed from the same graph | `--emit atom` / `GET /feed` — `examples/17-feed/` |
 | Inverse relations / backlinks | RPC `getBacklinks` |
 | Knowledge watch (version / status / dependency fields) | RPC `addWatch` — `examples/18-knowledge-watch.js` |
+| Versioned docs slices (stable / beta / deprecated) | `--profile version=…` — `examples/19-versions/` |
 | Conditional assertions | `ld_if` in the YAML |
 | Bind graph properties to UI text | `ld:` + `{ ref }` (or a ref-valued `{ key }`) |
 | New remote publish API | `registerMethod(...)` in RPC |

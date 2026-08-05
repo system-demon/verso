@@ -1,5 +1,5 @@
 # Fragment: owns content only — no nav, no ordering, no head.
-# { key: product-name } resolves from the MAP's keys: block (keys cascade).
+# { key: seed-name } resolves from the MAP's keys: block (keys cascade).
 # The ld: block pins the section graph node to "#intro" — the same @id this
 # fragment's assertions get whether it renders standalone or inside the map.
 
@@ -16,6 +16,6 @@ div:
     - p:
         children:
           - span: "Welcome to the "
-          - strong: { text: { key: product-name } }
+          - strong: { text: { key: seed-name } }
           - span: " docs. This fragment is pulled into the map by include: and wrapped in a section."
-    - p: "Maps own structure; fragments own content."
+    - p: "Maps own structure; fragments own content. The same YAML tree projects HTML and a CollectionPage knowledge graph."

@@ -34,7 +34,7 @@ One emitter: `shell/complete.js`. PowerShell uses `Register-ArgumentCompleter`; 
 |---------|------------|
 | Seed path (`Use-TwinseedSeed` / `twinseed-use`, render) | `*.skel.yml` and templates first, then examples (partials only if the word mentions them) |
 | `Set-TwinseedBaseDir` / `twinseed-basedir` | Known include bases under the repo |
-| Profile | `audience` / `platform` / `product` pairs (`audience=admin`, …) |
+| Profile | `audience` / `platform` / `product` / `version` pairs (`audience=admin`, `version=beta`, …) |
 | Strict / mark / prompt | `on`\|`off`, `ok`\|`fail` |
 | Render flags | `--json` `--doc` `--strict` `--watch` `--emit` `--profile` `--help` |
 | After `--emit` | `resolved` |

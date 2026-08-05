@@ -1,0 +1,169 @@
+# 19 — versioned technical-docs slices (stable / beta / deprecated)
+# Presentation profile attribute `version` gates sections via if:/flag:.
+# Concept nodes also carry Schema.org version + creativeWorkStatus in ld:
+# so the graph leaf matches the docs slice you asked for.
+#
+# Try:
+#   node src/cli.js examples/19-versions/api.yml
+#   node src/cli.js examples/19-versions/api.yml --profile version=stable
+#   node src/cli.js examples/19-versions/api.yml --profile version=beta
+#   node src/cli.js examples/19-versions/api.yml --profile version=deprecated
+#   node src/cli.js examples/19-versions/api.yml --profile version=beta --json
+#   node src/cli.js examples/19-versions/api.yml --emit resolved --profile version=stable
+
+"@context": "https://schema.org"
+
+head:
+  title: "Widget API — Versioned Docs"
+
+body:
+  main:
+    h1: "Widget API"
+
+    children:
+      - p:
+          class: "lede"
+          text: "One seed, three deliverable slices. Pass --profile version=stable|beta|deprecated."
+
+      # Slice banners (if: — only the matching profile keeps them).
+      - p:
+          class: "slice-banner"
+          if: { version: beta }
+          text: "Beta slice — APIs here may change before the next stable cut."
+
+      - p:
+          class: "slice-banner"
+          if: { version: deprecated }
+          text: "Deprecated slice — prefer the stable surface; removal is scheduled."
+
+      # flag: never excludes — gains class flag-beta when that profile matches.
+      - p:
+          class: "hint"
+          flag: { version: beta }
+          text: "Slice-aware seed — unmatched version sections are omitted from HTML and JSON-LD."
+
+      # ── stable ──────────────────────────────────────────────────────────
+      - section:
+          class: "docs-slice"
+          id: "auth-stable"
+          if: { version: stable }
+          ld:
+            "@id": "#auth-stable"
+            "@type": DefinedTerm
+            name: "authenticate"
+            description: "Exchange credentials for a session token."
+            termCode: "authenticate"
+            version: "1.0"
+            creativeWorkStatus: "stable"
+          children:
+            - h2: "authenticate (stable)"
+            - p: "POST /v1/auth — returns { token, expires_at }. Supported on all current clients."
+            - dl:
+                children:
+                  - dt: "Status"
+                  - dd:
+                      class: "status"
+                      text: "stable"
+                  - dt: "Version"
+                  - dd:
+                      class: "version"
+                      text: "1.0"
+
+      - section:
+          class: "docs-slice"
+          id: "list-widgets-stable"
+          if: { version: stable }
+          ld:
+            "@id": "#list-widgets-stable"
+            "@type": TechArticle
+            name: "List widgets"
+            description: "Paginated widget collection."
+            version: "1.0"
+            creativeWorkStatus: "stable"
+          children:
+            - h2: "GET /v1/widgets"
+            - p: "Returns a page of widgets. Query: limit, cursor."
+
+      # ── beta ────────────────────────────────────────────────────────────
+      - section:
+          class: "docs-slice"
+          id: "auth-beta"
+          if: { version: beta }
+          ld:
+            "@id": "#auth-beta"
+            "@type": DefinedTerm
+            name: "authenticate"
+            description: "OAuth device-code flow (preview)."
+            termCode: "authenticate"
+            version: "2.0-beta"
+            creativeWorkStatus: "beta"
+          children:
+            - h2: "authenticate (beta)"
+            - p: "POST /v2/auth/device — device-code grant. Not yet covered by the stability policy."
+            - dl:
+                children:
+                  - dt: "Status"
+                  - dd:
+                      class: "status"
+                      text: "beta"
+                  - dt: "Version"
+                  - dd:
+                      class: "version"
+                      text: "2.0-beta"
+
+      - section:
+          class: "docs-slice"
+          id: "stream-widgets-beta"
+          if: { version: beta }
+          ld:
+            "@id": "#stream-widgets-beta"
+            "@type": TechArticle
+            name: "Stream widgets"
+            description: "Server-sent events for widget updates."
+            version: "0.9-beta"
+            creativeWorkStatus: "beta"
+          children:
+            - h2: "GET /v2/widgets/stream"
+            - p: "SSE feed of widget change events. Shape may still move."
+
+      # ── deprecated ──────────────────────────────────────────────────────
+      - section:
+          class: "docs-slice"
+          id: "auth-legacy"
+          if: { version: deprecated }
+          ld:
+            "@id": "#auth-legacy"
+            "@type": DefinedTerm
+            name: "login"
+            description: "Legacy password form endpoint."
+            termCode: "login"
+            version: "0.4"
+            creativeWorkStatus: "deprecated"
+          children:
+            - h2: "login (deprecated)"
+            - p: "POST /v0/login — removed in the next major. Migrate to authenticate."
+            - dl:
+                children:
+                  - dt: "Status"
+                  - dd:
+                      class: "status"
+                      text: "deprecated"
+                  - dt: "Version"
+                  - dd:
+                      class: "version"
+                      text: "0.4"
+
+      - section:
+          class: "docs-slice"
+          id: "xml-rpc-deprecated"
+          if: { version: deprecated }
+          ld:
+            "@id": "#xml-rpc-deprecated"
+            "@type": TechArticle
+            name: "XML-RPC bridge"
+            description: "Legacy XML-RPC façade over the widget API."
+            version: "0.2"
+            creativeWorkStatus: "deprecated"
+          children:
+            - h2: "POST /v0/xmlrpc"
+            - p: "XML-RPC method dispatch. No new clients should call this."

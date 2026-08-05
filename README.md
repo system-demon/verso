@@ -15,7 +15,7 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 - **Twinseed markup** — keys are tags; indentation is the tree; `children:` for ordered siblings
 - **Includes** — `include: "file.yml"` inlines a partial; `file.yml#id` pulls a single element (conref-lite), `include: { key: name }` makes it a conkeyref
 - **Keys** — a `keys:` block binds symbolic names; `{ key: name }` resolves them in text, attributes, `ld:` values, and `include:` paths — late-bound from one place
-- **Presentation profiles** — `if:` / `flag:` filter or mark content per render against an `audience` / `platform` / `product` profile; excluded content never asserts into the graph
+- **Presentation profiles** — `if:` / `flag:` filter or mark content per render against an `audience` / `platform` / `product` / `version` profile; excluded content never asserts into the graph
 - **Document heads** — `head:` blocks (`title`, `meta`, `link`, `css:`) fill the `<head>` of `--doc` output
 
 **Linked data**
@@ -150,6 +150,7 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`. Prefer
 - **feed** — Atom/RSS knowledge stream from the same map as HTML + JSON-LD
 - **watch** — register version/status watches and see `knowledgeAlert` fire
 - **backlinks** — inverse relations from `map.relations` + JSON-LD edges (`getBacklinks`)
+- **context** — LLM knowledge pack (`--emit context` / `GET /context` / `renderContext`)
 - **editor** — collaborative YAML draft room
 ## Project layout
 

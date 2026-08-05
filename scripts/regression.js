@@ -71,6 +71,26 @@ run('emit profiles', [
   'audience=novice',
 ]);
 
+run('19-versions --profile version=stable', [
+  cli,
+  'examples/19-versions/api.yml',
+  '--profile',
+  'version=stable',
+  '--json',
+]);
+run('19-versions --profile version=beta', [
+  cli,
+  'examples/19-versions/api.yml',
+  '--profile',
+  'version=beta',
+  '--json',
+]);
+run('19-versions --strict', [
+  cli,
+  'examples/19-versions/api.yml',
+  '--strict',
+]);
+
 run('05-register-convention.js', [path.join('examples', '05-register-convention.js')]);
 run('06-custom-rpc.js', [path.join('examples', '06-custom-rpc.js')]);
 run('18-knowledge-watch.js', [path.join('examples', '18-knowledge-watch.js')]);
