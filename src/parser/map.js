@@ -422,7 +422,7 @@ function normalizeRelations(raw, state, options) {
         return;
       }
     }
-    const sig = [a, b].sort().join(' ');
+    const sig = [a, b].sort().join('\0');
     if (seen.has(sig)) return;
     seen.add(sig);
     out.push([a, b]);
