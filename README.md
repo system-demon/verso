@@ -62,8 +62,8 @@ npm run render -- templates/product.yml --json \
 
 Requires **Node.js 18+**.
 
-Full walkthrough: [QUICKSTART.md](QUICKSTART.md)  
-Extend & customize: [examples/README.md](examples/README.md)  
+Full walkthrough: [QUICKSTART.md](QUICKSTART.md)
+Extend & customize: [examples/README.md](examples/README.md)
 Design research (DITA → Verso): [docs/dita-research.md](docs/dita-research.md)
 
 ## Example

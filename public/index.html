@@ -3,59 +3,73 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verso · presentation + linked data</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <title>Verso · live sync</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/verso.css">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
-
-  <header class="top">
-    <p class="brand">Verso</p>
+  <header class="half-title">
+    <h1>Verso</h1>
+    <p class="imprint">a live reading room — two windows, one state</p>
+    <nav>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">wikipedia</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
     <p class="status" id="status">connecting…</p>
   </header>
 
-  <main class="stage">
-    <section class="panel live" aria-labelledby="live-heading">
-      <h1 id="live-heading">Live view</h1>
-      <p class="lede">The other side of the page is meaning. One YAML tree, two faces: HTML for browsers and JSON-LD for the Semantic Web. Change state — both update together.</p>
-      <div id="mount" class="mount" aria-live="polite"></div>
-    </section>
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso" aria-labelledby="ld-heading">
+        <div class="running-head"><span class="face">Verso</span><span>the meaning</span></div>
+        <h2 id="ld-heading" class="visually-hidden">Linked data (JSON-LD)</h2>
+        <pre class="graph-json" id="ld-out"><code>{}</code></pre>
+        <p class="margin-note">The graph is typed by <code>ld_if</code> — while the price holds at $299 it reads <code>PremiumProduct</code>; under $100 it yields to <code>BudgetProduct</code>.</p>
+      </section>
+      <section class="page page--recto" aria-labelledby="view-heading">
+        <div class="running-head"><span>the presentation</span><span class="face">Recto</span></div>
+        <h2 id="view-heading" class="visually-hidden">The entity card</h2>
+        <div id="mount" class="mount" aria-live="polite"></div>
+        <h2 class="edit-head">edit the entity</h2>
+        <form id="update-form" class="form">
+          <label>
+            Name
+            <input name="name" id="field-name" type="text" value="The Verso Companion" autocomplete="off">
+          </label>
+          <label>
+            Price
+            <input name="price" id="field-price" type="text" value="299.00" inputmode="decimal" autocomplete="off">
+          </label>
+          <label>
+            Finish
+            <input name="finish" id="field-finish" type="text" value="Clothbound, gilt edge" autocomplete="off">
+          </label>
+          <label>
+            Description
+            <textarea name="description" id="field-description" rows="3">A field guide to trees that render twice — once for the eye as a page, once for the machine as a graph.</textarea>
+          </label>
+          <button type="submit">Turn the leaf</button>
+        </form>
+        <p class="hint">Open this page in a second window — same session — and watch the leaf turn in both. Drop the price under 100 and watch the graph change its mind.</p>
+      </section>
+    </div>
+  </div>
 
-    <section class="panel controls" aria-labelledby="ctrl-heading">
-      <h2 id="ctrl-heading">Update entity state</h2>
-      <form id="update-form" class="form">
-        <label>
-          Name
-          <input name="name" id="field-name" type="text" value="Quantum Headphones" autocomplete="off">
-        </label>
-        <label>
-          Price
-          <input name="price" id="field-price" type="text" value="299.00" inputmode="decimal" autocomplete="off">
-        </label>
-        <label>
-          Finish
-          <input name="finish" id="field-finish" type="text" value="Matte Black" autocomplete="off">
-        </label>
-        <label>
-          Description
-          <textarea name="description" id="field-description" rows="2">Noise-cancelling headphones from the future.</textarea>
-        </label>
-        <button type="submit">Push update</button>
-      </form>
-      <p class="hint">Open this page in two windows on the same session to see the view and graph sync.</p>
-    </section>
-
-    <section class="panel meta" aria-labelledby="ld-heading">
-      <h2 id="ld-heading">Linked data (JSON-LD)</h2>
-      <pre id="ld-out" class="code"><code>{}</code></pre>
-    </section>
-  </main>
+  <div class="colophon">
+    <details>
+      <summary>About this leaf</summary>
+      <p>One tree, two projections: the recto renders <code>templates/product.yml</code> as HTML, the verso carries its JSON-LD. Edits travel as <code>updateState</code> over Socket.IO, and every window on this session re-renders together. Want to edit YAML directly? <a href="/live/editor.html">Open the live editor</a>.</p>
+    </details>
+    <p class="folio"><span>verso press — reading room</span><span>leaf v</span></p>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/client.js" type="module"></script>
