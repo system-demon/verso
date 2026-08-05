@@ -1,10 +1,10 @@
 /**
- * Browser client — JSON-RPC over Socket.IO + pushUpdate listener
+ * Browser client — JSON-RPC over Socket.IO + pushUpdate / knowledgeAlert
  */
 
 const SESSION_KEY = 'twinseed-session';
-const ITEM_ID = 'item_55';
-const TEMPLATE = 'product';
+const ITEM_ID = 'json-rpc';
+const TEMPLATE = 'concept';
 
 function sessionId() {
   let id = localStorage.getItem(SESSION_KEY);
@@ -19,10 +19,13 @@ const statusEl = document.getElementById('status');
 const mountEl = document.getElementById('mount');
 const ldOut = document.getElementById('ld-out');
 const form = document.getElementById('update-form');
+const alertBanner = document.getElementById('alert-banner');
 
 const socket = io({
   query: { sessionId: sessionId() },
 });
+
+let alertHideTimer = 0;
 
 function setStatus(text, cls) {
   statusEl.textContent = text;
@@ -50,6 +53,39 @@ function escapeHtml(s) {
 }
 
 /**
+ * Small toast matching the book-spread UI (no emoji).
+ * @param {Array<Record<string, unknown>>} alerts
+ */
+function showAlerts(alerts) {
+  if (!Array.isArray(alerts) || !alerts.length || !alertBanner) return;
+  const lines = alerts.map((a) => {
+    const msg = typeof a.message === 'string' ? a.message : 'Knowledge alert';
+    const detail =
+      a.mode === 'change' && a.previousValue != null && a.currentValue != null
+        ? ` (${a.previousValue} → ${a.currentValue})`
+        : a.currentValue != null
+          ? ` (${a.currentValue})`
+          : '';
+    return `${msg}${detail}`;
+  });
+  alertBanner.hidden = false;
+  alertBanner.textContent = lines.join(' · ');
+  alertBanner.classList.remove('is-fade');
+  void alertBanner.offsetWidth;
+  alertBanner.classList.add('is-show');
+  clearTimeout(alertHideTimer);
+  alertHideTimer = window.setTimeout(() => {
+    alertBanner.classList.remove('is-show');
+    alertBanner.classList.add('is-fade');
+    window.setTimeout(() => {
+      alertBanner.hidden = true;
+      alertBanner.textContent = '';
+      alertBanner.classList.remove('is-fade');
+    }, 400);
+  }, 5200);
+}
+
+/**
  * @param {string} method
  * @param {object} params
  */
@@ -73,24 +109,57 @@ function formData() {
   return {
     id: ITEM_ID,
     name: document.getElementById('field-name').value,
-    price: document.getElementById('field-price').value,
-    finish: document.getElementById('field-finish').value,
     description: document.getElementById('field-description').value,
+    version: document.getElementById('field-version').value,
+    status: document.getElementById('field-status').value,
   };
 }
 
+function syncForm(state) {
+  if (!state) return;
+  if (state.name != null) document.getElementById('field-name').value = state.name;
+  if (state.description != null) {
+    document.getElementById('field-description').value = state.description;
+  }
+  if (state.version != null) document.getElementById('field-version').value = state.version;
+  if (state.status != null) document.getElementById('field-status').value = state.status;
+}
+
+async function registerWatches() {
+  await rpc('addWatch', {
+    id: 'version-bump',
+    mode: 'change',
+    ref: `#${ITEM_ID} .version`,
+    conceptId: ITEM_ID,
+    message: 'Concept version changed — review dependents.',
+  });
+  await rpc('addWatch', {
+    id: 'deprecated',
+    mode: 'when',
+    ref: `#${ITEM_ID} .status`,
+    operator: '==',
+    value: 'deprecated',
+    conceptId: ITEM_ID,
+    message: 'Warning: concept marked deprecated.',
+  });
+}
+
 async function initialRender() {
-  const result = await rpc('renderComponent', {
+  // Prime change-watches with a silent sample (no alert on first observation)
+  const result = await rpc('updateState', {
+    itemId: ITEM_ID,
     componentId: TEMPLATE,
     data: formData(),
+    updates: {},
   });
-  showHtml(result.html);
-  showLd(result.ldJson);
+  showHtml(result.newHtml);
+  showLd(result.newLdJson);
 }
 
 socket.on('connect', async () => {
   setStatus(`live · ${sessionId()}`, 'is-live');
   try {
+    await registerWatches();
     await initialRender();
   } catch (err) {
     setStatus(err.message, 'is-err');
@@ -106,16 +175,12 @@ socket.on('pushUpdate', (msg) => {
   if (!params) return;
   if (params.newHtml) showHtml(params.newHtml);
   if (params.newLdJson) showLd(params.newLdJson);
+  syncForm(params.state);
+});
 
-  // Sync form fields from pushed state when another client updated
-  if (params.state) {
-    if (params.state.name != null) document.getElementById('field-name').value = params.state.name;
-    if (params.state.price != null) document.getElementById('field-price').value = params.state.price;
-    if (params.state.finish != null) document.getElementById('field-finish').value = params.state.finish;
-    if (params.state.description != null) {
-      document.getElementById('field-description').value = params.state.description;
-    }
-  }
+socket.on('knowledgeAlert', (msg) => {
+  const params = msg?.params ?? msg;
+  if (params?.alerts) showAlerts(params.alerts);
 });
 
 form.addEventListener('submit', async (e) => {
@@ -126,9 +191,10 @@ form.addEventListener('submit', async (e) => {
       componentId: TEMPLATE,
       updates: formData(),
     });
-    // Local ack also applies (pushUpdate will fire to room including us)
     showHtml(result.newHtml);
     showLd(result.newLdJson);
+    // Local ack may include alerts before the room broadcast arrives
+    if (result.alerts?.length) showAlerts(result.alerts);
   } catch (err) {
     setStatus(err.message, 'is-err');
   }

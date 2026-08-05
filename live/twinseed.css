@@ -57,6 +57,10 @@ body {
 }
 .half-title nav a { color: #cbb98f; text-decoration: none; border-bottom: 1px solid transparent; }
 .half-title nav a:hover { border-bottom-color: #cbb98f; }
+.half-title nav a[aria-current="page"] {
+  color: var(--paper);
+  border-bottom-color: #cbb98f;
+}
 
 /* profile toggles — reading-room controls */
 .profiles { display: flex; gap: 0.35rem; align-items: center; font-family: var(--mono); font-size: 0.68rem; color: #a89a7e; }

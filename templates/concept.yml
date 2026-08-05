@@ -1,0 +1,45 @@
+# Concept card — DefinedTerm / technical-docs live updates
+# Placeholders {{id}}, {{name}}, {{description}}, {{version}}, {{status}}
+# Prefer this over product.yml for knowledge-watch and live graph demos.
+
+"@context": "https://schema.org"
+
+div:
+  class: "definedterm"
+  id: "{{id}}"
+
+  ld:
+    "@id": "#{{id}}"
+    "@type": DefinedTerm
+    name: { ref: "#{{id}} .name" }
+    description: { ref: "#{{id}} .description" }
+    termCode: "{{id}}"
+    version: { ref: "#{{id}} .version" }
+    creativeWorkStatus: { ref: "#{{id}} .status" }
+
+  ld_if:
+    condition:
+      ref: "#{{id}} .status"
+      operator: "=="
+      value: deprecated
+    then:
+      creativeWorkStatus: Deprecated
+      warning: "This concept is deprecated — review dependents."
+
+  children:
+    - h1:
+        class: "name"
+        text: "{{name}}"
+    - p:
+        class: "description"
+        text: "{{description}}"
+    - dl:
+        children:
+          - dt: "Version"
+          - dd:
+              class: "version"
+              text: "{{version}}"
+          - dt: "Status"
+          - dd:
+              class: "status"
+              text: "{{status}}"

@@ -14,6 +14,12 @@ import {
   setItemState,
   updateItemState,
 } from './state.js';
+import {
+  addWatch,
+  evaluateSessionWatches,
+  listWatches,
+  removeWatch,
+} from './watches.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
@@ -159,22 +165,43 @@ export const methods = {
   },
 
   /**
-   * Update live state and re-render the affected component.
+   * Update live state and re-render the affected component / seed.
+   * Prefer templates/concept.yml (or params.yaml|path) for knowledge docs;
+   * product.yml remains for legacy demos only.
+   * After render, session knowledge watches are evaluated (edge / change).
    */
   updateState(params = {}, ctx) {
     const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
     const itemId = params.itemId;
     const updates = params.updates ?? {};
-    const componentId = params.componentId ?? params.template ?? 'product';
     const profile = parseProfile(params.profile);
 
     if (!itemId) {
       throw rpcError(-32602, 'itemId is required');
     }
 
-    const merged = updateItemState(sessionId, itemId, updates);
-    const source = loadTemplate(componentId);
-    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR, profile });
+    const merged = updateItemState(sessionId, itemId, {
+      ...(params.data && typeof params.data === 'object' ? params.data : {}),
+      ...updates,
+      id: updates.id ?? params.data?.id ?? itemId,
+    });
+
+    let source;
+    let baseDir = TEMPLATES_DIR;
+    if (
+      (typeof params.yaml === 'string' && params.yaml.trim()) ||
+      (typeof params.path === 'string' && params.path.trim())
+    ) {
+      const loaded = loadSeedSource(params);
+      source = loaded.source;
+      baseDir = loaded.baseDir ?? TEMPLATES_DIR;
+    } else {
+      const componentId = params.componentId ?? params.template ?? 'concept';
+      source = loadTemplate(componentId);
+    }
+
+    const result = renderYaml(source, { params: merged, baseDir, profile });
+    const alerts = evaluateSessionWatches(sessionId, result.contentMap);
 
     return {
       target: `#${itemId}`,
@@ -184,6 +211,62 @@ export const methods = {
       state: merged,
       itemId,
       sessionId,
+      alerts,
+      ...(profile !== undefined ? { profile } : {}),
+    };
+  },
+
+  /**
+   * Register a knowledge watch for this session.
+   * mode "when" (default): fire once when ld_if-style condition becomes true.
+   * mode "change": fire whenever ContentMap[ref] changes after the first sample.
+   */
+  addWatch(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    return { sessionId, watch: addWatch(sessionId, params) };
+  },
+
+  removeWatch(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    return { sessionId, ...removeWatch(sessionId, params.watchId ?? params.id) };
+  },
+
+  listWatches(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    return listWatches(sessionId);
+  },
+
+  /**
+   * Re-render a seed and evaluate watches without mutating item state.
+   * Useful for probing conditions against yaml|path|componentId + data.
+   */
+  evaluateWatches(params = {}, ctx) {
+    const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
+    const profile = parseProfile(params.profile);
+    let source;
+    let baseDir = TEMPLATES_DIR;
+    if (
+      (typeof params.yaml === 'string' && params.yaml.trim()) ||
+      (typeof params.path === 'string' && params.path.trim())
+    ) {
+      const loaded = loadSeedSource(params);
+      source = loaded.source;
+      baseDir = loaded.baseDir ?? TEMPLATES_DIR;
+    } else {
+      const componentId = params.componentId ?? params.template ?? 'concept';
+      source = loadTemplate(componentId);
+    }
+    const result = renderYaml(source, {
+      params: params.data ?? {},
+      baseDir,
+      profile,
+    });
+    const alerts = evaluateSessionWatches(sessionId, result.contentMap);
+    return {
+      sessionId,
+      alerts,
+      contentMap: result.contentMap,
+      ldJson: result.ldJson,
       ...(profile !== undefined ? { profile } : {}),
     };
   },
