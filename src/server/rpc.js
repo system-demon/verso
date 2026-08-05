@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getBacklinks, renderFeed } from '../parser/feed.js';
+import { renderContext } from '../parser/context.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
 import { parseProfile } from '../parser/profiles.js';
 import {
@@ -262,6 +263,29 @@ export const methods = {
       profile,
       id: typeof params.id === 'string' ? params.id : undefined,
     });
+  },
+
+  /**
+   * LLM-ready knowledge pack from the same seed (entities, relations, prompt).
+   * params.yaml | params.path | params.componentId — source
+   * params.id — optional focus key
+   * params.promptOnly — if true, return { prompt } only
+   */
+  renderContext(params = {}, _ctx) {
+    const { source, baseDir } = loadSeedSource(params);
+    const profile = parseProfile(params.profile);
+    const pack = renderContext(source, {
+      params: params.data ?? {},
+      strict: params.strict === true ? true : undefined,
+      baseDir,
+      profile,
+      id: typeof params.id === 'string' ? params.id : undefined,
+      title: typeof params.title === 'string' ? params.title : undefined,
+    });
+    if (params.promptOnly === true) {
+      return { prompt: pack.prompt, format: pack.format, title: pack.title };
+    }
+    return pack;
   },
 
   /**

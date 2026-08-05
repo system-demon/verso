@@ -392,6 +392,21 @@ Built-in conventions `definedterm`, `techarticle`, and `howto` mirror those type
 
 ---
 
+## 18. LLM context pack — `--emit context`
+
+Export the same seed as an agent-ready pack: entities (from JSON-LD), inverted relations (`getBacklinks`), and a markdown `prompt` you can paste into a chat.
+
+```bash
+node src/cli.js examples/17-feed/knowledge.map.yml --emit context
+# with the server running:
+curl -s "http://localhost:3847/context?path=examples/17-feed/knowledge.map.yml"
+curl -s "http://localhost:3847/context?path=examples/17-feed/knowledge.map.yml&promptOnly=1"
+```
+
+RPC: `renderContext` (`yaml` | `path` | `componentId`; optional `id` focus, `promptOnly: true`). Format id: `twinseed.context.v1`.
+
+---
+
 ## Extension checklist
 
 | Goal | Where |
@@ -405,6 +420,7 @@ Built-in conventions `definedterm`, `techarticle`, and `howto` mirror those type
 | Compose a publication (nav, related links, pager, site graph) | `map:` document — `examples/14-map/` |
 | Atom / RSS knowledge feed from the same graph | `--emit atom` / `GET /feed` — `examples/17-feed/` |
 | Inverse relations / backlinks | RPC `getBacklinks` |
+| LLM context pack from the same graph | `--emit context` / `GET /context` / RPC `renderContext` |
 | Conditional assertions | `ld_if` in the YAML |
 | Bind graph properties to UI text | `ld:` + `{ ref }` (or a ref-valued `{ key }`) |
 | New remote publish API | `registerMethod(...)` in RPC |

@@ -3,7 +3,7 @@
  * Twinseed CLI — render a seed (YAML genome → HTML + JSON-LD).
  *
  *   node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch]
- *                   [--emit resolved|atom|rss] [--profile key=value ...] [KEY=value ...]
+ *                   [--emit resolved|atom|rss|context] [--profile key=value ...] [KEY=value ...]
  *
  * The seed is the source of truth. Flags only choose how the leaves are shown.
  *
@@ -18,6 +18,9 @@
  *   --emit atom | --emit rss
  *                project the JSON-LD graph into an Atom or RSS knowledge feed
  *                (concepts / TechArticle / changelog — not a product catalog).
+ *   --emit context
+ *                LLM-ready knowledge pack (JSON): entities, relations, and a
+ *                pasteable markdown `prompt` from the same seed graph.
  *   --profile    if:/flag: attributes — key=value pairs until the next --flag
  *                (vocabulary: audience, platform, product; omit → all renders)
  *   -h, --help   this help
@@ -26,15 +29,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { renderContext } from './parser/context.js';
 import { renderFeed } from './parser/feed.js';
 import { renderYaml, resolveTree, toDocument } from './parser/yamlDom.js';
 
 const args = process.argv.slice(2);
 const PARAM_RE = /^([A-Za-z_]\w*)=(.*)$/;
-const EMIT_TARGETS = new Set(['resolved', 'atom', 'rss']);
+const EMIT_TARGETS = new Set(['resolved', 'atom', 'rss', 'context']);
 
 const USAGE =
-  'twinseed: render a seed — node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved|atom|rss] [--profile key=value ...] [KEY=value ...]';
+  'twinseed: render a seed — node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved|atom|rss|context] [--profile key=value ...] [KEY=value ...]';
 
 const HELP = `twinseed — render a seed (YAML genome → HTML + JSON-LD)
 
@@ -47,6 +51,7 @@ Options
   --watch             re-render on change (status on stderr)
   --emit resolved     print the resolved tree as YAML (not with --json/--doc)
   --emit atom|rss     knowledge feed from the same graph (Atom or RSS 2.0)
+  --emit context      LLM knowledge pack (JSON with entities, relations, prompt)
   --profile k=v …     presentation profile for if:/flag:
                       vocabulary: audience, platform, product
   -h, --help          this help
@@ -81,11 +86,11 @@ if (emitIdx !== -1) {
   emitValueIdx = emitIdx + 1;
   const value = args[emitValueIdx];
   if (value === undefined || value.startsWith('--')) {
-    console.error('twinseed: --emit needs a target (resolved|atom|rss)');
+    console.error('twinseed: --emit needs a target (resolved|atom|rss|context)');
     process.exit(1);
   }
   if (!EMIT_TARGETS.has(value)) {
-    console.error(`twinseed: unknown --emit target "${value}" (resolved|atom|rss)`);
+    console.error(`twinseed: unknown --emit target "${value}" (resolved|atom|rss|context)`);
     process.exit(1);
   }
   emitTarget = value;
@@ -144,6 +149,17 @@ function renderOnce() {
       format: emitTarget,
     });
     process.stdout.write(feed.xml);
+    return;
+  }
+
+  if (emitTarget === 'context') {
+    const pack = renderContext(source, {
+      params,
+      strict,
+      baseDir: path.dirname(filePath),
+      profile: profilePairs,
+    });
+    process.stdout.write(`${JSON.stringify(pack, null, 2)}\n`);
     return;
   }
 

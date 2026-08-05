@@ -47,6 +47,7 @@ run('17-feed --json', [cli, 'examples/17-feed/knowledge.map.yml', '--json']);
 run('17-feed --strict', [cli, 'examples/17-feed/knowledge.map.yml', '--strict']);
 run('17-feed --emit atom', [cli, 'examples/17-feed/knowledge.map.yml', '--emit', 'atom']);
 run('17-feed --emit rss', [cli, 'examples/17-feed/knowledge.map.yml', '--emit', 'rss']);
+run('17-feed --emit context', [cli, 'examples/17-feed/knowledge.map.yml', '--emit', 'context']);
 
 run('demo.yml --strict', [cli, 'templates/demo.yml', '--strict']);
 run('product.yml --strict (params)', [

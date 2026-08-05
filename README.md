@@ -30,10 +30,11 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 
 - **Map documents** — a top-level `map:` composes fragments into a publication: nested `<section>`s, generated nav, related-links, prev/next pagers, and a `CollectionPage` node with `hasPart` — one structure, three projections
 - **Knowledge feeds** — the same seed projects Atom / RSS (`--emit atom`, `GET /feed`) from TechArticle / DefinedTerm / HowTo-shaped graph nodes — a changelog/concept stream, not a product catalog
+- **LLM context** — `--emit context` / `GET /context` exports entities, relations, and a pasteable markdown prompt from the same graph
 
 **Tooling**
 
-- **CLI** — render, `--json`, `--doc`, `--watch`, `--strict`, `--profile`, `KEY=value` params, and `--emit resolved` to inspect the resolved intermediate tree
+- **CLI** — render, `--json`, `--doc`, `--watch`, `--strict`, `--profile`, `KEY=value` params, and `--emit resolved|atom|rss|context`
 - **Live graph views** — JSON-RPC renders fragments and map sections; Socket.IO pushes HTML + JSON-LD on update
 - **Reading room** — `/live/` serves book-spread demos rendered straight from `.yml` sources
 
@@ -152,11 +153,12 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 | `src/parser/keys.js` | `keys:` block + `{ key }` resolution |
 | `src/parser/map.js` | `map:` composition documents (sections, nav, pager, site graph) |
 | `src/parser/feed.js` | Atom / RSS knowledge feed + backlinks from the JSON-LD / map graph |
+| `src/parser/context.js` | LLM knowledge pack (`--emit context` / `renderContext`) |
 | `src/parser/profiles.js` | `if:` / `flag:` profile filtering |
 | `src/parser/includes.js` | `include:` partials and `file.yml#id` element pulls |
 | `src/parser/validate.js` | strict-mode validation |
 | `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
-| `src/cli.js` | Offline render; `--emit resolved|atom|rss` |
+| `src/cli.js` | Offline render; `--emit resolved|atom|rss|context` |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
 | `live/` | Reading room — book-spread demos and their `.yml` sources |
