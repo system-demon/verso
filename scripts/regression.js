@@ -67,6 +67,12 @@ run('emit profiles', [
 
 run('05-register-convention.js', [path.join('examples', '05-register-convention.js')]);
 run('06-custom-rpc.js', [path.join('examples', '06-custom-rpc.js')]);
+run('diagram-highlights.js', [path.join('scripts', 'diagram-highlights.js')]);
+run('diagram-focus.skel.yml --json', [
+  cli,
+  'exemplar/templates/diagram-focus.skel.yml',
+  '--json',
+]);
 
 for (const f of fs.readdirSync(path.join(root, 'live')).filter((f) => f.endsWith('.yml'))) {
   run(`live/${f} --strict`, [cli, path.join('live', f), '--strict']);

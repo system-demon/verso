@@ -1,0 +1,143 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://twinseed.local/ia#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "DiagramHighlight": {
+      "@id": "https://twinseed.local/ia#DiagramHighlight",
+      "@type": "@id"
+    },
+    "DiagramFocusSet": {
+      "@id": "https://twinseed.local/ia#DiagramFocusSet",
+      "@type": "@id"
+    },
+    "HighlightRole": {
+      "@id": "https://twinseed.local/ia#HighlightRole",
+      "@type": "@id"
+    },
+    "highlightPath": {
+      "@id": "https://twinseed.local/ia#highlightPath",
+      "@container": "@list"
+    },
+    "highlights": {
+      "@id": "https://twinseed.local/ia#highlights",
+      "@container": "@list"
+    },
+    "diagramFocus": {
+      "@id": "https://twinseed.local/ia#diagramFocus"
+    },
+    "role": {
+      "@id": "https://twinseed.local/ia#role",
+      "@type": "@id"
+    },
+    "Focus": {
+      "@id": "https://twinseed.local/ia#Focus",
+      "@type": "@id"
+    },
+    "Warning": {
+      "@id": "https://twinseed.local/ia#Warning",
+      "@type": "@id"
+    },
+    "StatusOk": {
+      "@id": "https://twinseed.local/ia#StatusOk",
+      "@type": "@id"
+    },
+    "StatusBad": {
+      "@id": "https://twinseed.local/ia#StatusBad",
+      "@type": "@id"
+    },
+    "label": "rdfs:label",
+    "comment": "rdfs:comment",
+    "subClassOf": {
+      "@id": "rdfs:subClassOf",
+      "@type": "@id"
+    },
+    "domain": {
+      "@id": "rdfs:domain",
+      "@type": "@id"
+    },
+    "range": {
+      "@id": "rdfs:range",
+      "@type": "@id"
+    }
+  },
+  "@graph": [
+    {
+      "@id": "https://twinseed.local/ia#DiagramHighlight",
+      "@type": "rdfs:Class",
+      "label": "DiagramHighlight",
+      "comment": "A diagrammatic assertion that a JSON path should be highlighted in the PlantUML @startjson verso. Emitters turn each instance into one or more #highlight directives and strip the node from the diagram body."
+    },
+    {
+      "@id": "https://twinseed.local/ia#DiagramFocusSet",
+      "@type": "rdfs:Class",
+      "label": "DiagramFocusSet",
+      "comment": "Bundle of DiagramHighlight entries for a genotype. Emitters expand the set into #highlight lines and strip the whole FocusSet from the diagram body. Prefer this when a document owns its focus list instead of scattering peer DiagramHighlight entities."
+    },
+    {
+      "@id": "https://twinseed.local/ia#HighlightRole",
+      "@type": "rdfs:Class",
+      "label": "HighlightRole",
+      "comment": "Controlled vocabulary for highlight stereotypes (PlantUML <<role>> + .role skin class). Seeds: Focus, Warning, StatusOk, StatusBad."
+    },
+    {
+      "@id": "https://twinseed.local/ia#highlightPath",
+      "@type": "rdf:Property",
+      "label": "highlightPath",
+      "comment": "Ordered path segments into the genotype JSON (keys and array indices as strings), emitted as PlantUML \"a\" / \"b\" / \"0\" syntax. A \"*\" segment matches every object key or array index at that depth; the emitter expands wildcards against the stripped body into concrete #highlight lines.",
+      "domain": "https://twinseed.local/ia#DiagramHighlight"
+    },
+    {
+      "@id": "https://twinseed.local/ia#highlights",
+      "@type": "rdf:Property",
+      "label": "highlights",
+      "comment": "Ordered list of DiagramHighlight members (or highlight-shaped objects with highlightPath) inside a DiagramFocusSet.",
+      "domain": "https://twinseed.local/ia#DiagramFocusSet",
+      "range": "https://twinseed.local/ia#DiagramHighlight"
+    },
+    {
+      "@id": "https://twinseed.local/ia#diagramFocus",
+      "@type": "rdf:Property",
+      "label": "diagramFocus",
+      "comment": "Optional root-property sugar: a DiagramFocusSet, a DiagramHighlight, or a list of highlights attached to a document. Stripped from the diagram body like typed focus entities."
+    },
+    {
+      "@id": "https://twinseed.local/ia#role",
+      "@type": "rdf:Property",
+      "label": "role",
+      "comment": "HighlightRole (or short token / IRI) mapped to a PlantUML stereotype on the #highlight line.",
+      "domain": "https://twinseed.local/ia#DiagramHighlight",
+      "range": "https://twinseed.local/ia#HighlightRole"
+    },
+    {
+      "@id": "https://twinseed.local/ia#Focus",
+      "@type": "rdfs:Class",
+      "label": "Focus",
+      "comment": "Primary focal cell — the point of the diagram.",
+      "subClassOf": "https://twinseed.local/ia#HighlightRole"
+    },
+    {
+      "@id": "https://twinseed.local/ia#Warning",
+      "@type": "rdfs:Class",
+      "label": "Warning",
+      "comment": "Caution / attention cell.",
+      "subClassOf": "https://twinseed.local/ia#HighlightRole"
+    },
+    {
+      "@id": "https://twinseed.local/ia#StatusOk",
+      "@type": "rdfs:Class",
+      "label": "StatusOk",
+      "comment": "Healthy / affirmative status cell.",
+      "subClassOf": "https://twinseed.local/ia#HighlightRole"
+    },
+    {
+      "@id": "https://twinseed.local/ia#StatusBad",
+      "@type": "rdfs:Class",
+      "label": "StatusBad",
+      "comment": "Unhealthy / negative status cell.",
+      "subClassOf": "https://twinseed.local/ia#HighlightRole"
+    }
+  ]
+}
