@@ -12,6 +12,14 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/live/twinseed.css">
   <style>
+    /* Canvas-only desk surround — clear dark grey (not twinseed.css charcoal). */
+    body {
+      --desk: #3c3c3c;
+      background:
+        radial-gradient(ellipse 120% 60% at 50% -20%, #4a4a4a 0%, transparent 60%),
+        var(--desk);
+    }
+
     /*
       Canvas-scoped Comeau reset (https://www.joshwcomeau.com/css/custom-css-reset/)
       — only rules that keep desk track math honest. Not the full reset:
@@ -111,16 +119,121 @@
       justify-content: space-between;
       align-items: baseline;
     }
+    /*
+      Editor projection grid — cell size maps 1∶1 onto type, not arbitrary px.
+      col = 1ch  (one monospace glyph advance of this face)
+      row = 1lh  (one manuscript line = line-height 1.55)
+      Soft rules stay under ink; text contrast wins.
+    */
+    .entry {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+    }
     .sheet textarea {
+      --grid-col: 1ch;
+      --grid-row: 1lh;
+      --grid-line: color-mix(in srgb, var(--rule) 55%, transparent);
       font-family: var(--mono); font-size: 0.78rem; line-height: 1.55;
       border: none; outline: none; resize: none; width: 100%; flex: 1;
       margin: 0; margin-inline: 0; float: none; align-self: stretch;
       padding: 0.9rem 1.1rem; color: var(--ink);
+      background-color: var(--paper);
       background-origin: content-box; background-attachment: local;
-      background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(1.55em - 1px), var(--rule) calc(1.55em - 1px), var(--rule) 1.55em);
+      background-image:
+        repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent calc(var(--grid-col) - 1px),
+          var(--grid-line) calc(var(--grid-col) - 1px),
+          var(--grid-line) var(--grid-col)
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent calc(var(--grid-row) - 1px),
+          var(--grid-line) calc(var(--grid-row) - 1px),
+          var(--grid-line) var(--grid-row)
+        );
+    }
+    .grid-key {
+      position: absolute;
+      right: 0.7rem;
+      bottom: 0.55rem;
+      z-index: 1;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: auto minmax(2.8rem, 3.6rem) auto;
+      gap: 0.18rem 0.4rem;
+      align-items: center;
+      padding: 0.4rem 0.55rem 0.45rem;
+      max-width: min(14rem, calc(100% - 1.4rem));
+      background: color-mix(in srgb, var(--paper) 94%, transparent);
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      line-height: 1.25;
+      color: var(--ink-soft);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--paper-deep) 70%, transparent);
+    }
+    .grid-key__title {
+      grid-column: 1 / -1;
+      margin: 0 0 0.12rem;
+      color: var(--accent-2);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.52rem;
+    }
+    .grid-key__gloss {
+      grid-column: 1 / -1;
+      margin: 0 0 0.2rem;
+      color: var(--ink-soft);
+      font-size: 0.52rem;
+      letter-spacing: 0.02em;
+    }
+    .grid-key__axis { display: contents; }
+    .grid-key__axis > span:first-child {
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.52rem;
+    }
+    .grid-key__axis > span:last-child {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+    .grid-key meter {
+      width: 100%;
+      height: 0.48rem;
+      vertical-align: middle;
+      background: var(--paper-deep);
+      border: 1px solid color-mix(in srgb, var(--rule) 80%, var(--accent-2));
+      border-radius: 1px;
+    }
+    .grid-key meter::-webkit-meter-inner-element { display: block; }
+    .grid-key meter::-webkit-meter-bar {
+      background: var(--paper-deep);
+      border: none;
+      border-radius: 0;
+    }
+    .grid-key meter::-webkit-meter-optimum-value,
+    .grid-key meter::-webkit-meter-suboptimum-value,
+    .grid-key meter::-webkit-meter-even-less-good-value {
+      background: var(--accent-2);
+      border-radius: 0;
+    }
+    .grid-key meter::-moz-meter-bar {
+      background: var(--accent-2);
+      border-radius: 0;
     }
     #yaml { min-height: 28rem; }
-    #css { min-height: 22rem; display: none; }
+    #css-entry { display: none; min-height: 22rem; }
+    #css { min-height: 22rem; }
     .sheet--genome { min-height: 0; }
     .page--recto { min-height: 0; }
     .page--recto .pheno-body {
@@ -195,7 +308,23 @@
   <main class="desk" id="desk">
     <section class="sheet sheet--genome" aria-label="genome — YAML manuscript">
       <div class="running-head"><span>manuscript</span><span>genome · yaml</span></div>
-      <textarea id="yaml" spellcheck="false" wrap="off" aria-label="genome"></textarea>
+      <div class="entry" id="yaml-entry">
+        <textarea id="yaml" spellcheck="false" wrap="off" aria-label="genome"></textarea>
+        <aside class="grid-key" aria-label="Manuscript grid projection">
+          <p class="grid-key__title">projection · 1∶1 to type</p>
+          <p class="grid-key__gloss">cell → glyph / line · scale in em of this face</p>
+          <div class="grid-key__axis">
+            <span>col</span>
+            <meter min="0" max="1.55" value="1" optimum="1" aria-label="Column cell: 1ch, one monospace character"></meter>
+            <span>1ch</span>
+          </div>
+          <div class="grid-key__axis">
+            <span>row</span>
+            <meter min="0" max="1.55" value="1.55" optimum="1.55" aria-label="Row cell: 1lh, one manuscript line at 1.55em"></meter>
+            <span>1lh</span>
+          </div>
+        </aside>
+      </div>
       <div class="strip">
         <select id="template">
           <option value="practice">practice.skel.yml</option>
@@ -219,9 +348,25 @@
       </div>
       <div class="pheno-body">
         <iframe id="frame" title="phenotype preview"></iframe>
-        <textarea id="css" spellcheck="false" wrap="off" aria-label="stylesheet"></textarea>
+        <div class="entry" id="css-entry">
+          <textarea id="css" spellcheck="false" wrap="off" aria-label="stylesheet"></textarea>
+          <aside class="grid-key" aria-label="Stylesheet grid projection">
+            <p class="grid-key__title">projection · 1∶1 to type</p>
+            <p class="grid-key__gloss">cell → glyph / line · scale in em of this face</p>
+            <div class="grid-key__axis">
+              <span>col</span>
+              <meter min="0" max="1.55" value="1" optimum="1" aria-label="Column cell: 1ch, one monospace character"></meter>
+              <span>1ch</span>
+            </div>
+            <div class="grid-key__axis">
+              <span>row</span>
+              <meter min="0" max="1.55" value="1.55" optimum="1.55" aria-label="Row cell: 1lh, one manuscript line at 1.55em"></meter>
+              <span>1lh</span>
+            </div>
+          </aside>
+        </div>
       </div>
-      <div class="strip" id="css-hint" style="display: none;"><span>applies to the phenotype preview instantly — no server involved</span></div>
+      <div class="strip" id="css-hint" style="display: none;"><span>applies to the phenotype preview instantly — no server · same 1ch × 1lh grid as manuscript</span></div>
     </section>
 
     <section class="page page--verso sheet" aria-label="genotype — JSON-LD and diagram">
@@ -244,6 +389,7 @@
   <script type="module">
     const yamlEl = document.getElementById('yaml');
     const cssEl = document.getElementById('css');
+    const cssEntryEl = document.getElementById('css-entry');
     const graphEl = document.getElementById('graph');
     const diagramEl = document.getElementById('diagram');
     const frameEl = document.getElementById('frame');
@@ -261,7 +407,7 @@
     function syncPhenoView() {
       const showCss = phenoView === 'css';
       frameEl.style.display = showCss ? 'none' : 'block';
-      cssEl.style.display = showCss ? 'block' : 'none';
+      cssEntryEl.style.display = showCss ? 'flex' : 'none';
       cssHintEl.style.display = showCss ? '' : 'none';
     }
 
