@@ -32,7 +32,7 @@ Documents point at `/exemplar/schema.jsonld` and assert `PracticeCanvas` (or `Sk
 - **card.skel.yml** — convention class + `{ ref }` / `{ key }` bindings on PracticeCanvas fields
 - **page.skel.yml** — `head:` block + sections (try `--doc` from the CLI)
 - **entity.skel.yml** — keys, a YAML-declared convention, `ld_if` conditional status
-- **map.skel.yml** — composition over fragment files (create `intro.yml`, `next.yml`, `deep.yml` beside it; note: needs the CLI or a template render — inline rendering has no base directory for includes)
+- **map.skel.yml** — composition over fragment files (`intro.yml`, `next.yml`, `deep.yml` are included and ready to edit). The canvas passes a repo-clamped `baseDir` so maps render inline; from the CLI it resolves relative to the map file.
 
 ## Beyond the canvas
 

@@ -1,0 +1,12 @@
+# Map fragment — pulled in by map.skel.yml as "next"
+
+div:
+  class: "doc-topic"
+  children:
+    - h2: "Next steps"
+    - p:
+        children:
+          - span: { text: "Written by " }
+          - span: { text: { key: author } }
+          - span: { text: " — the map-level key cascaded into this fragment." }
+    - p: "Relations and prev/next pagers are map furniture, generated from item order and the relations: list."

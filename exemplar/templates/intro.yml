@@ -1,0 +1,10 @@
+# Map fragment — pulled in by map.skel.yml as "intro"
+
+div:
+  class: "doc-topic"
+  children:
+    - h1: "Introduction"
+    - p: |
+        This fragment was pulled into the map by include: and wrapped
+        in a <section id="intro">. Maps own structure; fragments own
+        content. Edit me and watch the composed page change.

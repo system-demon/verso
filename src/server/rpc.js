@@ -15,6 +15,24 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
+const REPO_ROOT = path.resolve(__dirname, '../..');
+
+/**
+ * Resolve a client-supplied baseDir for includes, clamped to the repo.
+ * Returns undefined when not supplied; throws on escape attempts.
+ * @param {unknown} baseDir
+ */
+export function clampBaseDir(baseDir) {
+  if (baseDir === undefined || baseDir === null || baseDir === '') return undefined;
+  if (typeof baseDir !== 'string') {
+    throw rpcError(-32602, 'baseDir must be a string path relative to the repo');
+  }
+  const resolved = path.resolve(REPO_ROOT, baseDir.replace(/\\/g, '/'));
+  if (resolved !== REPO_ROOT && !resolved.startsWith(REPO_ROOT + path.sep)) {
+    throw rpcError(-32602, 'baseDir must resolve inside the repository');
+  }
+  return resolved;
+}
 
 /**
  * @param {string} name
@@ -136,6 +154,7 @@ export const methods = {
       params: params.data ?? {},
       strict: params.strict === true ? true : undefined,
       item: typeof params.item === 'string' ? params.item : undefined,
+      baseDir: clampBaseDir(params.baseDir),
       profile,
     });
     return {

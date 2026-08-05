@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
-import { handleRpc } from './rpc.js';
+import { handleRpc, clampBaseDir } from './rpc.js';
 import { jsonDiagramText, plantUmlUrl } from './diagram.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
 
@@ -67,7 +67,11 @@ app.post(
 
       if (req.query.strict === '1' || req.query.strict === 'true') strict = true;
 
-      const result = renderYaml(source, { params: data, strict });
+      const result = renderYaml(source, {
+        params: data,
+        strict,
+        baseDir: clampBaseDir(req.body?.baseDir ?? req.query.baseDir),
+      });
       const format = req.query.format ?? 'json';
       if (format === 'html') return res.type('html').send(result.html);
       if (format === 'doc') return res.type('html').send(toDocument(result));
