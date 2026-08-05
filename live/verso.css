@@ -1,0 +1,234 @@
+/* verso.css — the design system for /live/
+   Concept: the open book. Verso (left page) = meaning. Recto (right page) = presentation. */
+
+:root {
+  --paper: #f5f0e4;
+  --paper-deep: #ede5d2;
+  --desk: #2a251d;
+  --ink: #221d15;
+  --ink-soft: #6b6151;
+  --rule: #d8cdb4;
+  --accent: #7a2e2e;        /* oxblood — presentation / recto */
+  --accent-2: #2e5a4a;      /* verdigris — meaning / verso */
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  font-family: var(--serif);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -20%, #3a3327 0%, transparent 60%),
+    var(--desk);
+  line-height: 1.6;
+  padding: 2rem 1.5rem 3.5rem;
+}
+
+/* ---- half-title (site header) ---- */
+
+.half-title {
+  max-width: 74rem;
+  margin: 0 auto 1.4rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: var(--paper);
+}
+.half-title h1 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.half-title .imprint { color: #a89a7e; font-size: 0.85rem; font-style: italic; }
+.half-title nav {
+  margin-left: auto;
+  display: flex;
+  gap: 1.1rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.half-title nav a { color: #cbb98f; text-decoration: none; border-bottom: 1px solid transparent; }
+.half-title nav a:hover { border-bottom-color: #cbb98f; }
+
+/* profile toggles — reading-room controls */
+.profiles { display: flex; gap: 0.35rem; align-items: center; font-family: var(--mono); font-size: 0.68rem; color: #a89a7e; }
+.profiles button {
+  font: inherit; letter-spacing: 0.04em;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid #6b5f49;
+  background: transparent;
+  color: #d8cdb4;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.profiles button:hover { border-color: #cbb98f; color: #f5f0e4; }
+.profiles button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+
+/* ---- the book ---- */
+
+.book {
+  max-width: 74rem;
+  margin: 0 auto;
+  background: var(--paper);
+  border-radius: 3px;
+  box-shadow:
+    0 1px 0 rgba(245, 240, 228, 0.15) inset,
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 4px 14px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+
+/* the gutter — the spine of the book */
+.spread::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 3.5rem;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(60, 48, 28, 0.10) 38%,
+    rgba(60, 48, 28, 0.22) 50%,
+    rgba(60, 48, 28, 0.10) 62%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.page {
+  padding: 2.2rem 2.6rem 3rem;
+  min-height: 32rem;
+  background:
+    linear-gradient(to bottom, rgba(120, 96, 56, 0.05), transparent 12rem),
+    var(--paper);
+}
+.page--verso { border-right: 1px solid var(--rule); }
+.page--recto { }
+
+/* running heads */
+.running-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.6rem;
+}
+.page--verso .running-head .face { color: var(--accent-2); }
+.page--recto .running-head .face { color: var(--accent); }
+
+/* ---- typography ---- */
+
+.page h1, .page h2, .page h3 { line-height: 1.25; }
+.drop-lead::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.85;
+  padding: 0.08em 0.12em 0 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+a { color: var(--accent); }
+
+code, pre { font-family: var(--mono); }
+
+/* ---- margin notes & colophon ---- */
+
+.margin-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--rule);
+  padding-left: 0.8rem;
+  margin: 1.2rem 0;
+  font-style: italic;
+}
+
+.colophon {
+  max-width: 74rem;
+  margin: 1.4rem auto 0;
+  color: #a89a7e;
+}
+.colophon details { margin: 0.4rem 0; }
+.colophon summary {
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8f8267;
+}
+.colophon summary:hover { color: #cbb98f; }
+.colophon pre {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  line-height: 1.55;
+  background: rgba(245, 240, 228, 0.06);
+  border: 1px solid #4a4232;
+  border-radius: 3px;
+  padding: 1rem 1.2rem;
+  overflow: auto;
+  max-height: 26rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #d8cdb4;
+}
+
+/* graph page content (JSON-LD) */
+.graph-json {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: #264a3d;
+  background: rgba(46, 90, 74, 0.06);
+  border: 1px solid rgba(46, 90, 74, 0.18);
+  border-radius: 2px;
+  padding: 1.1rem 1.2rem;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* folios */
+.folio {
+  max-width: 74rem;
+  margin: 0.8rem auto 0;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: #8f8267;
+}
+
+/* ---- small viewports: close the book into a scroll ---- */
+@media (max-width: 900px) {
+  body { padding: 1rem 0.75rem 2.5rem; }
+  .spread { grid-template-columns: 1fr; }
+  .spread::before { display: none; }
+  .page { padding: 1.6rem 1.4rem 2.2rem; min-height: 0; }
+  .page--verso { border-right: none; border-bottom: 1px solid var(--rule); }
+  .page--verso { order: 2; } /* meaning follows presentation when stacked */
+  .page--recto { order: 1; }
+}

@@ -13,11 +13,13 @@ import { renderYaml, toDocument } from '../parser/yamlDom.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
+const LIVE_DIR = path.resolve(__dirname, '../../live');
 const PORT = Number(process.env.PORT) || 3847;
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(PUBLIC_DIR));
+app.use('/live', express.static(LIVE_DIR));
 
 /** HTTP JSON-RPC endpoint */
 app.post('/rpc', (req, res) => {
@@ -82,6 +84,12 @@ const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
 
+/** Collaborative editor rooms: room name → current YAML draft (in-memory only). */
+const docRooms = new Map();
+const DOC_ROOM_LIMIT = 200;
+const DOC_ROOM_NAME_MAX = 64;
+const DOC_YAML_MAX = 256_000;
+
 io.on('connection', (socket) => {
   const sessionId =
     socket.handshake.query.sessionId?.toString() ||
@@ -123,6 +131,38 @@ io.on('connection', (socket) => {
       socket.join(room);
     }
   });
+
+  /** Collaborative document channel (live/editor.html) */
+  socket.on('doc:join', (room, ack) => {
+    if (typeof room !== 'string' || !room || room.length >= DOC_ROOM_NAME_MAX) return;
+    socket.join(room);
+    if (docRooms.has(room)) {
+      const payload = { yaml: docRooms.get(room), origin: 'server' };
+      if (typeof ack === 'function') ack(payload);
+      else socket.emit('doc:state', payload);
+    } else if (typeof ack === 'function') {
+      ack(null);
+    }
+  });
+
+  socket.on('doc:update', (msg) => {
+    if (
+      !msg ||
+      typeof msg !== 'object' ||
+      typeof msg.room !== 'string' ||
+      !msg.room ||
+      msg.room.length >= DOC_ROOM_NAME_MAX ||
+      typeof msg.yaml !== 'string' ||
+      msg.yaml.length >= DOC_YAML_MAX
+    ) {
+      return;
+    }
+    docRooms.set(msg.room, msg.yaml);
+    if (docRooms.size > DOC_ROOM_LIMIT) {
+      docRooms.delete(docRooms.keys().next().value);
+    }
+    socket.to(msg.room).emit('doc:update', { yaml: msg.yaml, origin: socket.id });
+  });
 });
 
 httpServer.listen(PORT, () => {
@@ -131,4 +171,6 @@ httpServer.listen(PORT, () => {
   console.log(`  Inline    POST /render (raw YAML or { yaml, data })`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);
   console.log(`  Demo      http://localhost:${PORT}/`);
+  console.log(`  Live      http://localhost:${PORT}/live/  (live/)`);
+  console.log(`  Editor    http://localhost:${PORT}/live/editor.html`);
 });

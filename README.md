@@ -10,12 +10,31 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 
 ## Features
 
-- **Verso markup** — keys are tags; indentation is the tree; `children:` for sibling elements
-- **Linked data from structure** — `@context` / `@type`, `ld:` blocks, and class→vocabulary conventions
+**Language**
+
+- **Verso markup** — keys are tags; indentation is the tree; `children:` for ordered siblings
+- **Includes** — `include: "file.yml"` inlines a partial; `file.yml#id` pulls a single element (conref-lite), `include: { key: name }` makes it a conkeyref
+- **Keys** — a `keys:` block binds symbolic names; `{ key: name }` resolves them in text, attributes, `ld:` values, and `include:` paths — late-bound from one place
+- **Presentation profiles** — `if:` / `flag:` filter or mark content per render against an `audience` / `platform` / `product` profile; excluded content never asserts into the graph
+- **Document heads** — `head:` blocks (`title`, `meta`, `link`, `css:`) fill the `<head>` of `--doc` output
+
+**Linked data**
+
+- **Linked data from structure** — `@context` (string, array, or map), `ld:` blocks, and class→vocabulary conventions
 - **Reactive assertions** — `{ ref: "#id .class" }` binds graph properties to the same content the UI shows
 - **Conditional assertions** — `ld_if` chooses types or properties from the data in the tree
-- **Vocabulary conventions** — map presentational classes to types in Schema.org (or your own context)
-- **Live graph views** — JSON-RPC renders fragments; Socket.IO pushes HTML + JSON-LD on update
+- **YAML conventions** — declare class→type mappings in the file itself, with `extends:` single inheritance (`@type` union) and `requires:` strict-mode field checks
+- **Graph identity** — `@id` on any element names its graph node; co-authored entities sharing an `@id` deep-merge, `@type`s union
+
+**Composition**
+
+- **Map documents** — a top-level `map:` composes fragments into a publication: nested `<section>`s, generated nav, related-links, prev/next pagers, and a `CollectionPage` node with `hasPart` — one structure, three projections
+
+**Tooling**
+
+- **CLI** — render, `--json`, `--doc`, `--watch`, `--strict`, `--profile`, `KEY=value` params, and `--emit resolved` to inspect the resolved intermediate tree
+- **Live graph views** — JSON-RPC renders fragments and map sections; Socket.IO pushes HTML + JSON-LD on update
+- **Reading room** — `/live/` serves book-spread demos rendered straight from `.verso.yml` sources
 
 ## Quick start
 
@@ -24,11 +43,17 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3847](http://localhost:3847) for the live demo: change state and watch the presentational tree and the JSON-LD graph update together.
+Open [http://localhost:3847](http://localhost:3847) for the live demo: change state and watch the presentational tree and the JSON-LD graph update together. Then browse the reading room at [http://localhost:3847/live/](http://localhost:3847/live/).
 
 ```bash
 # Render a file (HTML + linked data)
 npm run render -- templates/demo.yml --json
+
+# Compose a publication from fragments
+node src/cli.js examples/14-map/site.map.yml --doc
+
+# Inspect the resolved tree the renderer consumes
+node src/cli.js examples/12-keys.yml --emit resolved
 
 # Inject graph/entity data into placeholders
 npm run render -- templates/product.yml --json \
@@ -38,34 +63,39 @@ npm run render -- templates/product.yml --json \
 Requires **Node.js 18+**.
 
 Full walkthrough: [QUICKSTART.md](QUICKSTART.md)  
-Extend & customize: [examples/README.md](examples/README.md)
+Extend & customize: [examples/README.md](examples/README.md)  
+Design research (DITA → Verso): [docs/dita-research.md](docs/dita-research.md)
 
 ## Example
 
-A presentational subtree that also asserts typed entities in a shared vocabulary (`https://schema.org` here — any JSON-LD `@context` fits the same pattern):
+A presentational subtree that also asserts typed entities — with `keys:` binding names once and `{ key }` resolving them on both faces of the leaf (`https://schema.org` here — any JSON-LD `@context` fits the same pattern):
 
 ```yaml
 "@context": "https://schema.org"
+
+keys:
+  product-name: "WonderWidget"                  # variable text
+  support: { href: "https://example.com/support" }  # named link
 
 div:
   class: "product"
   id: "item_1"
 
-  ld_if:
-    condition: { ref: "#item_1 .price", operator: "<", value: 100 }
-    then: { "@type": BudgetProduct }
-    else: { "@type": PremiumProduct }
+  ld:
+    "@type": Product
+    name: { key: product-name }
+    offers:
+      "@type": Offer
+      price: { ref: "#item_1 .price" }
+      priceCurrency: USD
 
   children:
-    - h1:
-        class: "name"
-        text: "Travel Mug"
-    - span:
-        class: "price"
-        text: "79.00"
+    - h1: { class: "name", text: { key: product-name } }
+    - span: { class: "price", text: "49.99" }
+    - a: { href: { key: support }, text: "Support" }
 ```
 
-The runtime renders the HTML card and a JSON-LD document: implicit `Product` properties from the convention, plus the conditional type from `ld_if`. Presentation and graph share one tree.
+The runtime renders the HTML card and a JSON-LD document: the `Product` entity from the convention, named by `{ key }`, priced by `{ ref }`. Presentation and graph share one tree — change the key once and both sides follow.
 
 ## Why this shape?
 
@@ -97,20 +127,39 @@ curl -s http://localhost:3847/rpc \
   }'
 ```
 
-Methods: `renderComponent`, `renderDocument`, `updateState`, `getState`, `listTemplates`, `ping`.
+Methods: `renderComponent`, `renderDocument`, `renderInline`, `updateState`, `getState`, `listTemplates`, `ping`.
+
+- `renderInline` renders YAML supplied in the request body — no `templates/` file needed.
+- `params.item: "KEY"` on `renderComponent` / `renderInline` chunks a `map:` document into one section's HTML plus its slice of the graph.
+- `params.profile: { "audience": "admin" }` filters `if:` / `flag:` for that render.
 
 Templates are files in `templates/<name>.yml`, selected by `componentId`.
+
+## The reading room — `/live/`
+
+[http://localhost:3847/live/](http://localhost:3847/live/) is a small reading room: each leaf renders a `.verso.yml` source live over RPC (`renderInline`) into a book spread — JSON-LD on the verso page, HTML on the recto, source in the colophon.
+
+- **hello, world** — the full arc in one file: keys, YAML conventions with `extends:`, `ld:` / `ld_if`, and profiles (switch `audience=admin` / `audience=novice` in the header and watch both pages change)
+- **exotic** — a field guide to HTML5's stranger elements, every one authored as a YAML key
+- **wikipedia** — the Wikipedia “Semantic Web” article mocked up as one Verso tree, asserting its own article metadata
 
 ## Project layout
 
 | Path | Role |
 |------|------|
 | `src/parser/` | YAML → HTML, ContentMap, JSON-LD resolution, vocabulary conventions |
+| `src/parser/keys.js` | `keys:` block + `{ key }` resolution |
+| `src/parser/map.js` | `map:` composition documents (sections, nav, pager, site graph) |
+| `src/parser/profiles.js` | `if:` / `flag:` profile filtering |
+| `src/parser/includes.js` | `include:` partials and `file.yml#id` element pulls |
+| `src/parser/validate.js` | strict-mode validation |
 | `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
-| `src/cli.js` | Offline render |
+| `src/cli.js` | Offline render; `--emit resolved` prints the resolved tree |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
+| `live/` | Reading room — book-spread demos and their `.verso.yml` sources |
 | `examples/` | Syntax and extension samples |
+| `docs/` | Research notes (DITA concepts mapped onto Verso) |
 
 ## Extend
 
@@ -132,4 +181,4 @@ See [examples/README.md](examples/README.md) for runnable patterns.
 
 ## License
 
-No license file yet — all rights reserved unless otherwise noted.
+[MIT](LICENSE)

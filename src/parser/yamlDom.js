@@ -6,9 +6,12 @@
 import yaml from 'js-yaml';
 import { ContentMap } from './contentMap.js';
 import { buildLdDocument } from './ldResolver.js';
-import { discoverImplicitSchemas, ConventionRegistry } from './conventions.js';
+import { discoverImplicitSchemas, buildRenderRegistry, ConventionRegistry } from './conventions.js';
 import { resolveIncludes } from './includes.js';
-import { validateTree, strictFromEnv } from './validate.js';
+import { resolveKeys } from './keys.js';
+import { isMapDocument, renderMap, resolveMapTree } from './map.js';
+import { filterTree, parseProfile } from './profiles.js';
+import { validateTree, validateRendered, strictFromEnv } from './validate.js';
 
 const ATTR_KEYS = new Set([
   'id',
@@ -36,6 +39,44 @@ const ATTR_KEYS = new Set([
   'colspan',
   'rowspan',
   'contenteditable',
+  'open',
+  'datetime',
+  'cite',
+  'reversed',
+  'start',
+  'min',
+  'max',
+  'step',
+  'low',
+  'high',
+  'optimum',
+  'list',
+  'srcset',
+  'sizes',
+  'media',
+  'poster',
+  'preload',
+  'controls',
+  'loop',
+  'muted',
+  'scope',
+  'headers',
+  'pattern',
+  'multiple',
+  'accept',
+  'popover',
+  'wrap',
+  'novalidate',
+  'autocomplete',
+  'kind',
+  'srclang',
+  'default',
+  'size',
+  'maxlength',
+  'cols',
+  'rows',
+  'download',
+  'selected',
 ]);
 
 const TEXT_KEYS = new Set(['text', 'content', '_text']);
@@ -140,6 +181,11 @@ function escapeAttr(s) {
   return escapeHtml(s);
 }
 
+/** @param {unknown} v */
+function isPlainRecord(v) {
+  return Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+}
+
 /**
  * @typedef {object} RenderResult
  * @property {string} html
@@ -147,6 +193,7 @@ function escapeAttr(s) {
  * @property {Record<string, string>} contentMap
  * @property {string} [ldScript]
  * @property {{ title?: string, html: string }} [head] parsed top-level head: block
+ * @property {Array<{ id?: string, classes: string[], graphId?: string }>} [trackedElements]
  */
 
 /**
@@ -162,34 +209,146 @@ export function preprocessYaml(source) {
 }
 
 /**
- * Parse YAML string and render to HTML + JSON-LD.
+ * Parse a YAML source string into its root mapping (preprocessed so bare
+ * @keys load). Shared entry point for renderYaml / resolveTree.
  * @param {string} yamlSource
- * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean }} [options]
- *   baseDir enables `include: "file.yml"` resolution (relative to the source file).
- *   strict (or VERSO_STRICT=1) validates the resolved tree before rendering —
- *   pass strict: false to ignore the env var.
- * @returns {RenderResult}
+ * @returns {Record<string, unknown>}
  */
-export function renderYaml(yamlSource, options = {}) {
+function parseRoot(yamlSource) {
   const raw = yaml.load(preprocessYaml(yamlSource));
   if (!raw || typeof raw !== 'object') {
     throw new Error('Verso root must be a mapping');
   }
+  return /** @type {Record<string, unknown>} */ (raw);
+}
 
-  const withIncludes = resolveIncludes(raw, { baseDir: options.baseDir });
-  if (options.strict ?? strictFromEnv()) {
-    validateTree(withIncludes);
+/**
+ * The standalone-document pipeline up to (but not including) renderTree:
+ * profile filtering → include resolution (+ file-root keys:/conventions:
+ * harvest) → strict validation → {{param}} injection → { key } substitution.
+ * Shared by renderYaml (which renders the result) and resolveTree (which
+ * returns it as the documented intermediate).
+ * @param {Record<string, unknown>} raw parsed YAML root (non-map document)
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean }} options
+ * @param {Record<string, string> | undefined} profile normalized profile
+ */
+function prepareDocument(raw, options, profile) {
+  const strict = options.strict ?? strictFromEnv();
+  // Profile filtering is the first pipeline step: excluded content never
+  // reaches includes, params, keys, render, or the graph. Condition keys are
+  // stripped even without a profile; strict shape validation runs always.
+  const filtered = filterTree(raw, profile, { strict });
+  const collect = { keys: {}, conventions: {} };
+  const withIncludes = resolveIncludes(filtered, {
+    baseDir: options.baseDir,
+    collect,
+  });
+  const registry = buildRenderRegistry(ConventionRegistry, collect.conventions);
+  if (strict) {
+    validateTree(withIncludes, {
+      registry,
+      conventions: collect.conventions,
+      keys: collect.keys,
+    });
   }
   const tree = injectParamsDeep(withIncludes, options.params ?? {});
-  return renderTree(/** @type {Record<string, unknown>} */ (tree));
+  const { tree: keyed, refKeyUsages } = resolveKeys(tree, collect.keys, { strict });
+  return {
+    tree: /** @type {Record<string, unknown>} */ (keyed),
+    registry,
+    strict,
+    refKeyUsages,
+  };
+}
+
+/**
+ * Parse YAML string and render to HTML + JSON-LD.
+ * @param {string} yamlSource
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, item?: string, profile?: Record<string, unknown> | string[] }} [options]
+ *   baseDir enables `include: "file.yml"` resolution (relative to the source file).
+ *   strict (or VERSO_STRICT=1) validates the resolved tree before rendering —
+ *   pass strict: false to ignore the env var.
+ *   profile: a map of profiling attributes ({ audience: 'admin' }) or CLI-style
+ *   key=value pairs. When supplied, elements whose `if:` condition fails are
+ *   pruned and `flag:` matches gain flag-<value> classes — evaluated first,
+ *   before include/params/key resolution, so excluded content never renders
+ *   and never asserts into the graph. Conditions reference the profile only
+ *   (vocabulary: audience, platform, product), never ContentMap values;
+ *   omitted → everything renders unflagged. See profiles.js (P4).
+ *   item: when the document is a map (`map:` top-level), render only that
+ *   section — html is the section's HTML and ldJson is filtered to the
+ *   publication node plus that section's node. Ignored for non-map documents.
+ *   File-root `keys:` / `conventions:` blocks (here and in included partials)
+ *   are harvested per render; conventions merge into a per-render registry
+ *   copy, and `{ key: name }` references resolve against the harvested keys.
+ *   A top-level `map:` key routes the document to map rendering (map.js);
+ *   normal files are unchanged.
+ * @returns {RenderResult}
+ */
+export function renderYaml(yamlSource, options = {}) {
+  const raw = parseRoot(yamlSource);
+
+  const profile = parseProfile(options.profile);
+  if (isMapDocument(raw)) {
+    return renderMap(raw, { ...options, profile });
+  }
+
+  const { tree, registry, strict, refKeyUsages } = prepareDocument(raw, options, profile);
+  return renderTree(tree, {
+    registry,
+    strict,
+    refKeyUsages,
+  });
+}
+
+/**
+ * Parse YAML source and return the RESOLVED INTERMEDIATE TREE — the document
+ * exactly as renderTree consumes it — without rendering. This is the
+ * normalize-then-emit debug target behind the CLI's `--emit resolved`
+ * (docs/dita-research.md, tooling pattern #1).
+ *
+ * The pipeline runs to completion short of the render pass: includes inlined,
+ * profile filtering applied (`if:`/`flag:` keys stripped, excluded content
+ * pruned), {{params}} injected, `{ key }` references substituted, and — for
+ * `map:` documents — the synthetic section/nav tree assembled with fragment
+ * cascades applied. Strict validation still runs when strict is set, so
+ * `--strict --emit resolved` fails on the same errors a render would.
+ *
+ * Fidelity note: the returned tree is exactly renderTree's first argument.
+ * Things renderTree receives through other channels are absent by design —
+ * harvested file-root `keys:`/`conventions:` blocks (they live in the
+ * per-render collector/registry), and, for maps, the publication-level root
+ * JSON-LD (a separate renderTree option built by map.js).
+ * @param {string} yamlSource
+ * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, profile?: Record<string, unknown> | string[] }} [options]
+ *   Same option semantics as renderYaml; `item` does not apply (chunking is
+ *   a post-render projection).
+ * @returns {Record<string, unknown>}
+ */
+export function resolveTree(yamlSource, options = {}) {
+  const raw = parseRoot(yamlSource);
+
+  const profile = parseProfile(options.profile);
+  if (isMapDocument(raw)) {
+    return resolveMapTree(raw, { ...options, profile }).tree;
+  }
+
+  return prepareDocument(raw, options, profile).tree;
 }
 
 /**
  * Render an already-parsed YAML tree.
  * @param {Record<string, unknown>} tree
+ * @param {{ registry?: Record<string, import('./conventions.js').ResolvedConvention>, strict?: boolean, refKeyUsages?: Array<{ name: string, selector: string, path: string }>, rootLd?: Record<string, unknown> }} [options]
+ *   registry: resolved convention registry for entity shorthand + implicit
+ *   JSON-LD (defaults to the global registry). strict: run post-render checks
+ *   (convention requires:, ref-valued key selectors) against the ContentMap.
+ *   rootLd: extra root-level JSON-LD properties, merged over the tree's own
+ *   root @keys (maps publish their CollectionPage node this way).
  * @returns {RenderResult}
  */
-export function renderTree(tree) {
+export function renderTree(tree, options = {}) {
+  const registry = options.registry ?? buildRenderRegistry(ConventionRegistry, {});
   nodeCounter = 0;
   const contentMap = new ContentMap();
   /** @type {{ root: Record<string, unknown>, blocks: Array<{ block: object, graphId?: string }>, conditionals: Array<{ block: object, graphId?: string }> }} */
@@ -210,12 +369,16 @@ export function renderTree(tree) {
         contentMap,
         ldCollected,
         trackedElements,
+        registry,
         parentId: undefined,
         ancestorIds: [],
       });
     } else {
       visualRoot[key] = value;
     }
+  }
+  if (isPlainRecord(options.rootLd)) {
+    Object.assign(ldCollected.root, options.rootLd);
   }
 
   const parts = [];
@@ -225,16 +388,26 @@ export function renderTree(tree) {
         contentMap,
         ldCollected,
         trackedElements,
+        registry,
         parentId: undefined,
         ancestorIds: [],
       }),
     );
   }
 
-  const implicit = discoverImplicitSchemas(contentMap, trackedElements);
+  const implicit = discoverImplicitSchemas(contentMap, trackedElements, registry);
   const ldJson = buildLdDocument(ldCollected, contentMap, implicit);
   const html = parts.filter(Boolean).join('\n');
   const ldScript = `<script type="application/ld+json">${JSON.stringify(ldJson, null, 2)}</script>`;
+
+  if (options.strict) {
+    validateRendered({
+      contentMap,
+      trackedElements,
+      registry,
+      refKeyUsages: options.refKeyUsages ?? [],
+    });
+  }
 
   return {
     html,
@@ -242,6 +415,7 @@ export function renderTree(tree) {
     contentMap: contentMap.toObject(),
     ldScript,
     head,
+    trackedElements,
   };
 }
 
@@ -391,8 +565,9 @@ function renderNode(tag, value, ctx) {
   // becomes an element carrying that class, so implicit JSON-LD still fires.
   // Real HTML tags keep their tag (article: → <article class="article">),
   // anything else expands to a <div> (product: → <div class="product">).
+  // YAML-declared conventions (vehicle:, …) match through the per-render registry.
   const key = tag.toLowerCase();
-  const entityClass = ConventionRegistry[key] ? key : null;
+  const entityClass = ctx.registry?.[key] ? key : null;
   const outTag = entityClass && !KNOWN_TAGS.has(key) ? 'div' : tag;
   const entityAttrs = entityClass ? { class: entityClass } : {};
 

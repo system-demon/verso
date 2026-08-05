@@ -1,0 +1,7 @@
+# Partial included via include: { key: logo } from 12-keys.yml.
+# The including file's keys: cascade into partials — { key: product-name }
+# below resolves from the parent's keys block (first definition wins).
+img:
+  class: "logo"
+  src: "/logo.svg"
+  alt: { key: product-name }

@@ -1,0 +1,20 @@
+# 13 — YAML-declared conventions with extends: + requires:
+# vehicle inherits product's fields (.name/.description/.price), adds .sku,
+# and the emitted entity unions the types: "@type": ["Product", "Vehicle"].
+# requires: is a strict-mode contract — `node src/cli.js examples/13-extends.yml --strict`
+# errors if "#car_7 .name" or "#car_7 .sku" is missing from the ContentMap.
+
+conventions:
+  vehicle:
+    extends: product
+    type: Vehicle
+    fields:
+      sku: ".sku"
+    requires: [.name, .sku]
+
+vehicle:
+  id: "car_7"
+  children:
+    - h1: { class: "name", text: "Roadster" }
+    - span: { class: "sku", text: "R-1000" }
+    - span: { class: "price", text: "42000" }

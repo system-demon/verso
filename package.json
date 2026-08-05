@@ -4,12 +4,17 @@
   "description": "The other side of the page is meaning — YAML markup that renders HTML and publishes JSON-LD from the same tree",
   "type": "module",
   "main": "src/server/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/system-demon/verso.git"
+  },
   "scripts": {
     "start": "node src/server/index.js",
     "dev": "node --watch src/server/index.js",
     "render": "node src/cli.js",
     "watch": "node src/cli.js --watch",
-    "examples": "node examples/05-register-convention.js && node examples/06-custom-rpc.js"
+    "examples": "node examples/05-register-convention.js && node examples/06-custom-rpc.js",
+    "test": "node scripts/regression.js"
   },
   "engines": {
     "node": ">=18"

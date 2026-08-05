@@ -8,7 +8,8 @@
  * that would never resolve.
  */
 
-import { ConventionRegistry } from './conventions.js';
+import { ConventionRegistry, matchConventions } from './conventions.js';
+import { isKeyRef } from './keys.js';
 
 /** Comparison operators understood by ldResolver's compare(). */
 const OPERATORS = new Set(['<', '>', '<=', '>=', '==', '!=', 'contains', 'exists']);
@@ -64,21 +65,160 @@ export function strictFromEnv() {
  * Validate a parsed, includes-resolved Verso tree.
  * Throws VersoValidationError on the first problem found.
  * @param {unknown} tree
+ * @param {{ registry?: Record<string, unknown>, conventions?: Record<string, unknown>, keys?: Record<string, unknown> }} [options]
+ *   registry: resolved convention registry (for entity-shorthand arrays).
+ *   conventions / keys: harvested file-root blocks, validated here because
+ *   include resolution strips them from the tree.
  */
-export function validateTree(tree) {
+export function validateTree(tree, options = {}) {
   if (!isPlainObject(tree)) {
     throw new VersoValidationError('Verso root must be a mapping');
   }
+  if (options.conventions !== undefined) {
+    validateConventionsBlock(options.conventions, options.registry ?? {});
+  }
+  if (options.keys !== undefined) {
+    validateKeysBlock(options.keys);
+  }
+  const registry = options.registry ?? ConventionRegistry;
   for (const [key, value] of Object.entries(tree)) {
-    validateTopLevel(key, value);
+    validateTopLevel(key, value, registry);
+  }
+}
+
+/**
+ * Validate a harvested YAML `conventions:` block. Inheritance itself is
+ * resolved leniently elsewhere; strict mode pins the declared shapes down.
+ * @param {Record<string, unknown>} conventions
+ * @param {Record<string, unknown>} registry merged registry (extends targets)
+ */
+function validateConventionsBlock(conventions, registry) {
+  const ALLOWED = new Set(['type', 'fields', 'extends', 'requires']);
+  for (const [name, def] of Object.entries(conventions)) {
+    const path = `conventions.${name}`;
+    if (!isPlainObject(def)) {
+      throw new VersoValidationError(
+        `convention "${name}" must be a mapping of { type, fields, extends, requires }`,
+        path,
+      );
+    }
+    for (const k of Object.keys(def)) {
+      if (!ALLOWED.has(k)) {
+        throw new VersoValidationError(
+          `unknown convention key "${k}" — YAML conventions support type, fields, extends, requires only (transform is JS-only)`,
+          `${path}.${k}`,
+        );
+      }
+    }
+    if (def.extends !== undefined) {
+      if (typeof def.extends !== 'string') {
+        throw new VersoValidationError('"extends" must be a convention name', `${path}.extends`);
+      }
+      if (def.extends === name) {
+        throw new VersoValidationError(
+          `convention "${name}" cannot extend itself`,
+          `${path}.extends`,
+        );
+      }
+      if (!(def.extends in registry) && !(def.extends in conventions)) {
+        throw new VersoValidationError(
+          `convention "${name}" extends unknown convention "${def.extends}"`,
+          `${path}.extends`,
+        );
+      }
+    }
+    if (def.type !== undefined && typeof def.type !== 'string') {
+      throw new VersoValidationError('"type" must be a string', `${path}.type`);
+    }
+    if (def.extends === undefined && def.type === undefined) {
+      throw new VersoValidationError(
+        `convention "${name}" needs a "type" (or an "extends" to inherit one)`,
+        path,
+      );
+    }
+    if (def.fields !== undefined) {
+      if (!isPlainObject(def.fields)) {
+        throw new VersoValidationError(
+          '"fields" must be a mapping of JSON-LD property → selector string',
+          `${path}.fields`,
+        );
+      }
+      for (const [prop, sel] of Object.entries(def.fields)) {
+        if (typeof sel !== 'string') {
+          throw new VersoValidationError(
+            `"fields.${prop}" must be a selector string like ".price"`,
+            `${path}.fields.${prop}`,
+          );
+        }
+      }
+    }
+    if (def.requires !== undefined) {
+      if (!Array.isArray(def.requires) || def.requires.some((r) => typeof r !== 'string')) {
+        throw new VersoValidationError(
+          '"requires" must be a list of selector strings',
+          `${path}.requires`,
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Validate a harvested `keys:` block: each value is a string (literal text
+ * or an include path), a { ref: "selector" }, or a { href: "url" }.
+ * @param {Record<string, unknown>} keys
+ */
+function validateKeysBlock(keys) {
+  for (const [name, v] of Object.entries(keys)) {
+    const path = `keys.${name}`;
+    if (typeof v === 'string') continue;
+    if (isPlainObject(v) && Object.keys(v).length === 1) {
+      if (typeof v.ref === 'string' || typeof v.href === 'string') continue;
+    }
+    throw new VersoValidationError(
+      `key "${name}" must be a string, a { ref: "selector" } or a { href: "url" }`,
+      path,
+    );
+  }
+}
+
+/**
+ * Post-render strict checks, run against the built ContentMap:
+ * - every element matching a convention with `requires:` must have each
+ *   required selector scoped to its id (e.g. "#car_7 .name")
+ * - every ref-valued key used in ld:/ld_if must resolve to a ContentMap entry
+ * @param {{ contentMap: import('./contentMap.js').ContentMap, trackedElements: Array<{ id?: string, classes: string[], graphId?: string }>, registry: Record<string, import('./conventions.js').ResolvedConvention>, refKeyUsages?: Array<{ name: string, selector: string, path: string }> }} args
+ */
+export function validateRendered({ contentMap, trackedElements, registry, refKeyUsages = [] }) {
+  for (const el of trackedElements) {
+    for (const [trigger, conv] of matchConventions(el.classes ?? [], registry)) {
+      for (const sel of conv.requires ?? []) {
+        const scoped = el.id ? `#${el.id} ${sel}` : sel;
+        if (contentMap.get(scoped) === undefined) {
+          throw new VersoValidationError(
+            `convention "${trigger}" requires "${sel}" but the ContentMap has no entry for "${scoped}"`,
+            el.id ? `#${el.id}` : `.${trigger}`,
+          );
+        }
+      }
+    }
+  }
+  for (const usage of refKeyUsages) {
+    if (contentMap.get(usage.selector) === undefined) {
+      throw new VersoValidationError(
+        `key "${usage.name}" points at selector "${usage.selector}" with no ContentMap entry after render`,
+        usage.path,
+      );
+    }
   }
 }
 
 /**
  * @param {string} key
  * @param {unknown} value
+ * @param {Record<string, unknown>} registry
  */
-function validateTopLevel(key, value) {
+function validateTopLevel(key, value, registry) {
   if (key.startsWith('@')) {
     validateRefs(value, key);
     return;
@@ -90,6 +230,14 @@ function validateTopLevel(key, value) {
     );
   }
   if (key === 'head') return; // document head block, loosely structured by design
+  if (key === 'keys' || key === 'conventions') {
+    // Well-formed blocks are harvested and stripped before validation;
+    // reaching here means the block wasn't a mapping.
+    throw new VersoValidationError(
+      `"${key}" must be a mapping — it is harvested at the file root, never rendered`,
+      key,
+    );
+  }
   if (
     NON_TAG_TOP_LEVEL.has(key) ||
     key.startsWith('data-') ||
@@ -100,40 +248,42 @@ function validateTopLevel(key, value) {
       key,
     );
   }
-  validateElement(value, key, key);
+  validateElement(value, key, key, registry);
 }
 
 /**
  * @param {unknown} value element value: scalar shorthand, child list, or mapping
  * @param {string} path
  * @param {string} [key] the key this value sits under, when known
+ * @param {Record<string, unknown>} [registry]
  */
-function validateElement(value, path, key) {
+function validateElement(value, path, key, registry = ConventionRegistry) {
   if (Array.isArray(value)) {
     // Only convention shorthand arrays (product: [ {...} ]) hold element
     // bodies; every other list holds element-position maps ({ tag: ... }).
-    const entityArray = key != null && Boolean(ConventionRegistry[key.toLowerCase()]);
+    const entityArray = key != null && Boolean(registry[key.toLowerCase()]);
     value.forEach((item, i) => {
       if (!isPlainObject(item)) return;
       if (entityArray) {
-        validateEntryMap(item, `${path}[${i}]`);
+        validateEntryMap(item, `${path}[${i}]`, registry);
       } else {
         for (const [k, v] of Object.entries(item)) {
-          validateElement(v, `${path}[${i}].${k}`, k);
+          validateElement(v, `${path}[${i}].${k}`, k, registry);
         }
       }
     });
     return;
   }
-  if (isPlainObject(value)) validateEntryMap(value, path);
+  if (isPlainObject(value)) validateEntryMap(value, path, registry);
 }
 
 /**
  * Walk one mapping of key → value entries (an element body or a child item).
  * @param {Record<string, unknown>} obj
  * @param {string} path
+ * @param {Record<string, unknown>} [registry]
  */
-function validateEntryMap(obj, path) {
+function validateEntryMap(obj, path, registry = ConventionRegistry) {
   if (obj.ld !== undefined) validateLdBlock(obj.ld, `${path}.ld`);
   if (obj.ld_if !== undefined) validateLdIf(obj.ld_if, `${path}.ld_if`);
 
@@ -146,17 +296,21 @@ function validateEntryMap(obj, path) {
         `${path}.${k}`,
       );
     }
+    // { key: name } references stay mappings until post-validation key
+    // resolution — exempt them from the scalar check here.
     if (
       (SCALAR_VALUE_KEYS.has(k) || k.startsWith('data-') || k.startsWith('aria-')) &&
-      (isPlainObject(v) || Array.isArray(v))
+      (isPlainObject(v) || Array.isArray(v)) &&
+      !isKeyRef(v)
     ) {
       throw new VersoValidationError(
         `"${k}" must be a scalar, not ${Array.isArray(v) ? 'a list' : 'a mapping'}`,
         `${path}.${k}`,
       );
     }
+    if (isKeyRef(v)) continue;
     if (isPlainObject(v) || Array.isArray(v)) {
-      validateElement(v, `${path}.${k}`, k);
+      validateElement(v, `${path}.${k}`, k, registry);
     }
   }
 }
@@ -198,9 +352,9 @@ function validateLdIf(ldIf, path) {
         `${path}.condition`,
       );
     }
-    if (cond.ref !== undefined && typeof cond.ref !== 'string') {
+    if (cond.ref !== undefined && typeof cond.ref !== 'string' && !isKeyRef(cond.ref)) {
       throw new VersoValidationError(
-        '"ld_if.condition.ref" must be a selector string like "#id .class"',
+        '"ld_if.condition.ref" must be a selector string like "#id .class" (or a { key } reference)',
         `${path}.condition`,
       );
     }

@@ -1,0 +1,26 @@
+# 15 — element-level include: `file.yml#id` pulls ONE element out of a partial
+# (conref-lite). The pulled element keeps its own tag — the including key is
+# dropped; the including node's other keys merge over the pulled body (local
+# keys win, author classes union deduped). A key whose value carries #id gives
+# conkeyref. Cycle/depth rules key on the file path; the #id part is stripped
+# before resolution. Deferred: conref push (conaction), conrefend ranges.
+
+keys:
+  license-el: "partials/legal.yml#license"    # named element resource
+
+head:
+  title: "Verso — Include #id Demo"
+
+body:
+  main:
+    h1: "Element-level includes"
+    children:
+      - footer:
+          include: "partials/legal.yml#copyright"  # renders <p id="copyright"> — the pulled tag
+          class: "site-footer"                     # unions with the element's own "legal"
+      - aside:
+          include: "partials/legal.yml#license"    # second element from the same partial
+          text: "MIT License — see LICENSE"        # local text overrides the pulled text
+      - div:
+          include: { key: license-el }             # conkeyref: the key's value carries #id
+          id: "license-by-key"                     # local id wins over the pulled element's

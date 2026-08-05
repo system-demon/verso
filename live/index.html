@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verso · hello, world</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/verso.css">
+  <style>
+    /* hello, world — the fragment on the recto page */
+    #view .name { font-size: 2.6rem; margin: 0 0 0.3rem; font-weight: 600; }
+    #view .tagline { color: var(--ink-soft); font-style: italic; margin: 0 0 1rem; font-size: 1.1rem; }
+    #view .version { font-family: var(--mono); font-size: 0.72rem; background: var(--paper-deep); border: 1px solid var(--rule); padding: 0.15rem 0.5rem; border-radius: 2px; }
+    #view .version::before { content: "v"; color: var(--ink-soft); }
+    #view .admin-note { margin-top: 1.4rem; padding: 0.8rem 1rem; border-left: 3px solid var(--accent-2); background: rgba(46, 90, 74, 0.07); font-size: 0.9rem; }
+    #view .novice-hint { margin-top: 1.4rem; font-size: 0.9rem; }
+    #view .flag-novice { outline: 2px dashed var(--accent); outline-offset: 4px; padding: 0.2rem 0.4rem; }
+    #view .flag-novice::before { content: "flag-novice"; display: block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--accent); }
+    .margin-note.src-note { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Verso</h1>
+    <p class="imprint">hello, world — one tree, two projections, rendered live via <code>renderInline</code></p>
+    <nav>
+      <span class="profiles" id="profiles">
+        profile:
+        <button data-profile="" class="active">none</button>
+        <button data-profile='{"audience":"admin"}'>audience=admin</button>
+        <button data-profile='{"audience":"novice"}'>audience=novice</button>
+      </span>
+      <a href="/live/editor.html">editor</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">wikipedia</a>
+    </nav>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso">
+        <div class="running-head"><span class="face">Verso</span><span>the meaning</span></div>
+        <pre class="graph-json" id="graph">…</pre>
+      </section>
+      <section class="page page--recto">
+        <div class="running-head"><span>the presentation</span><span class="face">Recto</span></div>
+        <div id="view"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <details>
+      <summary>Source · hello.verso.yml</summary>
+      <pre id="src">loading…</pre>
+    </details>
+    <p class="folio"><span>verso press — reading room</span><span>leaf i</span></p>
+  </div>
+
+  <script type="module">
+    const srcEl = document.getElementById('src');
+    const viewEl = document.getElementById('view');
+    const graphEl = document.getElementById('graph');
+    const profilesEl = document.getElementById('profiles');
+
+    const source = await fetch('/live/hello.verso.yml').then((r) => r.text());
+    srcEl.textContent = source;
+
+    async function render(profile) {
+      const params = { yaml: source };
+      if (profile) params.profile = JSON.parse(profile);
+      const res = await fetch('/rpc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'renderInline', params, id: Date.now() }),
+      }).then((r) => r.json());
+
+      if (res.error) {
+        viewEl.innerHTML = '';
+        graphEl.textContent = `error: ${res.error.message}`;
+        return;
+      }
+      viewEl.innerHTML = res.result.html;
+      graphEl.textContent = JSON.stringify(res.result.ldJson, null, 2);
+    }
+
+    profilesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      profilesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      render(btn.dataset.profile);
+    });
+
+    render('');
+  </script>
+</body>
+</html>

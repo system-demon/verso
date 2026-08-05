@@ -1,0 +1,26 @@
+# 12 — keys: symbolic names for variable text, named selectors, links, partials
+# { key: name } works in ld: values, attributes, text: and include:.
+# Literal/href keys substitute pre-render; ref-valued keys (ld:/ld_if only)
+# resolve post-render against the ContentMap. Strict: unknown key = error.
+
+keys:
+  product-name: "WonderWidget"            # variable text
+  price: { ref: "#item_1 .price" }        # named selector alias
+  support: { href: "https://example.com/support" }  # named link
+  logo: "partials/logo.yml"               # named include resource
+
+div:
+  class: "product"
+  id: "item_1"
+  ld:
+    "@type": Product
+    name: { key: product-name }
+    offers:
+      "@type": Offer
+      price: { key: price }
+      priceCurrency: USD
+  children:
+    - h1: { class: "name", text: { key: product-name } }
+    - span: { class: "price", text: "49.99" }
+    - a: { href: { key: support }, text: "Support" }
+    - include: { key: logo }

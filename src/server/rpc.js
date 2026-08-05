@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
+import { parseProfile } from '../parser/profiles.js';
 import {
   getItemState,
   setItemState,
@@ -40,18 +41,29 @@ function rpcError(code, message, data) {
 export const methods = {
   /**
    * Render a named template component with optional data injection.
+   * params.item ("KEY"): when the template is a map document, return just
+   * that section's HTML plus a ldJson holding the publication node and that
+   * section's node — chunking a map into per-section payloads.
+   * params.profile ({ audience, platform, product }): filter if:/flag:
+   * against that profile (P4); echoed back in the result when supplied.
    */
   renderComponent(params = {}, ctx) {
     const componentId = params.componentId ?? params.template ?? 'product';
     const data = params.data ?? {};
     const sessionId = params.sessionId ?? ctx.sessionId ?? 'default';
     const itemId = data.id ?? params.itemId ?? 'default';
+    const profile = parseProfile(params.profile);
 
     setItemState(sessionId, itemId, data);
     const merged = { ...getItemState(sessionId, itemId), ...data };
 
     const source = loadTemplate(componentId);
-    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR });
+    const result = renderYaml(source, {
+      params: merged,
+      baseDir: TEMPLATES_DIR,
+      item: typeof params.item === 'string' ? params.item : undefined,
+      profile,
+    });
 
     return {
       html: result.html,
@@ -60,6 +72,8 @@ export const methods = {
       head: result.head,
       itemId,
       sessionId,
+      ...(typeof params.item === 'string' ? { item: params.item } : {}),
+      ...(profile !== undefined ? { profile } : {}),
     };
   },
 
@@ -85,6 +99,7 @@ export const methods = {
     const itemId = params.itemId;
     const updates = params.updates ?? {};
     const componentId = params.componentId ?? params.template ?? 'product';
+    const profile = parseProfile(params.profile);
 
     if (!itemId) {
       throw rpcError(-32602, 'itemId is required');
@@ -92,7 +107,7 @@ export const methods = {
 
     const merged = updateItemState(sessionId, itemId, updates);
     const source = loadTemplate(componentId);
-    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR });
+    const result = renderYaml(source, { params: merged, baseDir: TEMPLATES_DIR, profile });
 
     return {
       target: `#${itemId}`,
@@ -102,25 +117,33 @@ export const methods = {
       state: merged,
       itemId,
       sessionId,
+      ...(profile !== undefined ? { profile } : {}),
     };
   },
 
   /**
    * Render inline YAML supplied in the request — no templates/ file needed.
    * Server-side counterpart of examples/06-custom-rpc.js.
+   * params.item ("KEY") chunks map documents the same way as renderComponent.
+   * params.profile filters if:/flag: against a profile (P4), echoed when given.
    */
   renderInline(params = {}, _ctx) {
     if (typeof params?.yaml !== 'string' || !params.yaml.trim()) {
       throw rpcError(-32602, 'params.yaml (non-empty string) is required');
     }
+    const profile = parseProfile(params.profile);
     const result = renderYaml(params.yaml, {
       params: params.data ?? {},
       strict: params.strict === true ? true : undefined,
+      item: typeof params.item === 'string' ? params.item : undefined,
+      profile,
     });
     return {
       html: result.html,
       ldJson: result.ldJson,
       contentMap: result.contentMap,
+      ...(typeof params.item === 'string' ? { item: params.item } : {}),
+      ...(profile !== undefined ? { profile } : {}),
     };
   },
 

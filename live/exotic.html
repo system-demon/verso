@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verso · exotic HTML5</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/verso.css">
+  <style>
+    /* exotic field guide — fragment styles on a single leaf */
+    .book.single { max-width: 52rem; }
+    #view > main > section { margin: 2.2rem 0; }
+    #view h1 { font-size: 2.4rem; margin: 0 0 0.4rem; font-weight: 600; }
+    #view h2 { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; margin: 2rem 0 1rem; }
+    #view h3 { margin: 0 0 0.4rem; }
+    #view code { font-size: 0.85em; background: var(--paper-deep); padding: 0.1rem 0.35rem; border-radius: 2px; color: var(--accent-2); }
+    #view .specimen { margin: 1rem 0; display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+    #view details { margin: 1rem 0; border: 1px solid var(--rule); border-radius: 2px; padding: 0.6rem 0.9rem; }
+    #view summary { cursor: pointer; font-weight: 600; }
+    #view dialog { border: none; border-radius: 4px; padding: 1.5rem 1.75rem; max-width: 22rem; box-shadow: 0 12px 40px rgba(0,0,0,0.25); font-family: var(--serif); }
+    #view dialog::backdrop { background: rgba(34,29,21,0.45); }
+    #view button { font: inherit; padding: 0.45rem 0.9rem; border: 1px solid var(--accent-2); background: var(--accent-2); color: #fff; border-radius: 2px; cursor: pointer; }
+    #view input[type="search"], #view input[list] { font: inherit; padding: 0.45rem 0.6rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
+    #view meter, #view progress { width: 10rem; height: 1rem; }
+    #view .swatch { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 2px; border: 1px solid var(--rule); font-family: var(--mono); font-size: 0.75rem; }
+    #view ruby { font-size: 1.2rem; }
+    #view mark { background: #f0e3a0; padding: 0 0.2rem; }
+    #view kbd { font-family: var(--mono); font-size: 0.72rem; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 2px; padding: 0.1rem 0.4rem; background: #fff; }
+    #view samp { font-family: var(--mono); font-size: 0.85em; color: var(--ink-soft); }
+    #view blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--rule); color: var(--ink-soft); }
+    #view figure { margin: 1rem 0; }
+    #view figcaption { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; font-style: italic; }
+    #view table { border-collapse: collapse; margin: 1rem 0; }
+    #view caption { font-weight: 600; text-align: left; margin-bottom: 0.4rem; }
+    #view th, #view td { border: 1px solid var(--rule); padding: 0.4rem 0.9rem; text-align: left; }
+    #view thead th { background: var(--paper-deep); }
+    #view footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Verso</h1>
+    <p class="imprint">exotic HTML5 — a field guide authored entirely in YAML</p>
+    <nav>
+      <a href="/live/">hello</a>
+      <a href="/live/editor.html">editor</a>
+      <a href="/live/semantic-web.html">wikipedia</a>
+    </nav>
+  </header>
+
+  <div class="book single">
+    <section class="page page--recto">
+      <div class="running-head"><span>the field guide</span><span class="face">Recto</span></div>
+      <main id="view"></main>
+    </section>
+  </div>
+
+  <div class="colophon">
+    <details>
+      <summary>Source · exotic.verso.yml</summary>
+      <pre id="src">loading…</pre>
+    </details>
+    <details>
+      <summary>Graph · JSON-LD</summary>
+      <pre id="graph"></pre>
+    </details>
+    <p class="folio"><span>verso press — reading room</span><span>leaf ii</span></p>
+  </div>
+
+  <script type="module">
+    const viewEl = document.getElementById('view');
+    const srcEl = document.getElementById('src');
+    const graphEl = document.getElementById('graph');
+
+    const source = await fetch('/live/exotic.verso.yml').then((r) => r.text());
+    srcEl.textContent = source;
+
+    const res = await fetch('/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'renderInline',
+        params: { yaml: source },
+        id: 1,
+      }),
+    }).then((r) => r.json());
+
+    if (res.error) {
+      viewEl.innerHTML = `<p style="color:#7a2e2e">render error: ${res.error.message}</p>`;
+    } else {
+      viewEl.innerHTML = res.result.html;
+      graphEl.textContent = JSON.stringify(res.result.ldJson, null, 2);
+      wire(viewEl);
+    }
+
+    function wire(root) {
+      const dlg = root.querySelector('#demo-dialog');
+      root.querySelector('#open-dialog')?.addEventListener('click', () => dlg?.showModal());
+      root.querySelector('#close-dialog')?.addEventListener('click', () => dlg?.close());
+
+      const vol = root.querySelector('#vol');
+      const out = root.querySelector('#vol-out');
+      vol?.addEventListener('input', () => { out.textContent = vol.value; });
+
+      const color = root.querySelector('#swatch-input');
+      const swatch = root.querySelector('#swatch');
+      color?.addEventListener('input', () => {
+        swatch.textContent = color.value;
+        swatch.style.background = color.value;
+        swatch.style.color = '#fff';
+      });
+    }
+  </script>
+</body>
+</html>

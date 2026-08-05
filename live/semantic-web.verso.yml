@@ -1,0 +1,159 @@
+# Mocked up from https://en.wikipedia.org/wiki/Semantic_Web
+# A Wikipedia article recreated as one Verso tree — presentation AND
+# the article's own linked-data claims, from the same source.
+
+"@context": "https://schema.org"
+"@type": "WebPage"
+"@name": "Semantic Web — mocked up in Verso"
+
+keys:
+  source-url: "https://en.wikipedia.org/wiki/Semantic_Web"
+
+body:
+  article:
+    id: "semantic-web-article"
+    class: "wiki-article"
+
+    # The article's own metadata, asserted from the same tree.
+    ld:
+      "@type": "Article"
+      headline: { ref: "#semantic-web-article h1" }
+      description: { ref: "#semantic-web-article .lead" }
+      isBasedOn: { key: source-url }
+      inLanguage: "en"
+      author:
+        "@type": "Organization"
+        name: "Wikipedia contributors"
+      publisher:
+        "@type": "Organization"
+        name: "Wikimedia Foundation"
+
+    children:
+      - h1: "Semantic Web"
+
+      - aside:
+          class: "infobox"
+          children:
+            - table:
+                children:
+                  - caption: "Semantic Web"
+                  - tbody:
+                      children:
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Coined by" }
+                              - td: "Tim Berners-Lee"
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Standards body" }
+                              - td:
+                                  children:
+                                    - abbr:
+                                        title: "World Wide Web Consortium"
+                                        text: "W3C"
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Goal" }
+                              - td: "Make Internet data machine-readable"
+                        - tr:
+                            children:
+                              - th: { scope: "row", text: "Technologies" }
+                              - td: "RDF, OWL, SPARQL, JSON-LD"
+
+      - p:
+          class: "lead"
+          children:
+            - span: { text: "The " }
+            - strong: "Semantic Web"
+            - span: { text: ", sometimes known as Web 3.0, is an extension of the World Wide Web through standards set by the " }
+            - a:
+                href: "https://www.w3.org/"
+                text: "World Wide Web Consortium"
+            - span: { text: " (W3C). The goal of the Semantic Web is to make Internet data machine-readable." }
+
+      - p: |
+          To enable the encoding of semantics with the data, technologies such as
+          Resource Description Framework (RDF) and Web Ontology Language (OWL) are
+          used. These embedded semantics offer significant advantages such as
+          reasoning over data and operating with heterogeneous data sources.
+
+      - section:
+          id: "history"
+          children:
+            - h2: "History"
+            - p: |
+                The term was coined by Tim Berners-Lee for a web of data (or data
+                web) that can be processed by machines — that is, one in which much
+                of the meaning is machine-readable. Berners-Lee discussed the need
+                for semantics in the Web at the first International World Wide Web
+                Conference in 1994, and published a design document titled
+                "Semantic Web Road map" in 1998.
+            - blockquote:
+                class: "dream"
+                children:
+                  - p: |
+                      I have a dream for the Web in which computers become capable
+                      of analyzing all the data on the Web — the content, links, and
+                      transactions between people and computers. A "Semantic Web",
+                      which makes this possible, has yet to emerge, but when it does,
+                      the day-to-day mechanisms of trade, bureaucracy and our daily
+                      lives will be handled by machines talking to machines.
+                  - footer: "— Tim Berners-Lee, 1999"
+
+      - section:
+          id: "example"
+          children:
+            - h2: "Example"
+            - div:
+                id: "example-person"
+
+                # The article teaches RDFa; Verso just says it.
+                ld:
+                  "@type": "Person"
+                  name: { ref: "#example-person .person-name" }
+                  birthPlace:
+                    "@type": "Place"
+                    name: { ref: "#example-person .birth-place" }
+                    sameAs: "https://www.wikidata.org/entity/Q1731"
+
+                p:
+                  children:
+                    - span: { text: "In the article's example, the text " }
+                    - q:
+                        children:
+                          - span: { class: "person-name", text: "Paul Schuster" }
+                          - span: { text: " was born in " }
+                          - span: { class: "birth-place", text: "Dresden" }
+                    - span: { text: " is annotated, connecting a person with their place of birth — five triples in Turtle syntax." }
+
+            - pre:
+                children:
+                  - code: |
+                      _:a  <#type>       <schema.org/Person> .
+                      _:a  <#name>       "Paul Schuster" .
+                      _:a  <#birthPlace> <wikidata.org/entity/Q1731> .
+                      <Q1731> <#itemtype> <schema.org/Place> .
+                      <Q1731> <#name>     "Dresden" .
+
+      - section:
+          id: "challenges"
+          children:
+            - h2: "Challenges"
+            - ul:
+                li:
+                  - "Vastness — billions of pages; SNOMED CT alone has 370,000 class names."
+                  - "Vagueness — imprecise concepts like 'young' or 'tall'; fuzzy logic helps."
+                  - "Uncertainty — precise concepts with uncertain values; probabilistic reasoning."
+                  - "Inconsistency — contradictions across combined ontologies; defeasible reasoning."
+                  - "Deceit — intentionally misleading producers; cryptography alleviates."
+
+      - footer:
+          class: "source-note"
+          children:
+            - p:
+                children:
+                  - span: { text: "Condensed and mocked up in Verso from the Wikipedia article " }
+                  - a:
+                      href: { key: source-url }
+                      text: "Semantic Web"
+                  - span: { text: ". Text paraphrased; the linked data is real." }
