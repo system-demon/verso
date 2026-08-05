@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · knowledge watch</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .half-title .status {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      color: #8f8267;
+      flex-basis: 100%;
+    }
+    .half-title .status.is-live { color: #7fa08e; }
+    .half-title .status.is-err { color: #b06a5a; }
+
+    #view .definedterm {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      padding-bottom: 1.4rem;
+      margin-bottom: 1.4rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    #view .definedterm .name {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 600;
+      line-height: 1.15;
+    }
+    #view .definedterm .description {
+      margin: 0;
+      max-width: 36ch;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+    #view .definedterm dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.35rem 1rem;
+      margin: 0.4rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+    }
+    #view .definedterm dt {
+      color: var(--ink-soft);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.66rem;
+    }
+    #view .definedterm dd { margin: 0; color: var(--accent-2); }
+
+    .lab-form {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0 0 1.2rem;
+    }
+    .lab-form label {
+      display: grid;
+      gap: 0.3rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .lab-form input,
+    .lab-form select,
+    .lab-form textarea {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--ink);
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      background: #fff;
+    }
+    .lab-form textarea { resize: vertical; min-height: 4rem; }
+    .lab-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.2rem;
+    }
+    .lab-actions button {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--accent-2);
+      background: var(--accent-2);
+      color: #fff;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .lab-actions button.secondary {
+      background: transparent;
+      color: var(--accent-2);
+    }
+    .lab-actions button:hover { filter: brightness(1.05); }
+
+    .hint {
+      margin: 0.8rem 0 0;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+
+    .alert-panel {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      max-height: 28rem;
+      overflow: auto;
+    }
+    .alert-panel:empty::before {
+      content: "No alerts yet — bump the version or set status to deprecated.";
+      display: block;
+      color: var(--ink-soft);
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+    .alert-panel li {
+      border-left: 3px solid var(--accent-2);
+      background: rgba(46, 90, 74, 0.07);
+      padding: 0.7rem 0.9rem;
+      font-size: 0.88rem;
+    }
+    .alert-panel .meta {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 0.35rem;
+    }
+    .alert-panel .msg { margin: 0; }
+    .alert-panel .vals {
+      margin: 0.35rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent-2);
+    }
+
+    .watch-list {
+      margin: 1rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      line-height: 1.55;
+      color: #264a3d;
+      background: rgba(46, 90, 74, 0.06);
+      border: 1px solid rgba(46, 90, 74, 0.18);
+      border-radius: 2px;
+      padding: 0.8rem 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .colophon p { font-size: 0.85rem; line-height: 1.55; max-width: 46rem; }
+    .colophon a { color: #cbb98f; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">knowledge watch — lab for version/status alerts over Socket.IO</p>
+    <nav>
+      <a href="/">sync</a>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">semantic web</a>
+      <a href="/live/feed.html">feed</a>
+      <a href="/live/watch.html" aria-current="page">watch</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+    <p class="status" id="status">connecting…</p>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso">
+        <div class="running-head"><span class="face">Verso</span><span>alerts · watches</span></div>
+        <ul class="alert-panel" id="alerts" aria-live="polite"></ul>
+        <p class="margin-note">Watches reuse <code>ld_if</code>'s condition evaluator. Mode <code>change</code> fires on value drift; mode <code>when</code> edge-triggers (e.g. status == deprecated).</p>
+        <pre class="watch-list" id="watch-list">watches: []</pre>
+      </section>
+      <section class="page page--recto">
+        <div class="running-head"><span>the concept</span><span class="face">Recto</span></div>
+        <div id="view">loading…</div>
+        <form class="lab-form" id="lab-form">
+          <label>
+            Name
+            <input id="field-name" type="text" value="JSON-RPC 2.0" autocomplete="off">
+          </label>
+          <label>
+            Description
+            <textarea id="field-description" rows="3">A lightweight remote procedure call protocol encoded in JSON.</textarea>
+          </label>
+          <label>
+            Version
+            <input id="field-version" type="text" value="2.0" autocomplete="off">
+          </label>
+          <label>
+            Status
+            <select id="field-status">
+              <option value="stable" selected>stable</option>
+              <option value="draft">draft</option>
+              <option value="deprecated">deprecated</option>
+            </select>
+          </label>
+          <div class="lab-actions">
+            <button type="submit">Update concept</button>
+            <button type="button" class="secondary" id="btn-add-watches">Register watches</button>
+            <button type="button" class="secondary" id="btn-list-watches">List watches</button>
+          </div>
+        </form>
+        <p class="hint">Register watches, then bump the version or set status to <code>deprecated</code>. Alerts appear on the verso (and via <code>knowledgeAlert</code> over the socket).</p>
+      </section>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <details open>
+      <summary>About this leaf</summary>
+      <p>
+        Interactive lab over <code>templates/concept.yml</code> —
+        <code>renderComponent</code> / <code>updateState</code>, plus <code>addWatch</code> and <code>listWatches</code>.
+        For the headless script that primes the same watches, see
+        <code>examples/18-knowledge-watch.js</code>
+        (<code>node examples/18-knowledge-watch.js</code>).
+      </p>
+    </details>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf vi</span></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    const SESSION_KEY = 'twinseed-watch-session';
+    const ITEM_ID = 'json-rpc';
+    const TEMPLATE = 'concept';
+
+    const statusEl = document.getElementById('status');
+    const viewEl = document.getElementById('view');
+    const alertsEl = document.getElementById('alerts');
+    const watchListEl = document.getElementById('watch-list');
+    const form = document.getElementById('lab-form');
+
+    function sessionId() {
+      let id = localStorage.getItem(SESSION_KEY);
+      if (!id) {
+        id = `watch_${Math.random().toString(36).slice(2, 10)}`;
+        localStorage.setItem(SESSION_KEY, id);
+      }
+      return id;
+    }
+
+    const socket = io({ query: { sessionId: sessionId() } });
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.classList.remove('is-live', 'is-err');
+      if (cls) statusEl.classList.add(cls);
+    }
+
+    function formData() {
+      return {
+        id: ITEM_ID,
+        name: document.getElementById('field-name').value,
+        description: document.getElementById('field-description').value,
+        version: document.getElementById('field-version').value,
+        status: document.getElementById('field-status').value,
+      };
+    }
+
+    function syncForm(state) {
+      if (!state) return;
+      if (state.name != null) document.getElementById('field-name').value = state.name;
+      if (state.description != null) document.getElementById('field-description').value = state.description;
+      if (state.version != null) document.getElementById('field-version').value = state.version;
+      if (state.status != null) document.getElementById('field-status').value = state.status;
+    }
+
+    function showHtml(html) {
+      viewEl.innerHTML = html;
+    }
+
+    function appendAlerts(alerts) {
+      if (!Array.isArray(alerts) || !alerts.length) return;
+      const stamp = new Date().toLocaleTimeString();
+      for (const a of alerts) {
+        const li = document.createElement('li');
+        const prev = a.previousValue != null ? String(a.previousValue) : '—';
+        const curr = a.currentValue != null ? String(a.currentValue) : '—';
+        li.innerHTML = `
+          <div class="meta">${stamp} · ${a.watchId ?? a.id ?? 'watch'}${a.mode ? ` · ${a.mode}` : ''}</div>
+          <p class="msg">${escapeHtml(a.message ?? 'Knowledge alert')}</p>
+          <p class="vals">${escapeHtml(prev)} → ${escapeHtml(curr)}</p>
+        `;
+        alertsEl.prepend(li);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function rpc(method, params = {}) {
+      return new Promise((resolve, reject) => {
+        const request = {
+          jsonrpc: '2.0',
+          method,
+          params: { ...params, sessionId: sessionId() },
+          id: Date.now(),
+        };
+        socket.emit('rpc', request, (response) => {
+          if (!response) return reject(new Error('No response'));
+          if (response.error) return reject(new Error(response.error.message));
+          resolve(response.result);
+        });
+      });
+    }
+
+    async function renderConcept() {
+      const result = await rpc('renderComponent', {
+        componentId: TEMPLATE,
+        itemId: ITEM_ID,
+        data: formData(),
+      });
+      showHtml(result.html);
+    }
+
+    async function registerWatches() {
+      await rpc('addWatch', {
+        id: 'version-bump',
+        mode: 'change',
+        ref: '#json-rpc .version',
+        conceptId: ITEM_ID,
+        message: 'JSON-RPC concept version changed — review dependents.',
+      });
+      await rpc('addWatch', {
+        id: 'deprecated',
+        mode: 'when',
+        ref: '#json-rpc .status',
+        operator: '==',
+        value: 'deprecated',
+        conceptId: ITEM_ID,
+        message: 'Warning: JSON-RPC concept marked deprecated.',
+      });
+      // Prime change-watch with current sample (no alert yet)
+      await rpc('updateState', {
+        itemId: ITEM_ID,
+        componentId: TEMPLATE,
+        data: formData(),
+        updates: {},
+      });
+      await refreshWatchList();
+      setStatus(`live · watches armed · ${sessionId()}`, 'is-live');
+    }
+
+    async function refreshWatchList() {
+      const listed = await rpc('listWatches', {});
+      watchListEl.textContent = JSON.stringify(listed.watches ?? [], null, 2);
+    }
+
+    socket.on('connect', async () => {
+      setStatus(`live · ${sessionId()}`, 'is-live');
+      try {
+        await renderConcept();
+        await refreshWatchList();
+      } catch (err) {
+        setStatus(err.message, 'is-err');
+      }
+    });
+
+    socket.on('disconnect', () => setStatus('disconnected', 'is-err'));
+
+    socket.on('pushUpdate', (msg) => {
+      const params = msg?.params ?? msg;
+      if (!params) return;
+      if (params.newHtml) showHtml(params.newHtml);
+      if (params.state) syncForm(params.state);
+    });
+
+    socket.on('knowledgeAlert', (msg) => {
+      const params = msg?.params ?? msg;
+      appendAlerts(params?.alerts);
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const result = await rpc('updateState', {
+          itemId: ITEM_ID,
+          componentId: TEMPLATE,
+          updates: formData(),
+        });
+        showHtml(result.newHtml);
+        appendAlerts(result.alerts);
+        setStatus(`live · ${sessionId()}`, 'is-live');
+      } catch (err) {
+        setStatus(err.message, 'is-err');
+      }
+    });
+
+    document.getElementById('btn-add-watches').addEventListener('click', async () => {
+      try {
+        await registerWatches();
+      } catch (err) {
+        setStatus(err.message, 'is-err');
+      }
+    });
+
+    document.getElementById('btn-list-watches').addEventListener('click', async () => {
+      try {
+        await refreshWatchList();
+      } catch (err) {
+        setStatus(err.message, 'is-err');
+      }
+    });
+  </script>
+</body>
+</html>

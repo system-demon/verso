@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · knowledge feed</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .format-toggle {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: #a89a7e;
+      flex-basis: 100%;
+      margin-top: 0.4rem;
+    }
+    .format-toggle button {
+      font: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .format-toggle button:hover { border-color: #cbb98f; color: #f5f0e4; }
+    .format-toggle button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+
+    .feed-xml {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      line-height: 1.55;
+      color: #264a3d;
+      background: rgba(46, 90, 74, 0.06);
+      border: 1px solid rgba(46, 90, 74, 0.18);
+      border-radius: 2px;
+      padding: 1.1rem 1.2rem;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 36rem;
+      overflow: auto;
+    }
+
+    #view h1 { font-size: 1.6rem; margin: 0 0 0.6rem; font-weight: 600; }
+    #view h2 { font-size: 1.2rem; margin: 1.4rem 0 0.5rem; font-weight: 600; }
+    #view nav ul { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    #view nav a { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; }
+    #view section { margin: 1.6rem 0; padding-top: 0.6rem; border-top: 1px solid var(--rule); }
+    #view dl { display: grid; grid-template-columns: 7rem 1fr; gap: 0.35rem 1rem; margin: 0.8rem 0; font-size: 0.9rem; }
+    #view dt { color: var(--ink-soft); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    #view dd { margin: 0; }
+    #view p { margin: 0.5rem 0; color: var(--ink-soft); }
+    #view .name { color: var(--ink); font-style: normal; }
+
+    .raw-url {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0.8rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+    }
+    .raw-url code {
+      flex: 1;
+      min-width: 12rem;
+      padding: 0.35rem 0.55rem;
+      background: rgba(245, 240, 228, 0.06);
+      border: 1px solid #4a4232;
+      border-radius: 2px;
+      color: #d8cdb4;
+      word-break: break-all;
+    }
+    .raw-url button {
+      font: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .raw-url button:hover { border-color: #cbb98f; color: #f5f0e4; }
+
+    .colophon p { font-size: 0.85rem; line-height: 1.55; max-width: 46rem; }
+    .colophon a { color: #cbb98f; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">knowledge feed — DefinedTerm / TechArticle stream, not a catalog</p>
+    <nav>
+      <a href="/">sync</a>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">semantic web</a>
+      <a href="/live/feed.html" aria-current="page">feed</a>
+      <a href="/live/watch.html">watch</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+    <div class="format-toggle" id="formats" role="group" aria-label="Feed format">
+      format:
+      <button type="button" data-format="atom" class="active">Atom</button>
+      <button type="button" data-format="rss">RSS</button>
+      <button type="button" data-format="json">JSON</button>
+    </div>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso">
+        <div class="running-head"><span class="face">Verso</span><span>the stream</span></div>
+        <pre class="feed-xml" id="feed">loading…</pre>
+        <p class="margin-note">Same seed as the recto — projected as Atom, RSS, or a JSON envelope. Subscribe in Thunderbird with the raw localhost URL below.</p>
+      </section>
+      <section class="page page--recto">
+        <div class="running-head"><span>the presentation</span><span class="face">Recto</span></div>
+        <div id="view">loading…</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <details open>
+      <summary>About this leaf</summary>
+      <p>
+        A knowledge stream from <code>examples/17-feed/knowledge.map.yml</code> —
+        DefinedTerm concepts and a changelog, not a storefront catalog.
+        Verso is <code>GET /feed</code>; recto is <code>renderInline</code> of the same map.
+        For a local subscribe, point Thunderbird (or any Atom/RSS reader) at the raw feed URL.
+      </p>
+      <div class="raw-url">
+        <span>raw feed</span>
+        <code id="raw-url"></code>
+        <button type="button" id="copy-url">copy</button>
+        <a id="open-url" href="#" target="_blank" rel="noopener">open</a>
+      </div>
+    </details>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf v</span></p>
+  </div>
+
+  <script type="module">
+    const MAP_PATH = 'examples/17-feed/knowledge.map.yml';
+    const feedEl = document.getElementById('feed');
+    const viewEl = document.getElementById('view');
+    const formatsEl = document.getElementById('formats');
+    const rawUrlEl = document.getElementById('raw-url');
+    const copyBtn = document.getElementById('copy-url');
+    const openLink = document.getElementById('open-url');
+
+    let format = 'atom';
+
+    function feedUrl(fmt = format) {
+      const u = new URL('/feed', location.origin);
+      u.searchParams.set('path', MAP_PATH);
+      if (fmt !== 'atom') u.searchParams.set('format', fmt);
+      return u.href;
+    }
+
+    function syncRawUrl() {
+      const url = feedUrl();
+      rawUrlEl.textContent = url;
+      openLink.href = url;
+    }
+
+    async function loadFeed() {
+      syncRawUrl();
+      try {
+        const res = await fetch(feedUrl());
+        const text = await res.text();
+        if (!res.ok) {
+          let msg = text;
+          try { msg = JSON.parse(text).error || text; } catch { /* keep */ }
+          feedEl.textContent = `error: ${msg}`;
+          return;
+        }
+        if (format === 'json') {
+          try {
+            feedEl.textContent = JSON.stringify(JSON.parse(text), null, 2);
+          } catch {
+            feedEl.textContent = text;
+          }
+        } else {
+          feedEl.textContent = text;
+        }
+      } catch (err) {
+        feedEl.textContent = `error: ${err.message}`;
+      }
+    }
+
+    async function loadHtml() {
+      try {
+        const source = await fetch('/live/feed.yml').then((r) => r.text());
+        const res = await fetch('/rpc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'renderInline',
+            params: { yaml: source, baseDir: 'live' },
+            id: Date.now(),
+          }),
+        }).then((r) => r.json());
+        if (res.error) {
+          viewEl.innerHTML = `<p style="color:#7a2e2e">render error: ${res.error.message}</p>`;
+          return;
+        }
+        viewEl.innerHTML = res.result.html;
+      } catch (err) {
+        viewEl.innerHTML = `<p style="color:#7a2e2e">error: ${err.message}</p>`;
+      }
+    }
+
+    formatsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-format]');
+      if (!btn) return;
+      format = btn.dataset.format;
+      formatsEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      loadFeed();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(feedUrl());
+        copyBtn.textContent = 'copied';
+      } catch {
+        copyBtn.textContent = 'copy manually';
+      }
+      setTimeout(() => { copyBtn.textContent = 'copy'; }, 1400);
+    });
+
+    syncRawUrl();
+    loadFeed();
+    loadHtml();
+  </script>
+</body>
+</html>
