@@ -62,7 +62,7 @@ export function parseProfile(input) {
       const m = String(entry).match(PARAM_PAIR_RE);
       if (!m) {
         throw new Error(
-          `Twinseed profile entries must be key=value pairs (got "${entry}")`,
+          `profile entries must be key=value pairs (got "${entry}")`,
         );
       }
       return [m[1], m[2]];
@@ -71,7 +71,7 @@ export function parseProfile(input) {
     pairs = Object.entries(input);
   } else {
     throw new Error(
-      'Twinseed profile must be a plain object or an array of key=value strings',
+      'profile must be a plain object or an array of key=value strings',
     );
   }
 

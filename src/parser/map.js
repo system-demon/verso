@@ -172,7 +172,7 @@ export function resolveMapTree(raw, options = {}) {
 function buildMapModel(map, options) {
   if (!isPlainObject(map)) {
     throw new TwinseedValidationError(
-      'Twinseed "map" must be a mapping of { title, ld, head, keys, conventions, items, relations }',
+      '"map" must be a mapping of { title, ld, head, keys, conventions, items, relations }',
       'map',
     );
   }
@@ -601,7 +601,7 @@ function dedupeContexts(items) {
 function extractItem(result, keyedTree, model, registry, item) {
   if (!model.sections.some((s) => s.key === item)) {
     throw new Error(
-      `Twinseed map item not found: "${item}" — known keys: ${model.sections.map((s) => s.key).join(', ')}`,
+      `map item not found: "${item}" — known keys: ${model.sections.map((s) => s.key).join(', ')}`,
     );
   }
   const entry = findSectionEntry(keyedTree, item);

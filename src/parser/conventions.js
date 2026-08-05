@@ -118,7 +118,7 @@ export function buildRenderRegistry(base = ConventionRegistry, yamlConventions =
     const conv = merged[name];
     if (!conv || typeof conv !== 'object') return undefined;
     if (stack.has(name)) {
-      throw new Error(`Twinseed convention extends cycle: ${[...stack, name].join(' → ')}`);
+      throw new Error(`convention extends cycle: ${[...stack, name].join(' → ')}`);
     }
     stack.add(name);
     // Missing parents are tolerated here (lenient); strict mode validates

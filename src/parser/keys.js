@@ -39,7 +39,7 @@ export function isKeyRef(v) {
 export function includePathFromKey(name, keys) {
   if (!(name in keys)) {
     throw new Error(
-      `Twinseed include key not defined: "${name}" — declare it in a top-level keys: block`,
+      `include key not defined: "${name}" — declare it in a top-level keys: block`,
     );
   }
   const value = keys[name];
@@ -51,7 +51,7 @@ export function includePathFromKey(name, keys) {
         : 'href-valued'
       : 'non-string';
   throw new Error(
-    `Twinseed include key "${name}" must be a path string (e.g. "partials/logo.yml") — got a ${kind} key`,
+    `include key "${name}" must be a path string (e.g. "partials/logo.yml") — got a ${kind} key`,
   );
 }
 

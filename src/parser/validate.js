@@ -74,7 +74,7 @@ export function strictFromEnv() {
  */
 export function validateTree(tree, options = {}) {
   if (!isPlainObject(tree)) {
-    throw new TwinseedValidationError('Twinseed root must be a mapping');
+    throw new TwinseedValidationError('seed root must be a mapping');
   }
   if (options.conventions !== undefined) {
     validateConventionsBlock(options.conventions, options.registry ?? {});

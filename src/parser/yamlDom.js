@@ -221,7 +221,7 @@ export function preprocessYaml(source) {
 function parseRoot(yamlSource) {
   const raw = yaml.load(preprocessYaml(yamlSource));
   if (!raw || typeof raw !== 'object') {
-    throw new Error('Twinseed root must be a mapping');
+    throw new Error('seed root must be a mapping');
   }
   return /** @type {Record<string, unknown>} */ (raw);
 }

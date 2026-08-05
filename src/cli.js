@@ -1,22 +1,23 @@
 #!/usr/bin/env node
 /**
- * CLI: render a .yml file to HTML (+ optional JSON-LD dump)
- * Usage: node src/cli.js templates/product.yml [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]
+ * Twinseed CLI — render a seed (YAML genome → HTML + JSON-LD).
  *
- *   --json     print { html, ldJson, contentMap } as JSON
- *   --doc      print a full HTML document
- *   --strict   validate the tree first (also TWINSEED_STRICT=1)
- *   --watch    re-render on file change; keeps stdout parseable (markers on stderr)
+ *   node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch]
+ *                   [--emit resolved] [--profile key=value ...] [KEY=value ...]
+ *
+ * The seed is the source of truth. Flags only choose how the leaves are shown.
+ *
+ *   --json       { html, ldJson, contentMap } as JSON
+ *   --doc        full HTML document
+ *   --strict     validate the tree first (also TWINSEED_STRICT=1)
+ *   --watch      re-render on change; stdout stays parseable (status on stderr)
  *   --emit resolved
- *              print the resolved intermediate tree as YAML instead of
- *              rendering — includes inlined, profile filtering applied,
- *              params/keys substituted (maps: assembled section/nav tree).
- *              Mutually exclusive with --json/--doc; pairs with --strict,
- *              --profile, KEY=value and --watch.
- *   --profile  profiling attributes for if:/flag: — collect key=value pairs
- *              after the flag until the next --flag, e.g.
- *              --profile audience=admin platform=web
- *              (vocabulary: audience, platform, product; omit → everything renders)
+ *                print the resolved intermediate tree as YAML instead of
+ *                rendering (includes inlined, profile applied, keys/params
+ *                substituted; maps: assembled section/nav). Not with --json/--doc.
+ *   --profile    if:/flag: attributes — key=value pairs until the next --flag
+ *                (vocabulary: audience, platform, product; omit → all renders)
+ *   -h, --help   this help
  */
 
 import fs from 'node:fs';
@@ -26,6 +27,31 @@ import { renderYaml, resolveTree, toDocument } from './parser/yamlDom.js';
 
 const args = process.argv.slice(2);
 const PARAM_RE = /^([A-Za-z_]\w*)=(.*)$/;
+
+const USAGE =
+  'twinseed: render a seed — node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]';
+
+const HELP = `twinseed — render a seed (YAML genome → HTML + JSON-LD)
+
+  node src/cli.js <seed.yml> [options] [KEY=value ...]
+
+Options
+  --json              print { html, ldJson, contentMap }
+  --doc               full HTML document
+  --strict            validate first (or TWINSEED_STRICT=1)
+  --watch             re-render on change (status on stderr)
+  --emit resolved     print the resolved tree as YAML (not with --json/--doc)
+  --profile k=v …     presentation profile for if:/flag:
+                      vocabulary: audience, platform, product
+  -h, --help          this help
+
+The seed is the source of truth. Flags only choose how the leaves are shown.
+`;
+
+if (args.includes('--help') || args.includes('-h')) {
+  process.stdout.write(HELP);
+  process.exit(0);
+}
 
 // --profile key=value ... — pairs after the flag until the next --flag
 const profileIdx = args.indexOf('--profile');
@@ -49,11 +75,11 @@ if (emitIdx !== -1) {
   emitValueIdx = emitIdx + 1;
   const value = args[emitValueIdx];
   if (value === undefined || value.startsWith('--')) {
-    console.error('twinseed: --emit needs a target (available: resolved)');
+    console.error('twinseed: --emit needs a target (resolved)');
     process.exit(1);
   }
   if (value !== 'resolved') {
-    console.error(`twinseed: unknown --emit target "${value}" (available: resolved)`);
+    console.error(`twinseed: unknown --emit target "${value}" (resolved)`);
     process.exit(1);
   }
   emitTarget = value;
@@ -66,16 +92,20 @@ const strict = args.includes('--strict') ? true : undefined;
 const watch = args.includes('--watch');
 
 if (emitTarget && (asJson || asDoc)) {
-  console.error('twinseed: --emit resolved is mutually exclusive with --json and --doc');
+  console.error('twinseed: --emit resolved cannot combine with --json or --doc');
   process.exit(1);
 }
 
 if (!file) {
-  console.error('Usage: node src/cli.js <file.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]');
+  console.error(USAGE);
   process.exit(1);
 }
 
 const filePath = path.resolve(file);
+if (!fs.existsSync(filePath)) {
+  console.error(`twinseed: seed not found: ${file}`);
+  process.exit(1);
+}
 
 // Optional KEY=value params (profile pairs are a separate channel)
 const params = {};
@@ -147,14 +177,14 @@ if (watch) {
     if (filename && filename !== base) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      console.error(`\n[twinseed] re-rendered at ${new Date().toLocaleTimeString()}`);
+      console.error(`\ntwinseed: rendered ${new Date().toLocaleTimeString()}`);
       try {
         renderOnce();
       } catch (err) {
-        console.error(`[twinseed] render error: ${err.message}`);
+        console.error(`twinseed: ${err.message}`);
       }
     }, 60);
   });
 
-  console.error(`[twinseed] watching ${watched} — Ctrl+C to stop`);
+  console.error(`twinseed: watching ${watched} — Ctrl+C to stop`);
 }
