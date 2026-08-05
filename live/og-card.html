@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Verso — social preview card</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f0e4; --paper-deep: #ede5d2; --desk: #2a251d;
+      --ink: #221d15; --ink-soft: #6b6151; --rule: #d8cdb4;
+      --accent: #7a2e2e; --accent-2: #2e5a4a;
+      --serif: "Newsreader", Georgia, serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1280px; height: 640px; overflow: hidden; }
+    body {
+      font-family: var(--serif);
+      background:
+        radial-gradient(ellipse 120% 70% at 50% -25%, #3a3327 0%, transparent 60%),
+        var(--desk);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+      padding: 40px;
+    }
+    .wordmark {
+      display: flex; align-items: center; gap: 22px;
+    }
+    .wordmark svg { display: block; }
+    .wordmark h1 {
+      margin: 0; font-size: 84px; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--paper);
+    }
+    .book {
+      display: grid; grid-template-columns: 1fr 1fr;
+      width: 900px; height: 330px;
+      background: var(--paper);
+      border-radius: 4px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.5), 0 6px 16px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .book::before {
+      content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 60px;
+      transform: translateX(-50%);
+      background: linear-gradient(to right, transparent, rgba(60,48,28,0.10) 38%, rgba(60,48,28,0.24) 50%, rgba(60,48,28,0.10) 62%, transparent);
+      z-index: 2; pointer-events: none;
+    }
+    .page { padding: 30px 36px; position: relative; }
+    .page--verso { border-right: 1px solid var(--rule); background: linear-gradient(to bottom, rgba(120,96,56,0.05), transparent 40%), var(--paper); }
+    .page--recto { background: linear-gradient(to bottom, rgba(120,96,56,0.05), transparent 40%), var(--paper); }
+    .rh {
+      display: flex; justify-content: space-between;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--ink-soft); border-bottom: 1px solid var(--rule);
+      padding-bottom: 8px; margin-bottom: 18px;
+    }
+    .page--verso .rh .face { color: var(--accent-2); }
+    .page--recto .rh .face { color: var(--accent); }
+    .graph {
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+      color: #264a3d; background: rgba(46,90,74,0.07);
+      border: 1px solid rgba(46,90,74,0.20); border-radius: 3px;
+      padding: 14px 16px; white-space: pre; margin: 0;
+    }
+    .card h2 { margin: 0 0 4px; font-size: 40px; font-weight: 600; }
+    .card .tagline { color: var(--ink-soft); font-style: italic; font-size: 19px; margin: 0 0 14px; }
+    .card .version {
+      font-family: var(--mono); font-size: 12px; background: var(--paper-deep);
+      border: 1px solid var(--rule); padding: 2px 8px; border-radius: 2px;
+    }
+    .card .version::before { content: "v"; color: var(--ink-soft); }
+    .card .note {
+      margin-top: 20px; font-size: 13.5px; color: var(--ink-soft);
+      border-left: 2px solid var(--rule); padding-left: 12px; font-style: italic;
+    }
+    .tagline-line {
+      color: #cbb98f; font-size: 27px; font-style: italic; margin: 0;
+    }
+    .meta {
+      font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em;
+      color: #8f8267; margin: 0;
+    }
+    .meta b { color: #cbb98f; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="wordmark">
+    <svg width="72" height="72" viewBox="0 0 16 16">
+      <rect width="16" height="16" rx="3" fill="#241f17"/>
+      <path d="M7.1 3.4 C 5.7 2.8 4.1 3 3 3.8 V 12.2 C 4.1 11.4 5.7 11.3 7.1 11.9 Z" fill="#6fc29b"/>
+      <path d="M8.9 3.4 C 10.3 2.8 11.9 3 13 3.8 V 12.2 C 11.9 11.4 10.3 11.3 8.9 11.9 Z" fill="#d97e6b"/>
+      <rect x="7.3" y="3" width="1.6" height="9.6" fill="#f5f0e4"/>
+    </svg>
+    <h1>Verso</h1>
+  </div>
+
+  <div class="book">
+    <section class="page page--verso">
+      <div class="rh"><span class="face">Verso</span><span>the meaning</span></div>
+      <pre class="graph">{
+  "@context": "https://schema.org",
+  "@type": ["Thing", "CreativeWork"],
+  "@id": "#hello",
+  "name": "Verso",
+  "description": "The other side of
+    the page is meaning.",
+  "additionalType": "EarlyAccess"
+}</pre>
+    </section>
+    <section class="page page--recto">
+      <div class="rh"><span>the presentation</span><span class="face">Recto</span></div>
+      <div class="card">
+        <h2>Verso</h2>
+        <p class="tagline">The other side of the page is meaning.</p>
+        <span class="version">0.9</span>
+        <p class="note">One YAML tree renders the card on this page — and asserts the graph on the other.</p>
+      </div>
+    </section>
+  </div>
+
+  <p class="tagline-line">YAML markup that renders HTML and publishes JSON-LD from the same tree.</p>
+  <p class="meta">maps · keys · conventions · profiles · live sync — <b>github.com/system-demon/verso</b></p>
+</body>
+</html>
