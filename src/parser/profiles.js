@@ -13,13 +13,18 @@
  *   span: { flag: { audience: novice }, text: "..." }        # kept; gains
  *                                                            #   class flag-novice
  *
- * Profile vocabulary is fixed: audience, platform, product.
+ * Profile vocabulary is fixed: audience, platform, product, version.
+ * `version` values are conventionally stable | beta | deprecated (docs slices);
+ * the filter itself is open string equality — same as the other attributes.
  * No profile supplied → everything renders, unflagged (filtering is opt-in).
  */
 
 import { TwinseedValidationError } from './validate.js';
 
-const PROFILE_VOCAB = new Set(['audience', 'platform', 'product']);
+const PROFILE_VOCAB = new Set(['audience', 'platform', 'product', 'version']);
+
+/** Comma-separated vocab for error messages (stable order). */
+const PROFILE_VOCAB_LIST = [...PROFILE_VOCAB].join(', ');
 
 /**
  * Keys whose values are data blocks, not elements — `if`/`flag` inside them
@@ -80,7 +85,7 @@ export function parseProfile(input) {
   for (const [key, value] of pairs) {
     if (!PROFILE_VOCAB.has(key)) {
       throw new Error(
-        `unknown profiling attribute "${key}" — profile vocabulary: ${[...PROFILE_VOCAB].join(', ')}`,
+        `unknown profiling attribute "${key}" — profile vocabulary: ${PROFILE_VOCAB_LIST}`,
       );
     }
     if (value !== undefined && value !== null) profile[key] = String(value);
@@ -119,7 +124,7 @@ export function validateCondition(cond, path) {
     }
     if (!PROFILE_VOCAB.has(parsed.name)) {
       throw new TwinseedValidationError(
-        `unknown profiling attribute "${parsed.name}" — profile vocabulary: ${[...PROFILE_VOCAB].join(', ')}`,
+        `unknown profiling attribute "${parsed.name}" — profile vocabulary: ${PROFILE_VOCAB_LIST}`,
         path,
       );
     }
@@ -129,14 +134,14 @@ export function validateCondition(cond, path) {
     const entries = Object.entries(cond);
     if (entries.length === 0) {
       throw new TwinseedValidationError(
-        'empty condition — name at least one profiling attribute (audience, platform, product)',
+        `empty condition — name at least one profiling attribute (${PROFILE_VOCAB_LIST})`,
         path,
       );
     }
     for (const [key, value] of entries) {
       if (!PROFILE_VOCAB.has(key)) {
         throw new TwinseedValidationError(
-          `unknown profiling attribute "${key}" — profile vocabulary: ${[...PROFILE_VOCAB].join(', ')}`,
+          `unknown profiling attribute "${key}" — profile vocabulary: ${PROFILE_VOCAB_LIST}`,
           path,
         );
       }

@@ -117,7 +117,7 @@ export const methods = {
    * params.item ("KEY"): when the template is a map document, return just
    * that section's HTML plus a ldJson holding the publication node and that
    * section's node — chunking a map into per-section payloads.
-   * params.profile ({ audience, platform, product }): filter if:/flag:
+   * params.profile ({ audience, platform, product, version }): filter if:/flag:
    * against that profile (P4); echoed back in the result when supplied.
    */
   renderComponent(params = {}, ctx) {

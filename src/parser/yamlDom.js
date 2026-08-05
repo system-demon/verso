@@ -277,7 +277,7 @@ function prepareDocument(raw, options, profile) {
  *   pruned and `flag:` matches gain flag-<value> classes — evaluated first,
  *   before include/params/key resolution, so excluded content never renders
  *   and never asserts into the graph. Conditions reference the profile only
- *   (vocabulary: audience, platform, product), never ContentMap values;
+ *   (vocabulary: audience, platform, product, version), never ContentMap values;
  *   omitted → everything renders unflagged. See profiles.js (P4).
  *   item: when the document is a map (`map:` top-level), render only that
  *   section — html is the section's HTML and ldJson is filtered to the

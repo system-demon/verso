@@ -1,0 +1,19 @@
+# Nested fragment: sits inside the concepts section via the map's items tree,
+# so it gets no pager of its own — nested items participate in their parent's
+# sequence only. Its @context dedupes into the publication context.
+
+"@context": "https://schema.org"
+
+div:
+  class: "doc-topic"
+  ld:
+    "@id": "#glossary"
+    "@type": "TechArticle"
+    headline: "Glossary"
+  children:
+    - h2: "Glossary"
+    - ul:
+        children:
+          - li: "JSON-LD — linked data expressed as JSON"
+          - li: "CollectionPage — a publication node with hasPart listing sections"
+          - li: "DefinedTerm — a named concept in a controlled vocabulary"

@@ -22,7 +22,7 @@
  *                LLM-ready knowledge pack (JSON): entities, relations, and a
  *                pasteable markdown `prompt` from the same seed graph.
  *   --profile    if:/flag: attributes — key=value pairs until the next --flag
- *                (vocabulary: audience, platform, product; omit → all renders)
+ *                (vocabulary: audience, platform, product, version; omit → all renders)
  *   -h, --help   this help
  */
 
@@ -53,7 +53,7 @@ Options
   --emit atom|rss     knowledge feed from the same graph (Atom or RSS 2.0)
   --emit context      LLM knowledge pack (JSON with entities, relations, prompt)
   --profile k=v …     presentation profile for if:/flag:
-                      vocabulary: audience, platform, product
+                      vocabulary: audience, platform, product, version
   -h, --help          this help
 
 The seed is the source of truth. Flags only choose how the leaves are shown.

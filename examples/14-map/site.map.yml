@@ -15,12 +15,12 @@
 "@context": "https://schema.org"
 
 map:
-  title: "WonderWidget Docs"
+  title: "Twinseed Docs"
   ld: { "@type": CollectionPage }        # the publication node
   head:                                  # map-level head for --doc (does NOT cascade)
-    title: "WonderWidget Docs"
+    title: "Twinseed Docs"
     meta:
-      description: "A three-topic docs publication composed from fragments"
+      description: "A three-topic Semantic Web docs publication composed from fragments"
     css:
       body: { fontFamily: "system-ui, sans-serif", margin: "2rem auto", maxWidth: "44rem" }
       "nav ul": { listStyle: "none", paddingLeft: "1.25rem" }
@@ -28,17 +28,17 @@ map:
       ".verso-related ul": { display: "flex", gap: "0.75rem", paddingLeft: "0" }
       ".verso-pager": { display: "flex", justifyContent: "space-between", borderTop: "1px solid #ddd", paddingTop: "0.75rem" }
   keys:
-    product-name: "WonderWidget"         # cascades into all fragments
+    seed-name: "Twinseed"                # cascades into all fragments
   items:
     - key: intro
       include: "intro.yml"               # relative to this map file
       nav: "Introduction"
-    - key: pricing
-      include: "pricing.yml"
-      nav: "Pricing"
+    - key: concepts
+      include: "concepts.yml"
+      nav: "Concepts"
       items:                             # nesting = nested sections
-        - key: tiers
-          include: "tiers.yml"
-          nav: "Tiers"
+        - key: glossary
+          include: "glossary.yml"
+          nav: "Glossary"
   relations:
-    - [intro, pricing]                   # undirected related-links pair
+    - [intro, concepts]                  # undirected related-links pair

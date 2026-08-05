@@ -1,0 +1,39 @@
+# Fragment with its own conventions: block — file-root declarations merge
+# into the render's registry (a same-named map-level declaration would win).
+# The "term" convention types each concept card as a DefinedTerm in the graph;
+# requires: is enforced under --strict.
+
+"@context": "https://schema.org"
+
+conventions:
+  term:
+    type: DefinedTerm
+    fields:
+      name: ".term-name"
+      description: ".term-desc"
+    requires: [.term-name, .term-desc]
+
+div:
+  class: "doc-topic"
+  ld:
+    "@id": "#concepts"
+    "@type": "TechArticle"
+    headline: "Concepts"
+  children:
+    - h1: "Concepts"
+    - p:
+        children:
+          - span: { text: { key: seed-name } }
+          - span: " centers on a few Semantic Web primitives:"
+    - div:
+        class: "term"
+        id: "term_fragment"
+        children:
+          - h2: { class: "term-name", text: "Fragment" }
+          - p: { class: "term-desc", text: "A content-only document pulled into a map by include:." }
+    - div:
+        class: "term"
+        id: "term_map"
+        children:
+          - h2: { class: "term-name", text: "Map" }
+          - p: { class: "term-desc", text: "A composition document that owns order, nav, relations, and pagination." }

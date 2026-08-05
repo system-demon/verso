@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · context</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .focus-bar {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: #a89a7e;
+      flex-basis: 100%;
+      margin-top: 0.4rem;
+    }
+    .focus-bar button {
+      font: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .focus-bar button:hover { border-color: #cbb98f; color: #f5f0e4; }
+    .focus-bar button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+
+    .prompt-md {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      line-height: 1.55;
+      color: #264a3d;
+      background: rgba(46, 90, 74, 0.06);
+      border: 1px solid rgba(46, 90, 74, 0.18);
+      border-radius: 2px;
+      padding: 1.1rem 1.2rem;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 36rem;
+      overflow: auto;
+    }
+    .graph-json { max-height: 36rem; overflow: auto; }
+
+    .raw-url {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0.8rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+    }
+    .raw-url code {
+      flex: 1;
+      min-width: 12rem;
+      padding: 0.35rem 0.55rem;
+      background: rgba(245, 240, 228, 0.06);
+      border: 1px solid #4a4232;
+      border-radius: 2px;
+      color: #d8cdb4;
+      word-break: break-all;
+    }
+    .raw-url button {
+      font: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .raw-url button:hover { border-color: #cbb98f; color: #f5f0e4; }
+
+    .colophon p { font-size: 0.85rem; line-height: 1.55; max-width: 46rem; }
+    .colophon a { color: #cbb98f; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">context — LLM knowledge pack from the same map seed</p>
+    <nav>
+      <a href="/">sync</a>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">semantic web</a>
+      <a href="/live/feed.html">feed</a>
+      <a href="/live/watch.html">watch</a>
+      <a href="/live/backlinks.html">backlinks</a>
+      <a href="/live/context.html" aria-current="page">context</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+    <div class="focus-bar" id="focuses" role="group" aria-label="Focus concept">
+      focus:
+      <button type="button" data-id="" class="active">all</button>
+    </div>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso">
+        <div class="running-head"><span class="face">Verso</span><span>the prompt</span></div>
+        <pre class="prompt-md" id="prompt">loading…</pre>
+        <p class="margin-note">Markdown prompt from <code>GET /context?promptOnly=1</code> (or RPC <code>renderContext</code> with <code>promptOnly</code>). Paste into an LLM session with the seed’s entities and relations.</p>
+      </section>
+      <section class="page page--recto">
+        <div class="running-head"><span>the pack</span><span class="face">Recto</span></div>
+        <pre class="graph-json" id="pack">loading…</pre>
+        <p class="margin-note">Structured JSON pack (<code>entities</code>, <code>relations</code>, …) from the same seed — prompt field stripped for display. Full pack via raw URL below.</p>
+      </section>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <details open>
+      <summary>About this leaf</summary>
+      <p>
+        An LLM-ready knowledge pack from <code>examples/17-feed/knowledge.map.yml</code> —
+        same graph as feed and backlinks, projected as markdown + JSON
+        (<code>--emit context</code> / <code>renderContext</code> / <code>GET /context</code>).
+        Technical-docs framing only: entities and relations, not a catalog dump.
+      </p>
+      <div class="raw-url">
+        <span>copy prompt</span>
+        <button type="button" id="copy-prompt">copy</button>
+      </div>
+      <div class="raw-url">
+        <span>raw pack</span>
+        <code id="raw-url"></code>
+        <button type="button" id="copy-url">copy</button>
+        <a id="open-url" href="#" target="_blank" rel="noopener">open</a>
+      </div>
+    </details>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf vii</span></p>
+  </div>
+
+  <script type="module">
+    const MAP_PATH = 'examples/17-feed/knowledge.map.yml';
+    const promptEl = document.getElementById('prompt');
+    const packEl = document.getElementById('pack');
+    const focusesEl = document.getElementById('focuses');
+    const rawUrlEl = document.getElementById('raw-url');
+    const copyUrlBtn = document.getElementById('copy-url');
+    const copyPromptBtn = document.getElementById('copy-prompt');
+    const openLink = document.getElementById('open-url');
+
+    let focusId = '';
+    let lastPrompt = '';
+
+    function contextUrl({ promptOnly = false } = {}) {
+      const u = new URL('/context', location.origin);
+      u.searchParams.set('path', MAP_PATH);
+      if (focusId) u.searchParams.set('id', focusId);
+      if (promptOnly) u.searchParams.set('promptOnly', '1');
+      return u.href;
+    }
+
+    function syncRawUrl() {
+      const url = contextUrl();
+      rawUrlEl.textContent = url;
+      openLink.href = url;
+    }
+
+    function renderFocusButtons(sections) {
+      const keep = focusesEl.querySelector('button[data-id=""]');
+      focusesEl.querySelectorAll('button[data-id]:not([data-id=""])').forEach((b) => b.remove());
+      for (const s of sections ?? []) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.id = s.key;
+        btn.textContent = s.navText || s.key;
+        if (s.key === focusId) btn.classList.add('active');
+        focusesEl.appendChild(btn);
+      }
+      keep.classList.toggle('active', !focusId);
+    }
+
+    async function load() {
+      syncRawUrl();
+      try {
+        const [promptRes, packRes] = await Promise.all([
+          fetch(contextUrl({ promptOnly: true })),
+          fetch(contextUrl()),
+        ]);
+
+        const promptText = await promptRes.text();
+        if (!promptRes.ok) {
+          let msg = promptText;
+          try { msg = JSON.parse(promptText).error || promptText; } catch { /* keep */ }
+          promptEl.textContent = `error: ${msg}`;
+          lastPrompt = '';
+        } else {
+          lastPrompt = promptText;
+          promptEl.textContent = promptText;
+        }
+
+        const packText = await packRes.text();
+        if (!packRes.ok) {
+          let msg = packText;
+          try { msg = JSON.parse(packText).error || packText; } catch { /* keep */ }
+          packEl.textContent = `error: ${msg}`;
+          return;
+        }
+
+        let pack;
+        try {
+          pack = JSON.parse(packText);
+        } catch {
+          packEl.textContent = packText;
+          return;
+        }
+
+        renderFocusButtons(pack.sections);
+        const { prompt: _p, ...display } = pack;
+        packEl.textContent = JSON.stringify(display, null, 2);
+        if (!lastPrompt && pack.prompt) {
+          lastPrompt = pack.prompt;
+          promptEl.textContent = pack.prompt;
+        }
+      } catch (err) {
+        promptEl.textContent = `error: ${err.message}`;
+        packEl.textContent = `error: ${err.message}`;
+        lastPrompt = '';
+      }
+    }
+
+    focusesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-id]');
+      if (!btn) return;
+      focusId = btn.dataset.id ?? '';
+      focusesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      load();
+    });
+
+    copyPromptBtn.addEventListener('click', async () => {
+      if (!lastPrompt) {
+        copyPromptBtn.textContent = 'nothing to copy';
+        setTimeout(() => { copyPromptBtn.textContent = 'copy'; }, 1400);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(lastPrompt);
+        copyPromptBtn.textContent = 'copied';
+      } catch {
+        copyPromptBtn.textContent = 'copy manually';
+      }
+      setTimeout(() => { copyPromptBtn.textContent = 'copy'; }, 1400);
+    });
+
+    copyUrlBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(contextUrl());
+        copyUrlBtn.textContent = 'copied';
+      } catch {
+        copyUrlBtn.textContent = 'copy manually';
+      }
+      setTimeout(() => { copyUrlBtn.textContent = 'copy'; }, 1400);
+    });
+
+    syncRawUrl();
+    load();
+  </script>
+</body>
+</html>
