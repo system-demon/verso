@@ -186,7 +186,8 @@
     let seq = 0;
 
     function paint() {
-      const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${IFRAME_BASE_CSS}</style><style>${cssEl.value}</style></head><body><main class="canvas-view">${lastGood.html}</main><script>${IFRAME_WIRE_JS.replace(/<\/script>/gi, '<\\/script>')}</script></body></html>`;
+      const S = 'script'; // tag pieces kept apart so this module block isn't terminated early
+      const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${IFRAME_BASE_CSS}</style><style>${cssEl.value}</style></head><body><main class="canvas-view">${lastGood.html}</main><${S}>${IFRAME_WIRE_JS}</${S}></body></html>`;
       frameEl.srcdoc = doc;
     }
 
