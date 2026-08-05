@@ -29,6 +29,7 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 **Composition**
 
 - **Map documents** — a top-level `map:` composes fragments into a publication: nested `<section>`s, generated nav, related-links, prev/next pagers, and a `CollectionPage` node with `hasPart` — one structure, three projections
+- **Knowledge feeds** — the same seed projects Atom / RSS (`--emit atom`, `GET /feed`) from TechArticle / DefinedTerm / HowTo-shaped graph nodes — a changelog/concept stream, not a product catalog
 
 **Tooling**
 
@@ -150,11 +151,12 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 | `src/parser/` | YAML → HTML, ContentMap, JSON-LD resolution, vocabulary conventions |
 | `src/parser/keys.js` | `keys:` block + `{ key }` resolution |
 | `src/parser/map.js` | `map:` composition documents (sections, nav, pager, site graph) |
+| `src/parser/feed.js` | Atom / RSS knowledge feed + backlinks from the JSON-LD / map graph |
 | `src/parser/profiles.js` | `if:` / `flag:` profile filtering |
 | `src/parser/includes.js` | `include:` partials and `file.yml#id` element pulls |
 | `src/parser/validate.js` | strict-mode validation |
 | `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
-| `src/cli.js` | Offline render; `--emit resolved` prints the resolved tree |
+| `src/cli.js` | Offline render; `--emit resolved|atom|rss` |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
 | `live/` | Reading room — book-spread demos and their `.yml` sources |

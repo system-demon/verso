@@ -43,6 +43,11 @@ run('14-map --json', [cli, 'examples/14-map/site.map.yml', '--json']);
 run('14-map --strict', [cli, 'examples/14-map/site.map.yml', '--strict']);
 run('14-map --emit resolved', [cli, 'examples/14-map/site.map.yml', '--emit', 'resolved']);
 
+run('17-feed --json', [cli, 'examples/17-feed/knowledge.map.yml', '--json']);
+run('17-feed --strict', [cli, 'examples/17-feed/knowledge.map.yml', '--strict']);
+run('17-feed --emit atom', [cli, 'examples/17-feed/knowledge.map.yml', '--emit', 'atom']);
+run('17-feed --emit rss', [cli, 'examples/17-feed/knowledge.map.yml', '--emit', 'rss']);
+
 run('demo.yml --strict', [cli, 'templates/demo.yml', '--strict']);
 run('product.yml --strict (params)', [
   cli,

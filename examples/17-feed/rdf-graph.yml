@@ -1,0 +1,30 @@
+# Concept fragment — DefinedTerm for the RDF graph idea.
+# Uses definedterm: shorthand (not article:) so the Article convention
+# does not harvest unrelated .headline / .datePublished selectors.
+
+"@context": "https://schema.org"
+
+definedterm:
+  id: "rdf-graph"
+
+  ld:
+    "@id": "#rdf-graph"
+    "@type": DefinedTerm
+    name: { ref: "#rdf-graph .name" }
+    description: { ref: "#rdf-graph .description" }
+    termCode: "rdf-graph"
+    inDefinedTermSet: "https://twinseed.local/glossary"
+
+  children:
+    - h1:
+        class: "name"
+        text: "RDF graph"
+    - p:
+        class: "description"
+        text: "A directed labeled graph of IRIs, blank nodes, and literals — the Semantic Web's core data model. Twinseed projects one YAML tree into presentational HTML and an RDF-shaped JSON-LD graph."
+    - dl:
+        children:
+          - dt: "Also called"
+          - dd: "knowledge graph (informally), triple store payload"
+          - dt: "Depends on"
+          - dd: "IRIs, RDF triples, vocabularies (RDFS/OWL)"

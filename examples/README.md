@@ -375,6 +375,23 @@ The JS-side entry point is `resolveTree(source, options)` in `src/parser/yamlDom
 
 ---
 
+## 17. Knowledge feed (Atom / RSS) — `examples/17-feed/`
+
+The same map that renders HTML + JSON-LD can project a **knowledge stream**: DefinedTerm concepts and TechArticle changelog notes become Atom (or RSS) entries. Channel metadata comes from the map's `ld:` / title; entry order follows `hasPart`.
+
+```bash
+node src/cli.js examples/17-feed/knowledge.map.yml --emit atom
+node src/cli.js examples/17-feed/knowledge.map.yml --emit rss
+# with the server running:
+curl -s "http://localhost:3847/feed?path=examples/17-feed/knowledge.map.yml"
+```
+
+RPC: `renderFeed` (`yaml` | `path` | `componentId`, `format`: atom|rss|json) and `getBacklinks` (inverts `map.relations` plus `isRelatedTo` / `about` / `isBasedOn` edges). This is not a product catalog — keep feed items in the technical-docs vocabulary (DefinedTerm, TechArticle, HowTo, …).
+
+Built-in conventions `definedterm`, `techarticle`, and `howto` mirror those types for class→graph harvest.
+
+---
+
 ## Extension checklist
 
 | Goal | Where |
@@ -386,6 +403,8 @@ The JS-side entry point is `resolveTree(source, options)` in `src/parser/yamlDom
 | Variable text / named links / named partials | `keys:` block + `{ key: name }` |
 | Reuse one element from a partial (conref-lite) | `include: "file.yml#id"` or a key carrying `#id` |
 | Compose a publication (nav, related links, pager, site graph) | `map:` document — `examples/14-map/` |
+| Atom / RSS knowledge feed from the same graph | `--emit atom` / `GET /feed` — `examples/17-feed/` |
+| Inverse relations / backlinks | RPC `getBacklinks` |
 | Conditional assertions | `ld_if` in the YAML |
 | Bind graph properties to UI text | `ld:` + `{ ref }` (or a ref-valued `{ key }`) |
 | New remote publish API | `registerMethod(...)` in RPC |
