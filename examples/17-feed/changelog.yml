@@ -1,0 +1,38 @@
+# Changelog stream entry — TechArticle dated for the feed leaf.
+
+"@context": "https://schema.org"
+
+techarticle:
+  id: "changelog"
+
+  ld:
+    "@id": "#changelog"
+    "@type": TechArticle
+    headline: { ref: "#changelog .headline" }
+    description: { ref: "#changelog .description" }
+    datePublished: { ref: "#changelog .datePublished" }
+    dateModified: { ref: "#changelog .dateModified" }
+    about:
+      - { "@id": "#rdf-graph" }
+      - { "@id": "#json-ld" }
+
+  children:
+    - h1:
+        class: "headline"
+        text: "Feed leaf — Atom / RSS from the same seed"
+    - p:
+        class: "description"
+        text: "Maps now project a knowledge stream: DefinedTerm concepts and TechArticle notes become Atom entries without a separate CMS. Channel metadata comes from the map; entry order follows hasPart."
+    - time:
+        class: "datePublished"
+        datetime: "2026-08-05"
+        text: "2026-08-05"
+    - time:
+        class: "dateModified"
+        datetime: "2026-08-05"
+        text: "2026-08-05"
+    - ul:
+        children:
+          - li: "CLI: --emit atom | --emit rss"
+          - li: "HTTP: GET /feed?path=…"
+          - li: "RPC: renderFeed, getBacklinks"

@@ -3,7 +3,7 @@
  * Twinseed CLI — render a seed (YAML genome → HTML + JSON-LD).
  *
  *   node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch]
- *                   [--emit resolved] [--profile key=value ...] [KEY=value ...]
+ *                   [--emit resolved|atom|rss] [--profile key=value ...] [KEY=value ...]
  *
  * The seed is the source of truth. Flags only choose how the leaves are shown.
  *
@@ -15,6 +15,9 @@
  *                print the resolved intermediate tree as YAML instead of
  *                rendering (includes inlined, profile applied, keys/params
  *                substituted; maps: assembled section/nav). Not with --json/--doc.
+ *   --emit atom | --emit rss
+ *                project the JSON-LD graph into an Atom or RSS knowledge feed
+ *                (concepts / TechArticle / changelog — not a product catalog).
  *   --profile    if:/flag: attributes — key=value pairs until the next --flag
  *                (vocabulary: audience, platform, product; omit → all renders)
  *   -h, --help   this help
@@ -23,13 +26,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { renderFeed } from './parser/feed.js';
 import { renderYaml, resolveTree, toDocument } from './parser/yamlDom.js';
 
 const args = process.argv.slice(2);
 const PARAM_RE = /^([A-Za-z_]\w*)=(.*)$/;
+const EMIT_TARGETS = new Set(['resolved', 'atom', 'rss']);
 
 const USAGE =
-  'twinseed: render a seed — node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved] [--profile key=value ...] [KEY=value ...]';
+  'twinseed: render a seed — node src/cli.js <seed.yml> [--json] [--doc] [--strict] [--watch] [--emit resolved|atom|rss] [--profile key=value ...] [KEY=value ...]';
 
 const HELP = `twinseed — render a seed (YAML genome → HTML + JSON-LD)
 
@@ -41,6 +46,7 @@ Options
   --strict            validate first (or TWINSEED_STRICT=1)
   --watch             re-render on change (status on stderr)
   --emit resolved     print the resolved tree as YAML (not with --json/--doc)
+  --emit atom|rss     knowledge feed from the same graph (Atom or RSS 2.0)
   --profile k=v …     presentation profile for if:/flag:
                       vocabulary: audience, platform, product
   -h, --help          this help
@@ -75,11 +81,11 @@ if (emitIdx !== -1) {
   emitValueIdx = emitIdx + 1;
   const value = args[emitValueIdx];
   if (value === undefined || value.startsWith('--')) {
-    console.error('twinseed: --emit needs a target (resolved)');
+    console.error('twinseed: --emit needs a target (resolved|atom|rss)');
     process.exit(1);
   }
-  if (value !== 'resolved') {
-    console.error(`twinseed: unknown --emit target "${value}" (resolved)`);
+  if (!EMIT_TARGETS.has(value)) {
+    console.error(`twinseed: unknown --emit target "${value}" (resolved|atom|rss)`);
     process.exit(1);
   }
   emitTarget = value;
@@ -92,7 +98,7 @@ const strict = args.includes('--strict') ? true : undefined;
 const watch = args.includes('--watch');
 
 if (emitTarget && (asJson || asDoc)) {
-  console.error('twinseed: --emit resolved cannot combine with --json or --doc');
+  console.error(`twinseed: --emit ${emitTarget} cannot combine with --json or --doc`);
   process.exit(1);
 }
 
@@ -126,6 +132,18 @@ function renderOnce() {
       profile: profilePairs,
     });
     process.stdout.write(yaml.dump(tree));
+    return;
+  }
+
+  if (emitTarget === 'atom' || emitTarget === 'rss') {
+    const feed = renderFeed(source, {
+      params,
+      strict,
+      baseDir: path.dirname(filePath),
+      profile: profilePairs,
+      format: emitTarget,
+    });
+    process.stdout.write(feed.xml);
     return;
   }
 

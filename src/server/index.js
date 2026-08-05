@@ -8,9 +8,11 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
-import { handleRpc, clampBaseDir } from './rpc.js';
+import { handleRpc, clampBaseDir, clampSeedPath } from './rpc.js';
 import { harmonizePlantUmlSvg, jsonDiagramText, plantUmlUrl } from './diagram.js';
+import { renderFeed } from '../parser/feed.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
+import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
@@ -143,6 +145,100 @@ app.post(
   },
 );
 
+/**
+ * Knowledge feed — Atom/RSS from the same seed as HTML + JSON-LD.
+ * GET  /feed?path=examples/17-feed/knowledge.map.yml&format=atom|rss|json
+ * POST /feed  raw YAML or { yaml, data, format, path }
+ */
+function feedFormat(queryFormat, bodyFormat) {
+  const raw = bodyFormat ?? queryFormat ?? 'atom';
+  if (raw === 'rss' || raw === 'json' || raw === 'atom') return raw;
+  return 'atom';
+}
+
+function sendFeed(res, feed, format) {
+  if (format === 'json') {
+    return res.json({
+      channel: feed.channel,
+      items: feed.items,
+      atom: feed.atom,
+      rss: feed.rss,
+      ldJson: feed.ldJson,
+    });
+  }
+  const type = format === 'rss' ? 'application/rss+xml' : 'application/atom+xml';
+  return res.type(type).send(feed.xml);
+}
+
+app.get('/feed', (req, res) => {
+  try {
+    const format = feedFormat(req.query.format);
+    const filePath = clampSeedPath(req.query.path);
+    const source = fs.readFileSync(filePath, 'utf8');
+    const selfHref = `${req.protocol}://${req.get('host')}${req.originalUrl.split('&format=')[0]}`;
+    const feed = renderFeed(source, {
+      baseDir: path.dirname(filePath),
+      format,
+      selfHref,
+      strict: req.query.strict === '1' || req.query.strict === 'true' ? true : undefined,
+    });
+    return sendFeed(res, feed, format);
+  } catch (err) {
+    const status = err.code === -32001 ? 404 : err.code === -32602 ? 400 : 400;
+    return res.status(status).json({ error: err.message });
+  }
+});
+
+app.post(
+  '/feed',
+  express.text({ type: ['text/*', 'application/yaml', 'application/x-yaml'], limit: '1mb' }),
+  (req, res) => {
+    try {
+      let source;
+      let data = {};
+      let strict;
+      let filePath;
+
+      if (typeof req.body === 'string') {
+        source = req.body;
+      } else if (req.body && typeof req.body.yaml === 'string') {
+        source = req.body.yaml;
+        data = req.body.data ?? {};
+        strict = req.body.strict === true ? true : undefined;
+      } else if (req.body && typeof req.body.path === 'string') {
+        filePath = clampSeedPath(req.body.path);
+        source = fs.readFileSync(filePath, 'utf8');
+        data = req.body.data ?? {};
+        strict = req.body.strict === true ? true : undefined;
+      } else if (typeof req.query.path === 'string') {
+        filePath = clampSeedPath(req.query.path);
+        source = fs.readFileSync(filePath, 'utf8');
+      } else {
+        return res.status(400).json({
+          error:
+            'POST raw YAML, JSON { "yaml": "..." }, or { "path": "examples/…" } (or GET ?path=)',
+        });
+      }
+
+      if (req.query.strict === '1' || req.query.strict === 'true') strict = true;
+      const format = feedFormat(req.query.format, req.body?.format);
+      const baseDir =
+        clampBaseDir(req.body?.baseDir ?? req.query.baseDir) ??
+        (filePath ? path.dirname(filePath) : undefined);
+      const feed = renderFeed(source, {
+        params: data,
+        strict,
+        baseDir,
+        format,
+      });
+      return sendFeed(res, feed, format);
+    } catch (err) {
+      const status = err.code === -32001 ? 404 : 400;
+      return res.status(status).json({ error: err.message });
+    }
+  },
+);
+
 const httpServer = createServer(app);
 
 /** Clean 400 for malformed JSON bodies (e.g. YAML posted as application/json) */
@@ -244,6 +340,7 @@ httpServer.listen(PORT, () => {
   console.log(`Twinseed listening on http://localhost:${PORT}`);
   console.log(`  JSON-RPC  POST /rpc`);
   console.log(`  Inline    POST /render (raw YAML or { yaml, data })`);
+  console.log(`  Feed      GET  /feed?path=examples/17-feed/knowledge.map.yml`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);
   console.log(`  Demo      http://localhost:${PORT}/`);
   console.log(`  Live      http://localhost:${PORT}/live/  (live/)`);

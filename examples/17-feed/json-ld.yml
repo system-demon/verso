@@ -1,0 +1,29 @@
+# Concept fragment — DefinedTerm for JSON-LD as a concrete syntax.
+
+"@context": "https://schema.org"
+
+definedterm:
+  id: "json-ld"
+
+  ld:
+    "@id": "#json-ld"
+    "@type": DefinedTerm
+    name: { ref: "#json-ld .name" }
+    description: { ref: "#json-ld .description" }
+    termCode: "json-ld"
+    inDefinedTermSet: "https://twinseed.local/glossary"
+    isBasedOn: { "@id": "#rdf-graph" }
+
+  children:
+    - h1:
+        class: "name"
+        text: "JSON-LD"
+    - p:
+        class: "description"
+        text: "A JSON-based concrete syntax for RDF. Twinseed's second leaf: the same seed that paints HTML also emits a JSON-LD document agents and linked-data tools can consume."
+    - dl:
+        children:
+          - dt: "Standards"
+          - dd: "W3C JSON-LD 1.1"
+          - dt: "Twinseed role"
+          - dd: "genotype / graph leaf beside the HTML phenotype"

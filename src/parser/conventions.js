@@ -54,6 +54,31 @@ export const ConventionRegistry = {
       datePublished: '.datePublished',
     },
   },
+  // Knowledge / technical-docs triggers (prefer these over Product/Offer demos)
+  definedterm: {
+    type: 'DefinedTerm',
+    fields: {
+      name: '.name',
+      description: '.description',
+    },
+  },
+  techarticle: {
+    type: 'TechArticle',
+    fields: {
+      headline: '.headline',
+      description: '.description',
+      datePublished: '.datePublished',
+      dateModified: '.dateModified',
+      author: '.author',
+    },
+  },
+  howto: {
+    type: 'HowTo',
+    fields: {
+      name: '.name',
+      description: '.description',
+    },
+  },
 };
 
 /**
@@ -203,8 +228,12 @@ export function discoverImplicitSchemas(contentMap, elements, registry) {
       const scope = el.id ? `#${el.id}` : null;
 
       for (const [schemaKey, selector] of Object.entries(schema.fields ?? {})) {
-        const fullSelector = scope ? `${scope} ${selector}` : selector;
-        const value = contentMap.get(fullSelector) ?? contentMap.get(selector);
+        // When the element has an id, only accept scoped selectors — never
+        // fall back to a bare ".price" that may belong to another entity on
+        // the same page (multi-topic maps / knowledge feeds).
+        const value = scope
+          ? contentMap.get(`${scope} ${selector}`)
+          : contentMap.get(selector);
         if (value !== undefined && value !== '') {
           entity[schemaKey] = value;
         }

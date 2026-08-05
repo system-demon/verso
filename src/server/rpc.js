@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getBacklinks, renderFeed } from '../parser/feed.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
 import { parseProfile } from '../parser/profiles.js';
 import {
@@ -35,6 +36,25 @@ export function clampBaseDir(baseDir) {
 }
 
 /**
+ * Resolve a seed path relative to the repo (for feed / backlinks).
+ * @param {unknown} seedPath
+ * @returns {string} absolute path
+ */
+export function clampSeedPath(seedPath) {
+  if (typeof seedPath !== 'string' || !seedPath.trim()) {
+    throw rpcError(-32602, 'path must be a non-empty string relative to the repo');
+  }
+  const resolved = path.resolve(REPO_ROOT, seedPath.replace(/\\/g, '/'));
+  if (resolved !== REPO_ROOT && !resolved.startsWith(REPO_ROOT + path.sep)) {
+    throw rpcError(-32602, 'path must resolve inside the repository');
+  }
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+    throw rpcError(-32001, `Seed not found: ${seedPath}`);
+  }
+  return resolved;
+}
+
+/**
  * @param {string} name
  */
 export function loadTemplate(name) {
@@ -44,6 +64,34 @@ export function loadTemplate(name) {
     throw rpcError(-32001, `Template not found: ${safe}`);
   }
   return fs.readFileSync(filePath, 'utf8');
+}
+
+/**
+ * Load YAML from params.yaml, params.path, or a named template.
+ * @param {Record<string, unknown>} params
+ */
+function loadSeedSource(params) {
+  if (typeof params?.yaml === 'string' && params.yaml.trim()) {
+    return {
+      source: params.yaml,
+      baseDir: clampBaseDir(params.baseDir),
+    };
+  }
+  if (typeof params?.path === 'string' && params.path.trim()) {
+    const filePath = clampSeedPath(params.path);
+    return {
+      source: fs.readFileSync(filePath, 'utf8'),
+      baseDir: clampBaseDir(params.baseDir) ?? path.dirname(filePath),
+    };
+  }
+  if (typeof params?.componentId === 'string' || typeof params?.template === 'string') {
+    const componentId = /** @type {string} */ (params.componentId ?? params.template);
+    return {
+      source: loadTemplate(componentId),
+      baseDir: TEMPLATES_DIR,
+    };
+  }
+  throw rpcError(-32602, 'params.yaml, params.path, or params.componentId is required');
 }
 
 function rpcError(code, message, data) {
@@ -164,6 +212,56 @@ export const methods = {
       ...(typeof params.item === 'string' ? { item: params.item } : {}),
       ...(profile !== undefined ? { profile } : {}),
     };
+  },
+
+  /**
+   * Project a seed's JSON-LD graph into Atom or RSS (knowledge stream).
+   * params.yaml | params.path | params.componentId — source
+   * params.format — "atom" (default) | "rss" | "json"
+   */
+  renderFeed(params = {}, _ctx) {
+    const { source, baseDir } = loadSeedSource(params);
+    const format =
+      params.format === 'rss' || params.format === 'json' || params.format === 'atom'
+        ? params.format
+        : 'atom';
+    const profile = parseProfile(params.profile);
+    const feed = renderFeed(source, {
+      params: params.data ?? {},
+      strict: params.strict === true ? true : undefined,
+      baseDir,
+      profile,
+      format,
+      selfHref: typeof params.selfHref === 'string' ? params.selfHref : undefined,
+      feedLink: typeof params.feedLink === 'string' ? params.feedLink : undefined,
+      title: typeof params.title === 'string' ? params.title : undefined,
+    });
+    return {
+      format,
+      xml: feed.xml,
+      atom: feed.atom,
+      rss: feed.rss,
+      channel: feed.channel,
+      items: feed.items,
+      ldJson: feed.ldJson,
+      ...(profile !== undefined ? { profile } : {}),
+    };
+  },
+
+  /**
+   * Inverse relations from map.relations + JSON-LD isRelatedTo / about / etc.
+   * params.yaml | params.path | params.componentId — source
+   * params.id — optional focus key ("json-ld" or "#json-ld")
+   */
+  getBacklinks(params = {}, _ctx) {
+    const { source, baseDir } = loadSeedSource(params);
+    const profile = parseProfile(params.profile);
+    return getBacklinks(source, {
+      baseDir,
+      strict: params.strict === true ? true : undefined,
+      profile,
+      id: typeof params.id === 'string' ? params.id : undefined,
+    });
   },
 
   /**
