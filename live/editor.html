@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verso · live editor</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/verso.css">
+  <style>
+    /* live editor — the desk widens to hold manuscript + book side by side */
+    .half-title, .colophon, .folio { max-width: 96rem; }
+
+    .controls {
+      flex-basis: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: #a89a7e;
+    }
+    .controls input#room {
+      font: inherit;
+      background: transparent;
+      border: 1px solid #6b5f49;
+      color: var(--paper);
+      padding: 0.3rem 0.55rem;
+      border-radius: 2px;
+      width: 9.5rem;
+    }
+    .controls input#room:focus { outline: none; border-color: #cbb98f; }
+    .controls button {
+      font: inherit; letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .controls button:hover { border-color: #cbb98f; color: #f5f0e4; }
+    .controls .profiles button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+    #conn { font-size: 0.66rem; letter-spacing: 0.08em; color: #8f8267; }
+    #conn.live { color: #7fa08e; }
+    #conn.offline { color: #b06a5a; }
+
+    .desk { max-width: 96rem; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    .desk .book { max-width: none; margin: 0; }
+    @media (min-width: 1100px) {
+      .desk { grid-template-columns: 34% 33% 33%; gap: 0; }
+      .desk .manuscript { grid-column: 1; margin-right: 1.25rem; }
+      .desk .book { grid-column: 2 / 4; }
+    }
+
+    /* the manuscript — drafting paper on the desk, outside the book */
+    .manuscript {
+      display: flex;
+      flex-direction: column;
+      min-height: 32rem;
+      background: var(--paper);
+      box-shadow:
+        0 1px 0 rgba(245, 240, 228, 0.15) inset,
+        0 18px 44px rgba(0, 0, 0, 0.4),
+        0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+    .manuscript .running-head { margin: 1.4rem 1.6rem 1rem; }
+    .manuscript .running-head .face { color: var(--ink); }
+    #draft {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      border-radius: 0;
+      outline: none;
+      resize: none;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.55em;
+      color: var(--ink);
+      padding: 0 1.6rem 1rem;
+      background-origin: content-box;
+      background-attachment: local;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(1.55em - 1px),
+        var(--rule) calc(1.55em - 1px),
+        var(--rule) 1.55em
+      );
+      background-color: var(--paper);
+    }
+    .errline:empty { display: none; }
+    .errline {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      line-height: 1.5;
+      color: var(--accent);
+      border-top: 1px dashed var(--rule);
+      padding: 0.5rem 1.6rem 0.7rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* stale book while the draft is broken */
+    .book.err { outline: 1px solid rgba(122, 46, 46, 0.55); outline-offset: -1px; }
+    .book.err .spread { opacity: 0.93; }
+
+    /* the fragment on the recto page — same treatment as hello, world */
+    #view .name { font-size: 2.6rem; margin: 0 0 0.3rem; font-weight: 600; }
+    #view .tagline { color: var(--ink-soft); font-style: italic; margin: 0 0 1rem; font-size: 1.1rem; }
+    #view .version { font-family: var(--mono); font-size: 0.72rem; background: var(--paper-deep); border: 1px solid var(--rule); padding: 0.15rem 0.5rem; border-radius: 2px; }
+    #view .version::before { content: "v"; color: var(--ink-soft); }
+    #view .admin-note { margin-top: 1.4rem; padding: 0.8rem 1rem; border-left: 3px solid var(--accent-2); background: rgba(46, 90, 74, 0.07); font-size: 0.9rem; }
+    #view .novice-hint { margin-top: 1.4rem; font-size: 0.9rem; }
+    #view .flag-novice { outline: 2px dashed var(--accent); outline-offset: 4px; padding: 0.2rem 0.4rem; }
+    #view .flag-novice::before { content: "flag-novice"; display: block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--accent); }
+    /* generic leaves, so any YAML the room drafts still reads like a page */
+    #view h1 { font-size: 2rem; margin: 0 0 0.5rem; font-weight: 600; }
+    #view h2 { font-size: 1.3rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+    #view p { margin: 0.7rem 0; }
+    #view a { color: var(--accent); }
+    #view code { font-family: var(--mono); font-size: 0.85em; background: var(--paper-deep); padding: 0.1rem 0.35rem; border-radius: 2px; color: var(--accent-2); }
+
+    @media (max-width: 1100px) {
+      .manuscript { min-height: 22rem; }
+      .desk .manuscript { margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Verso</h1>
+    <p class="imprint">live editor — draft on the left, the book sets itself</p>
+    <nav>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">wikipedia</a>
+    </nav>
+    <div class="controls">
+      <label for="room">room</label>
+      <input id="room" type="text" spellcheck="false" autocomplete="off">
+      <button id="copy-link" type="button">copy link</button>
+      <span class="profiles" id="profiles">
+        profile:
+        <button data-profile="" class="active">none</button>
+        <button data-profile='{"audience":"admin"}'>audience=admin</button>
+        <button data-profile='{"audience":"novice"}'>audience=novice</button>
+      </span>
+      <span id="conn">connecting…</span>
+    </div>
+  </header>
+
+  <main class="desk">
+    <section class="manuscript">
+      <div class="running-head"><span class="face">Manuscript</span><span>the draft</span></div>
+      <textarea id="draft" spellcheck="false" wrap="off" autocapitalize="off" autocorrect="off"></textarea>
+      <div class="errline" id="errline"></div>
+    </section>
+
+    <div class="book" id="book">
+      <div class="spread">
+        <section class="page page--verso">
+          <div class="running-head"><span class="face">Verso</span><span>the meaning</span></div>
+          <pre class="graph-json" id="graph">…</pre>
+        </section>
+        <section class="page page--recto">
+          <div class="running-head"><span>the presentation</span><span class="face">Recto</span></div>
+          <div id="view"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="colophon">
+    <p class="folio"><span>verso press — reading room</span><span>leaf iv</span></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    const draftEl = document.getElementById('draft');
+    const viewEl = document.getElementById('view');
+    const graphEl = document.getElementById('graph');
+    const bookEl = document.getElementById('book');
+    const errlineEl = document.getElementById('errline');
+    const roomInput = document.getElementById('room');
+    const copyBtn = document.getElementById('copy-link');
+    const connEl = document.getElementById('conn');
+    const profilesEl = document.getElementById('profiles');
+
+    const genRoom = () => `draft-${Math.random().toString(36).slice(2, 6)}`;
+
+    let room = new URLSearchParams(location.search).get('room')?.trim() || genRoom();
+    room = room.slice(0, 63);
+    roomInput.value = room;
+    history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(room)}`);
+
+    let currentProfile = '';
+    let pendingRemote = null;
+    let booted = false;
+    let seq = 0;
+    let debounceTimer;
+
+    const socket = io();
+
+    function setStatus(state) {
+      connEl.classList.remove('live', 'offline');
+      if (state === 'live') {
+        connEl.textContent = `live · ${room}`;
+        connEl.classList.add('live');
+      } else {
+        connEl.textContent = state; // 'connecting…' | 'offline'
+        if (state === 'offline') connEl.classList.add('offline');
+      }
+    }
+
+    function showError(message) {
+      errlineEl.textContent = message;
+      bookEl.classList.add('err');
+    }
+
+    function clearError() {
+      errlineEl.textContent = '';
+      bookEl.classList.remove('err');
+    }
+
+    async function render(yaml, { broadcast = false } = {}) {
+      const mySeq = ++seq;
+      const params = { yaml };
+      if (currentProfile) params.profile = JSON.parse(currentProfile);
+      let res;
+      try {
+        res = await fetch('/rpc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', method: 'renderInline', params, id: Date.now() }),
+        }).then((r) => r.json());
+      } catch (err) {
+        if (mySeq === seq) showError(`network: ${err.message}`);
+        return;
+      }
+      if (mySeq !== seq) return; // a newer render already answered
+      if (res.error) {
+        showError(res.error.message);
+        return;
+      }
+      clearError();
+      viewEl.innerHTML = res.result.html;
+      graphEl.textContent = JSON.stringify(res.result.ldJson, null, 2);
+      if (broadcast) socket.emit('doc:update', { room, yaml });
+    }
+
+    function applyRemote(yaml) {
+      clearTimeout(debounceTimer);
+      pendingRemote = null;
+      draftEl.value = yaml;
+      render(yaml); // never broadcast an applied remote — no echo loops
+    }
+
+    function joinRoom() {
+      socket.emit('doc:join', room, async (payload) => {
+        if (booted) {
+          // reconnect: our sheet is the truth — resync the room from it
+          if (draftEl.value.trim()) socket.emit('doc:update', { room, yaml: draftEl.value });
+          return;
+        }
+        booted = true;
+        const starter =
+          payload && typeof payload.yaml === 'string'
+            ? payload.yaml
+            : await fetch('/live/hello.verso.yml').then((r) => r.text());
+        draftEl.value = starter;
+        render(starter, { broadcast: true }); // seed the room for later joiners
+      });
+    }
+
+    socket.on('connect', () => {
+      setStatus('live');
+      joinRoom();
+    });
+    socket.on('disconnect', () => setStatus('offline'));
+
+    socket.on('doc:state', (payload) => {
+      if (!booted && payload && typeof payload.yaml === 'string') {
+        booted = true;
+        applyRemote(payload.yaml);
+      }
+    });
+
+    socket.on('doc:update', (msg) => {
+      if (!msg || typeof msg.yaml !== 'string' || msg.origin === socket.id) return;
+      if (document.activeElement === draftEl) {
+        pendingRemote = msg.yaml; // don't pull the paper out from under the pen
+        return;
+      }
+      applyRemote(msg.yaml);
+    });
+
+    draftEl.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => render(draftEl.value, { broadcast: true }), 300);
+    });
+
+    draftEl.addEventListener('blur', () => {
+      if (pendingRemote !== null) applyRemote(pendingRemote);
+    });
+
+    draftEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      e.preventDefault();
+      const { selectionStart: s, selectionEnd: t, value } = draftEl;
+      draftEl.value = `${value.slice(0, s)}  ${value.slice(t)}`;
+      draftEl.selectionStart = draftEl.selectionEnd = s + 2;
+      draftEl.dispatchEvent(new Event('input'));
+    });
+
+    roomInput.addEventListener('change', () => {
+      const next = (roomInput.value.trim() || genRoom()).slice(0, 63);
+      room = next;
+      roomInput.value = next;
+      history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(next)}`);
+      setStatus('live');
+      joinRoom();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const url = `${location.origin}${location.pathname}?room=${encodeURIComponent(room)}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = 'copied';
+      } catch {
+        roomInput.select();
+        copyBtn.textContent = 'copy manually';
+      }
+      setTimeout(() => { copyBtn.textContent = 'copy link'; }, 1400);
+    });
+
+    profilesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      profilesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      currentProfile = btn.dataset.profile;
+      render(draftEl.value); // profiles are reader-side — never broadcast
+    });
+  </script>
+</body>
+</html>
