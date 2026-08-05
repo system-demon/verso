@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
 import { handleRpc, clampBaseDir } from './rpc.js';
-import { jsonDiagramText, plantUmlUrl } from './diagram.js';
+import { harmonizePlantUmlSvg, jsonDiagramText, plantUmlUrl } from './diagram.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -133,7 +133,7 @@ app.post(
       if (/Syntax Error/i.test(svg) && !/data-diagram-type/i.test(svg)) {
         return res.status(502).json({ error: 'PlantUML failed to render diagram' });
       }
-      return res.type('image/svg+xml').send(svg);
+      return res.type('image/svg+xml').send(harmonizePlantUmlSvg(svg));
     } catch (err) {
       const status = err.name === 'TimeoutError' || err.name === 'AbortError' ? 504 : 400;
       return res.status(status).json({ error: err.message });

@@ -30,12 +30,47 @@ export function sanitizeLdForDiagram(value) {
 }
 
 /**
+ * Twinseed paper aesthetic for PlantUML @startjson (matches live/twinseed.css).
+ * Applied in-source so the SVG itself harmonizes with cream sheets — no CSS filters.
+ */
+const TWINSEED_JSON_SKIN = `skinparam backgroundColor #f5f0e4
+skinparam shadowing false
+<style>
+jsonDiagram {
+  FontName Courier
+  FontColor #221d15
+  node {
+    BackGroundColor #f5f0e4
+    LineColor #d8cdb4
+    FontName Courier
+    FontColor #221d15
+    FontSize 12
+    RoundCorner 2
+    LineThickness 1
+    separator {
+      LineThickness 0.5
+      LineColor #d8cdb4
+    }
+  }
+  arrow {
+    LineColor #6b6151
+    LineThickness 1
+    BackGroundColor #ede5d2
+  }
+  highlight {
+    BackGroundColor #2e5a4a
+    FontColor #f5f0e4
+  }
+}
+</style>`;
+
+/**
  * @param {unknown} ldJson
  * @returns {string} PlantUML diagram source
  */
 export function jsonDiagramText(ldJson) {
   const safe = sanitizeLdForDiagram(ldJson) ?? {};
-  return `@startjson\n${JSON.stringify(safe, null, 2)}\n@endjson`;
+  return `@startjson\n${TWINSEED_JSON_SKIN}\n${JSON.stringify(safe, null, 2)}\n@endjson`;
 }
 
 /**
@@ -89,4 +124,17 @@ export function encodePlantUml(text) {
  */
 export function plantUmlUrl(text, format = 'svg') {
   return `${PLANTUML_BASE}/${format}/${encodePlantUml(text)}`;
+}
+
+/**
+ * PlantUML's JSON SVG still stamps a white root background even when skinparam
+ * asks for paper/transparent. Rewrite that chrome so the SVG sits on the sheet.
+ * @param {string} svg
+ * @returns {string}
+ */
+export function harmonizePlantUmlSvg(svg) {
+  return svg.replace(
+    /background:\s*#(?:fff(?:fff)?|ffffff)\b/gi,
+    'background:transparent',
+  );
 }

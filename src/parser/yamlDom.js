@@ -77,6 +77,10 @@ const ATTR_KEYS = new Set([
   'rows',
   'download',
   'selected',
+  // image maps (<img usemap> + <area shape/coords>)
+  'usemap',
+  'shape',
+  'coords',
 ]);
 
 const TEXT_KEYS = new Set(['text', 'content', '_text']);

@@ -3,11 +3,13 @@
 Your practice space for the Twinseed flow. Nothing here ships; play freely.
 Typed as **PracticeCanvas** against a local vocabulary — not Schema.org commerce types.
 
+One seed, two leaves — and a genetics reading of the same idea. The YAML is the **genome** (the complete specification). From it grow two leaves: the **phenotype** (HTML, for humans) and the **genotype** (JSON-LD / diagram, machine-readable identity). Profiles and `if:`/`flag:` filters are regulatory switches — same genome, different expression.
+
 ## What's here
 
 | Path | What |
 |------|------|
-| `canvas.html` | The live canvas: YAML + CSS in, styled preview + graph out |
+| `canvas.html` | The live canvas: genome (YAML) in; phenotype (preview / CSS tabs) + genotype out |
 | `quickref.html` / `quickref.yml` | Field guide (dialogs, description, sortable tables, map/area…) |
 | `schema.jsonld` | Local JSON-LD vocabulary (`PracticeCanvas`, `Skeleton`, fields) |
 | `blank.css` | A blank practice stylesheet (tokens + comments only) |
@@ -18,8 +20,8 @@ Typed as **PracticeCanvas** against a local vocabulary — not Schema.org commer
 1. Start the server (`npm start`), open [http://localhost:3847/exemplar/canvas.html](http://localhost:3847/exemplar/canvas.html).
 2. Skim the [quickref](http://localhost:3847/exemplar/quickref.html) for dialogs, description lists, sortable tables, and image maps.
 3. Pick a skeleton with **load skeleton** (or write YAML cold in the manuscript).
-4. Edit — the recto preview re-renders on a 300ms debounce; the verso page shows the graph your structure asserts.
-5. Style it in the CSS sheet — applies to the preview instantly, no server round-trip.
+4. Edit — the phenotype (recto) re-renders on a 300ms debounce; the genotype (verso) shows the graph your structure asserts (JSON-LD or diagram).
+5. Style it via the phenotype **css** tab — applies to the preview instantly, no server round-trip.
 6. Try the profile buttons (`audience=admin` / `novice`) to see `if:`/`flag:` filtering live.
 
 ## Local type
