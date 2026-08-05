@@ -72,6 +72,17 @@ run('emit profiles', [
 
 run('05-register-convention.js', [path.join('examples', '05-register-convention.js')]);
 run('06-custom-rpc.js', [path.join('examples', '06-custom-rpc.js')]);
+run('18-knowledge-watch.js', [path.join('examples', '18-knowledge-watch.js')]);
+run('concept.yml --strict (params)', [
+  cli,
+  'templates/concept.yml',
+  '--strict',
+  'id=json-rpc',
+  'name=JSON-RPC',
+  'description=RPC over JSON',
+  'version=2.0',
+  'status=stable',
+]);
 run('diagram-highlights.js', [path.join('scripts', 'diagram-highlights.js')]);
 run('diagram-focus.skel.yml --json', [
   cli,

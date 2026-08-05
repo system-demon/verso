@@ -392,6 +392,18 @@ Built-in conventions `definedterm`, `techarticle`, and `howto` mirror those type
 
 ---
 
+## 18. Knowledge watch — `examples/18-knowledge-watch.js`
+
+Watch concept **version** / **status** (or any ContentMap selector) in a session. When `updateState` re-renders, Twinseed evaluates watches with the same condition engine as `ld_if` and returns `alerts` (Socket.IO also emits `knowledgeAlert`).
+
+```bash
+node examples/18-knowledge-watch.js
+```
+
+RPC: `addWatch` / `removeWatch` / `listWatches` / `evaluateWatches`. Modes: `change` (value differs from last sample) and `when` (edge-trigger when a condition becomes true). Live template: `templates/concept.yml` (DefinedTerm — prefer over `product.yml` for docs demos).
+
+---
+
 ## Extension checklist
 
 | Goal | Where |
@@ -405,10 +417,12 @@ Built-in conventions `definedterm`, `techarticle`, and `howto` mirror those type
 | Compose a publication (nav, related links, pager, site graph) | `map:` document — `examples/14-map/` |
 | Atom / RSS knowledge feed from the same graph | `--emit atom` / `GET /feed` — `examples/17-feed/` |
 | Inverse relations / backlinks | RPC `getBacklinks` |
+| Knowledge watch (version / status / dependency fields) | RPC `addWatch` — `examples/18-knowledge-watch.js` |
 | Conditional assertions | `ld_if` in the YAML |
 | Bind graph properties to UI text | `ld:` + `{ ref }` (or a ref-valued `{ key }`) |
 | New remote publish API | `registerMethod(...)` in RPC |
 | Real-time push of view + graph | `src/server/index.js` `pushUpdate` emit |
+| Real-time knowledge alerts | `knowledgeAlert` Socket.IO event |
 | Parser / attribute rules | `ATTR_KEYS` / `TEXT_KEYS` in `yamlDom.js` |
 | Debug the tree the renderer receives | `--emit resolved` (`resolveTree()` in `yamlDom.js`) |
 

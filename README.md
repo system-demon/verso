@@ -30,11 +30,12 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 
 - **Map documents** — a top-level `map:` composes fragments into a publication: nested `<section>`s, generated nav, related-links, prev/next pagers, and a `CollectionPage` node with `hasPart` — one structure, three projections
 - **Knowledge feeds** — the same seed projects Atom / RSS (`--emit atom`, `GET /feed`) from TechArticle / DefinedTerm / HowTo-shaped graph nodes — a changelog/concept stream, not a product catalog
+- **Knowledge watches** — session watches on ContentMap selectors (version, status, …) reuse `ld_if` conditions; Socket.IO emits `knowledgeAlert` when a condition edges true or a watched value changes
 
 **Tooling**
 
 - **CLI** — render, `--json`, `--doc`, `--watch`, `--strict`, `--profile`, `KEY=value` params, and `--emit resolved` to inspect the resolved intermediate tree
-- **Live graph views** — JSON-RPC renders fragments and map sections; Socket.IO pushes HTML + JSON-LD on update
+- **Live graph views** — JSON-RPC renders fragments and map sections; Socket.IO pushes HTML + JSON-LD on update (and `knowledgeAlert` for watches)
 - **Reading room** — `/live/` serves book-spread demos rendered straight from `.yml` sources
 
 ## Quick start
@@ -155,7 +156,7 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 | `src/parser/profiles.js` | `if:` / `flag:` profile filtering |
 | `src/parser/includes.js` | `include:` partials and `file.yml#id` element pulls |
 | `src/parser/validate.js` | strict-mode validation |
-| `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
+| `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync, knowledge watches) |
 | `src/cli.js` | Offline render; `--emit resolved|atom|rss` |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |

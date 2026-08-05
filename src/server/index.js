@@ -273,7 +273,7 @@ io.on('connection', (socket) => {
   socket.on('rpc', (request, ack) => {
     const response = handleRpc(request, { sessionId });
 
-    // Broadcast pushUpdate when state changes
+    // Broadcast pushUpdate when state changes; knowledgeAlert when watches fire
     if (
       request?.method === 'updateState' &&
       response.result &&
@@ -291,6 +291,35 @@ io.on('connection', (socket) => {
         },
       };
       io.to(sessionId).emit('pushUpdate', push);
+
+      if (Array.isArray(response.result.alerts) && response.result.alerts.length) {
+        io.to(sessionId).emit('knowledgeAlert', {
+          jsonrpc: '2.0',
+          method: 'knowledgeAlert',
+          params: {
+            alerts: response.result.alerts,
+            itemId: response.result.itemId,
+            sessionId: response.result.sessionId,
+          },
+        });
+      }
+    }
+
+    if (
+      request?.method === 'evaluateWatches' &&
+      response.result &&
+      !response.error &&
+      Array.isArray(response.result.alerts) &&
+      response.result.alerts.length
+    ) {
+      io.to(sessionId).emit('knowledgeAlert', {
+        jsonrpc: '2.0',
+        method: 'knowledgeAlert',
+        params: {
+          alerts: response.result.alerts,
+          sessionId: response.result.sessionId,
+        },
+      });
     }
 
     if (typeof ack === 'function') ack(response);
