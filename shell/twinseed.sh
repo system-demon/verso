@@ -1,11 +1,12 @@
-# Twinseed shell chrome — bash and zsh
+# Twinseed shell chrome + completion — bash and zsh
 #
 #   source /path/to/twinseed/shell/twinseed.sh
 #   twinseed-use exemplar/templates/practice.skel.yml
 #   twinseed-profile audience=admin
 #   twinseed-prompt on
 #
-# Shared status: node "$TWINSEED_SHELL/status.js" [--line|--color]
+# Shared status:     node "$TWINSEED_SHELL/status.js" [--line|--color]
+# Shared completion: node "$TWINSEED_SHELL/complete.js" --kind …
 # Same nouns as PowerShell: seed, baseDir, profile, strict, ok/fail, dirty.
 
 _twinseed_shell_dir() {
@@ -174,3 +175,118 @@ twinseed-prompt() {
       ;;
   esac
 }
+
+# --- completion (shared complete.js; sparse, quiet when unsure) ---
+
+_twinseed_complete_lines() {
+  # shellcheck disable=SC2086
+  node "$TWINSEED_SHELL/complete.js" "$@" 2>/dev/null
+}
+
+_twinseed_compgen_from_kind() {
+  local kind="$1"
+  local cur="$2"
+  shift 2
+  local lines
+  lines="$(_twinseed_complete_lines --kind "$kind" --word "$cur" "$@")"
+  if [ -z "$lines" ]; then
+    return 0
+  fi
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    # bashcompinit path: populate COMPREPLY
+    # shellcheck disable=SC2207
+    COMPREPLY=( $(compgen -W "$lines" -- "$cur") )
+  else
+    # shellcheck disable=SC2207
+    COMPREPLY=( $(compgen -W "$lines" -- "$cur") )
+  fi
+}
+
+_twinseed_complete_use() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind seeds "$cur"
+}
+
+_twinseed_complete_basedir() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind basedirs "$cur"
+}
+
+_twinseed_complete_profile() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind profile "$cur"
+}
+
+_twinseed_complete_strict() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind strict "$cur"
+}
+
+_twinseed_complete_mark() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind mark "$cur"
+}
+
+_twinseed_complete_prompt() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _twinseed_compgen_from_kind prompt "$cur"
+}
+
+_twinseed_json_strings() {
+  # Build a JSON string array without relying on node (package is ESM).
+  printf '['
+  local first=1 s
+  for s in "$@"; do
+    s=${s//\\/\\\\}
+    s=${s//\"/\\\"}
+    if [ "$first" -eq 1 ]; then
+      first=0
+    else
+      printf ','
+    fi
+    printf '"%s"' "$s"
+  done
+  printf ']'
+}
+
+_twinseed_complete_render() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local tokens=()
+  local i
+  # Words after the command name, excluding the word being completed.
+  for ((i = 1; i < COMP_CWORD; i++)); do
+    tokens+=("${COMP_WORDS[i]}")
+  done
+  local json
+  json="$(_twinseed_json_strings "${tokens[@]}")"
+  _twinseed_compgen_from_kind cli "$cur" --tokens "$json"
+}
+
+twinseed-completion() {
+  case "${1:-on}" in
+    on|1|enable|'')
+      if [ -n "${ZSH_VERSION:-}" ]; then
+        autoload -U +X bashcompinit 2>/dev/null && bashcompinit 2>/dev/null || true
+      fi
+      complete -o filenames -F _twinseed_complete_use twinseed-use 2>/dev/null || true
+      complete -o filenames -F _twinseed_complete_basedir twinseed-basedir 2>/dev/null || true
+      complete -F _twinseed_complete_profile twinseed-profile 2>/dev/null || true
+      complete -F _twinseed_complete_strict twinseed-strict 2>/dev/null || true
+      complete -F _twinseed_complete_mark twinseed-mark 2>/dev/null || true
+      complete -F _twinseed_complete_prompt twinseed-prompt 2>/dev/null || true
+      complete -o filenames -F _twinseed_complete_render twinseed-render 2>/dev/null || true
+      ;;
+    off|0|disable)
+      complete -r twinseed-use twinseed-basedir twinseed-profile \
+        twinseed-strict twinseed-mark twinseed-prompt twinseed-render 2>/dev/null || true
+      ;;
+    *)
+      echo "twinseed: usage: twinseed-completion on|off" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Register when sourced (bash / zsh with bashcompinit).
+twinseed-completion on
+

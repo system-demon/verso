@@ -12,18 +12,20 @@ How humans *drive* Twinseed: shell UX, completion, and prompt chrome — not the
 
 Phased work: [u-ix-plan.md](u-ix-plan.md).
 
-## Prototype (phase 1)
+## Prototype
 
-Prompt chrome lives under [`shell/`](../shell/README.md).
+Prompt chrome and Twinseed-aware completion live under [`shell/`](../shell/README.md).
 
 ```powershell
 # PowerShell
 Import-Module .\shell\twinseed.psm1 -DisableNameChecking
 Enable-TwinseedPrompt
+# Tab: Use-TwinseedSeed, Set-TwinseedProfile, Invoke-TwinseedRender …
 ```
 
 ```bash
 # bash or zsh
 source ./shell/twinseed.sh
 twinseed-prompt on
+# Tab: twinseed-use, twinseed-profile, twinseed-render …
 ```

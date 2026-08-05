@@ -23,13 +23,12 @@ Done when: enabling the module/script shows Twinseed context without touching th
 
 Suggest what fits the seed: templates, `--profile` keys, flags, `baseDir`, emit targets — not generic filenames.
 
-- Same completion surface on PS and bash/zsh (scripts or generated specs; one source of verbs)
-- Taste as filter: sparse, correct, quiet when unsure
+- Shared emitter: `shell/complete.js` (one sparse surface)
+- Consumers: `Register-ArgumentCompleter` in `shell/twinseed.psm1`; `complete -F` in `shell/twinseed.sh` (zsh via bashcompinit)
+- Taste as filter: skeletons/templates first, quiet when unsure
+
+Done when: tab on seed / profile / render helpers suggests Twinseed nouns on PS and bash/zsh.
 
 ## 3 — Taste pass
 
 Help text, errors, defaults, naming — CLI as hands, genome as truth. Restraint over chrome.
-
----
-
-Ship phase 1 as a prototype. Completion and taste follow once the chrome earns its keep.

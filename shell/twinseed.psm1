@@ -1,10 +1,11 @@
-# Twinseed shell chrome (PowerShell)
+# Twinseed shell chrome + completion (PowerShell)
 #
 #   Import-Module .\shell\twinseed.psm1 -DisableNameChecking
 #   Use-TwinseedSeed exemplar/templates/practice.skel.yml
 #   Set-TwinseedProfile audience=admin
 #
-# Shared status: node shell/status.js [--line|--color|--stamp]
+# Shared status:     node shell/status.js [--line|--color|--stamp]
+# Shared completion: node shell/complete.js --kind … [--word PREFIX]
 
 $script:TwinseedShellDir = $PSScriptRoot
 
@@ -17,6 +18,36 @@ function Get-TwinseedStatusLine {
   $args = @('--line')
   if ($Color) { $args = @('--color') }
   node (Join-Path $script:TwinseedShellDir 'status.js') @args
+}
+
+function Get-TwinseedCompletions {
+  <#
+  .SYNOPSIS
+    Twinseed-aware candidates from the shared complete.js emitter.
+  #>
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Kind,
+    [string]$Word = '',
+    [string[]]$Have = @(),
+    [string[]]$Tokens = @()
+  )
+  $invoke = @(
+    (Join-Path $script:TwinseedShellDir 'complete.js'),
+    '--kind', $Kind,
+    '--word', $Word
+  )
+  if ($Have.Count -gt 0) {
+    $invoke += @('--have', ($Have -join ','))
+  }
+  if ($Tokens.Count -gt 0) {
+    # Force an array even for a single token (ConvertTo-Json unwraps @('x')).
+    $invoke += @('--tokens', (ConvertTo-Json -Compress -InputObject @($Tokens)))
+  }
+  $lines = @(node @invoke 2>$null)
+  foreach ($line in $lines) {
+    if ($line) { $line }
+  }
 }
 
 function Use-TwinseedSeed {
@@ -177,9 +208,72 @@ function Disable-TwinseedPrompt {
   Remove-Item Env:TWINSEED_PROMPT -ErrorAction SilentlyContinue
 }
 
+function Register-TwinseedCompleters {
+  <#
+  .SYNOPSIS
+    Register sparse Twinseed argument completers (Register-ArgumentCompleter).
+  #>
+
+  $completeSeed = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    Get-TwinseedCompletions -Kind seeds -Word $wordToComplete | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+  }
+  Register-ArgumentCompleter -CommandName Use-TwinseedSeed -ParameterName Path -ScriptBlock $completeSeed
+
+  $completeBase = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    Get-TwinseedCompletions -Kind basedirs -Word $wordToComplete | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+  }
+  Register-ArgumentCompleter -CommandName Set-TwinseedBaseDir -ParameterName Path -ScriptBlock $completeBase
+
+  $completeProfile = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    Get-TwinseedCompletions -Kind profile -Word $wordToComplete | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+  }
+  Register-ArgumentCompleter -CommandName Set-TwinseedProfile -ParameterName Pairs -ScriptBlock $completeProfile
+
+  $completeStrict = {
+    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+    Get-TwinseedCompletions -Kind strict -Word $wordToComplete | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+  }
+  Register-ArgumentCompleter -CommandName Set-TwinseedStrict -ParameterName Mode -ScriptBlock $completeStrict
+
+  # Native completer: remaining args for render (seeds, flags, --emit, --profile).
+  Register-ArgumentCompleter -CommandName Invoke-TwinseedRender -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+    $tokens = @()
+    if ($commandAst -and $commandAst.CommandElements) {
+      $tokens = @($commandAst.CommandElements | Select-Object -Skip 1 | ForEach-Object { $_.ToString() })
+      if ($tokens.Count -gt 0 -and $wordToComplete) {
+        $last = $tokens[-1]
+        if ($last -eq $wordToComplete -or $last.StartsWith($wordToComplete)) {
+          $tokens = $tokens[0..([Math]::Max(0, $tokens.Count - 2))]
+          if ($tokens.Count -eq 1 -and $tokens[0] -eq $null) { $tokens = @() }
+          if ($tokens.Count -eq 0) { $tokens = @() }
+        }
+      }
+    }
+    Get-TwinseedCompletions -Kind cli -Word $wordToComplete -Tokens $tokens | ForEach-Object {
+      [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+  }
+}
+
+# Completers register on import — quiet, no prompt change.
+Register-TwinseedCompleters
+
 Export-ModuleMember -Function @(
   'Get-TwinseedStatusJson',
   'Get-TwinseedStatusLine',
+  'Get-TwinseedCompletions',
   'Use-TwinseedSeed',
   'Set-TwinseedBaseDir',
   'Set-TwinseedProfile',
@@ -188,5 +282,6 @@ Export-ModuleMember -Function @(
   'Mark-TwinseedRender',
   'Invoke-TwinseedRender',
   'Enable-TwinseedPrompt',
-  'Disable-TwinseedPrompt'
+  'Disable-TwinseedPrompt',
+  'Register-TwinseedCompleters'
 )
