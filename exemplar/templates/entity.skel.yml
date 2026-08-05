@@ -1,0 +1,38 @@
+# Skeletal typed entity — keys, a YAML-declared convention, conditional typing
+# Uses the local exemplar vocabulary (PracticeCanvas / Skeleton).
+
+"@context": "/exemplar/schema.jsonld"
+
+keys:
+  name: "«entity name»"        # one fact, used below in text AND ld
+
+conventions:
+  specimen:                     # declares class → local vocabulary type
+    type: Skeleton
+    fields:
+      name: ".name"
+      description: ".note"
+      focus: ".focus"
+    requires: [.name]
+
+specimen:                       # shorthand → <div class="specimen">
+  id: "spec_1"
+
+  ld:
+    name: { key: name }
+
+  ld_if:                        # the graph reads the page's own values
+    condition: { ref: "#spec_1 .note", operator: "contains", value: "draft" }
+    then: { status: "draft" }
+    else: { status: "settled" }
+
+  children:
+    - h2:
+        class: "name"
+        text: { key: name }
+    - p:
+        class: "note"
+        text: "«note — include the word draft to flip status»"
+    - p:
+        class: "focus"
+        text: "«focus — e.g. dialogs, image maps, tables»"

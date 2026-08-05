@@ -1,0 +1,35 @@
+# Skeletal page — head block + sections
+# Render with --doc for the full document (head becomes <head>).
+# Local PracticeCanvas framing — document practice, not SEO meta packing.
+
+"@context": "/exemplar/schema.jsonld"
+
+head:
+  title: "«page title»"
+  meta:
+    description: "«short summary — ordinary head meta, not a ranking exercise»"
+  css:
+    body: { font-family: "Georgia, serif", margin: "2rem" }
+
+body:
+  ld:
+    "@type": PracticeCanvas
+    name: "«page title»"
+    purpose: "practice a multi-section document"
+
+  main:
+    children:
+      - h1: "«heading»"
+      - section:
+          id: "first"
+          children:
+            - h2: "«section name»"
+            - p: "«content — block scalars with | for prose»"
+      - section:
+          id: "second"
+          children:
+            - h2: "«another»"
+            - ul:
+                li:
+                  - "«item»"
+                  - "«item»"

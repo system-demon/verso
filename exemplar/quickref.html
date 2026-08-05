@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · exemplar quickref</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .book.single { max-width: 54rem; }
+    #view > main > section { margin: 2.2rem 0; }
+    #view h1 { font-size: 2.4rem; margin: 0 0 0.4rem; font-weight: 600; }
+    #view h2 { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; margin: 2rem 0 1rem; }
+    #view h3 { margin: 0 0 0.4rem; }
+    #view code { font-size: 0.85em; background: var(--paper-deep); padding: 0.1rem 0.35rem; border-radius: 2px; color: var(--accent-2); }
+    #view pre { font-family: var(--mono); font-size: 0.72rem; line-height: 1.5; background: var(--paper-deep); padding: 0.85rem 1rem; overflow-x: auto; border-radius: 2px; white-space: pre-wrap; }
+    #view .specimen { margin: 1rem 0; display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+    #view details { margin: 1rem 0; border: 1px solid var(--rule); border-radius: 2px; padding: 0.6rem 0.9rem; }
+    #view summary { cursor: pointer; font-weight: 600; }
+    #view dialog { border: none; border-radius: 4px; padding: 1.5rem 1.75rem; max-width: 24rem; box-shadow: 0 12px 40px rgba(0,0,0,0.25); font-family: var(--serif); }
+    #view dialog::backdrop { background: rgba(34,29,21,0.45); }
+    #view button { font: inherit; padding: 0.45rem 0.9rem; border: 1px solid var(--accent-2); background: var(--accent-2); color: #fff; border-radius: 2px; cursor: pointer; }
+    #view input[type="search"] { font: inherit; padding: 0.45rem 0.6rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
+    #view meter, #view progress { width: 10rem; height: 1rem; vertical-align: middle; }
+    #view mark { background: #f0e3a0; padding: 0 0.2rem; }
+    #view dl.quickref-dl { margin: 1rem 0; }
+    #view dt { font-weight: 600; margin-top: 0.85rem; }
+    #view dd { margin: 0.35rem 0 0 1.1rem; color: var(--ink-soft); }
+    #view figure { margin: 1rem 0; }
+    #view figcaption { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; font-style: italic; }
+    #view table { border-collapse: collapse; margin: 1rem 0; width: 100%; }
+    #view caption { font-weight: 600; text-align: left; margin-bottom: 0.4rem; }
+    #view th, #view td { border: 1px solid var(--rule); padding: 0.4rem 0.9rem; text-align: left; }
+    #view thead th { background: var(--paper-deep); }
+    #view table.sortable thead th { cursor: pointer; user-select: none; }
+    #view table.sortable thead th[aria-sort="ascending"]::after { content: " ↑"; }
+    #view table.sortable thead th[aria-sort="descending"]::after { content: " ↓"; }
+    #view footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">exemplar quickref — dialogs, description, tables, map/area</p>
+    <nav>
+      <a href="/exemplar/canvas.html">canvas</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/">reading room</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+  </header>
+
+  <div class="book single">
+    <section class="page page--recto">
+      <div class="running-head"><span>the field guide</span><span class="face">Recto</span></div>
+      <main id="view"></main>
+    </section>
+  </div>
+
+  <div class="colophon">
+    <details>
+      <summary>Source · quickref.yml</summary>
+      <pre id="src">loading…</pre>
+    </details>
+    <details>
+      <summary>Graph · JSON-LD</summary>
+      <pre id="graph"></pre>
+    </details>
+    <details>
+      <summary>Schema · PracticeCanvas</summary>
+      <pre id="schema">loading…</pre>
+    </details>
+    <p class="folio"><span>twinseed press — exemplar</span><span>quickref</span></p>
+  </div>
+
+  <script type="module">
+    const viewEl = document.getElementById('view');
+    const srcEl = document.getElementById('src');
+    const graphEl = document.getElementById('graph');
+    const schemaEl = document.getElementById('schema');
+
+    const [source, schemaText] = await Promise.all([
+      fetch('/exemplar/quickref.yml').then((r) => r.text()),
+      fetch('/exemplar/schema.jsonld').then((r) => r.text()),
+    ]);
+    srcEl.textContent = source;
+    try {
+      schemaEl.textContent = JSON.stringify(JSON.parse(schemaText), null, 2);
+    } catch {
+      schemaEl.textContent = schemaText;
+    }
+
+    const res = await fetch('/rpc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'renderInline',
+        params: { yaml: source },
+        id: 1,
+      }),
+    }).then((r) => r.json());
+
+    if (res.error) {
+      viewEl.innerHTML = `<p style="color:#7a2e2e">render error: ${res.error.message}</p>`;
+    } else {
+      viewEl.innerHTML = res.result.html;
+      graphEl.textContent = JSON.stringify(res.result.ldJson, null, 2);
+      wire(viewEl);
+    }
+
+    function wire(root) {
+      const dlg = root.querySelector('#demo-dialog');
+      root.querySelector('#open-dialog')?.addEventListener('click', () => dlg?.showModal());
+      root.querySelector('#close-dialog')?.addEventListener('click', () => dlg?.close());
+      wireSortableTables(root);
+    }
+
+    function wireSortableTables(root) {
+      root.querySelectorAll('table.sortable').forEach((table) => {
+        const thead = table.tHead;
+        const tbody = table.tBodies[0];
+        if (!thead || !tbody) return;
+        thead.querySelectorAll('th').forEach((th, colIdx) => {
+          th.addEventListener('click', () => {
+            const current = th.getAttribute('aria-sort');
+            const asc = current !== 'ascending';
+            thead.querySelectorAll('th').forEach((h) => h.removeAttribute('aria-sort'));
+            th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+            const rows = Array.from(tbody.rows);
+            rows.sort((a, b) => {
+              const av = a.cells[colIdx]?.textContent.trim() ?? '';
+              const bv = b.cells[colIdx]?.textContent.trim() ?? '';
+              const an = Number(av);
+              const bn = Number(bv);
+              let cmp;
+              if (!Number.isNaN(an) && !Number.isNaN(bn) && av !== '' && bv !== '') cmp = an - bn;
+              else cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+              return asc ? cmp : -cmp;
+            });
+            rows.forEach((row) => tbody.appendChild(row));
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>

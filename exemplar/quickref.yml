@@ -1,0 +1,310 @@
+# Exemplar quickref — richer field guide for the practice canvas
+# Authored entirely in Twinseed YAML. Open /exemplar/quickref.html
+
+"@context": "/exemplar/schema.jsonld"
+"@type": "PracticeCanvas"
+"@name": "Exemplar quickref"
+
+keys:
+  specimen-count: "a dozen-plus"
+
+body:
+  ld:
+    "@type": PracticeCanvas
+    name: "Exemplar quickref"
+    description: "Field guide for Twinseed HTML5 practice on the exemplar canvas"
+    purpose: "dialogs, description lists, sortable tables, map/area, and related elements"
+    author: "you"
+    status: "practicing"
+    relatedDocs:
+      - "/exemplar/canvas.html"
+      - "/exemplar/schema.jsonld"
+      - "/live/exotic.html"
+    skeletons:
+      - "/exemplar/templates/practice.skel.yml"
+      - "/exemplar/templates/card.skel.yml"
+
+  main:
+    children:
+      - h1: "Exemplar quickref"
+      - p: |
+          A practice field guide for the Twinseed exemplar canvas — richer than
+          exotic on dialogs, description, sortable tables, and image maps.
+          Every specimen below was a YAML key a moment ago.
+
+      - section:
+          id: "description"
+          children:
+            - h2: "Description"
+            - p: |
+                Twinseed uses “description” in two complementary ways. Know which
+                face you are authoring.
+            - dl:
+                class: "quickref-dl"
+                children:
+                  - dt: "Convention field · .description"
+                  - dd: |
+                      Put class: description on presentational text inside a
+                      convention trigger (e.g. practice). The registry harvests
+                      it into the JSON-LD property description on the typed node.
+                      Change the prose once — the graph follows.
+                  - dt: "Description list · dl / dt / dd"
+                  - dd: |
+                      HTML’s term–definition list. Ideal for glossaries and
+                      quickrefs. Nest freely; no graph harvest unless you add ld:.
+                  - dt: "head meta description"
+                  - dd: |
+                      In a head: block, meta.description becomes an ordinary
+                      <meta name="description"> — document summary for the page
+                      itself, not a ranking exercise.
+            - details:
+                open: ""
+                children:
+                  - summary: "Pattern — harvest a description into the graph"
+                  - pre: |
+                      conventions:
+                        practice:
+                          type: PracticeCanvas
+                          fields: { description: ".description" }
+                      practice:
+                        id: "leaf_1"
+                        children:
+                          - p: { class: "description", text: "What this leaf practices." }
+
+      - section:
+          id: "dialogs"
+          children:
+            - h2: "Dialog boxes"
+            - p: |
+                <dialog> is a native top-layer modal: backdrop, focus trap, and
+                Esc-to-close are built in. Twinseed emits the element from YAML;
+                the host page wires showModal() / close().
+            - details:
+                children:
+                  - summary: "YAML shape"
+                  - pre: |
+                      button: { id: "open-dialog", text: "Open" }
+                      dialog:
+                        id: "demo-dialog"
+                        children:
+                          - h3: "Title"
+                          - p: "Body copy."
+                          - button: { id: "close-dialog", text: "Close" }
+            - div:
+                class: "specimen"
+                children:
+                  - button:
+                      id: "open-dialog"
+                      text: "Open <dialog>"
+                  - dialog:
+                      id: "demo-dialog"
+                      children:
+                        - h3: "Native modal"
+                        - p: "This dialog came from YAML. The quickref page called showModal() on the open button."
+                        - button:
+                            id: "close-dialog"
+                            text: "Close"
+            - p:
+                children:
+                  - span: { text: "Also try " }
+                  - code: "details"
+                  - span: { text: " / " }
+                  - code: "summary"
+                  - span: { text: " when you want disclosure without a modal layer:" }
+            - details:
+                children:
+                  - summary: "What is <details>?"
+                  - p: "A native disclosure widget. No JavaScript. Nest under sections freely."
+
+      - section:
+          id: "tables"
+          children:
+            - h2: "Sortable tables"
+            - p: |
+                Twinseed authors tables as YAML trees (caption, thead, tbody, th
+                scope). Mark class: sortable and let the host sort rows on header
+                click — the canvas and this quickref both wire that behaviour.
+            - table:
+                class: "sortable"
+                children:
+                  - caption: "Specimens by section (click a header to sort)"
+                  - thead:
+                      children:
+                        - tr:
+                            children:
+                              - th: { scope: "col", text: "Section" }
+                              - th: { scope: "col", text: "Count" }
+                              - th: { scope: "col", text: "Focus" }
+                  - tbody:
+                      children:
+                        - tr:
+                            children:
+                              - td: "Description"
+                              - td: "3"
+                              - td: "dl / fields / meta"
+                        - tr:
+                            children:
+                              - td: "Dialogs"
+                              - td: "2"
+                              - td: "dialog + details"
+                        - tr:
+                            children:
+                              - td: "Image maps"
+                              - td: "1"
+                              - td: "map + area"
+                        - tr:
+                            children:
+                              - td: "Gestural"
+                              - td: "8"
+                              - td: "mark · time · meter…"
+            - details:
+                children:
+                  - summary: "YAML shape for a sortable table"
+                  - pre: |
+                      table:
+                        class: "sortable"
+                        children:
+                          - caption: "Title"
+                          - thead:
+                              children:
+                                - tr:
+                                    children:
+                                      - th: { scope: "col", text: "Col A" }
+                                      - th: { scope: "col", text: "Col B" }
+                          - tbody:
+                              children:
+                                - tr:
+                                    children:
+                                      - td: "alpha"
+                                      - td: "2"
+
+      - section:
+          id: "image-maps"
+          children:
+            - h2: "Image maps · map + area"
+            - p: |
+                HTML <map> and <area> are first-class YAML keys. Nest them under
+                another element — a top-level map: key is Twinseed’s composition
+                document (publications), not an image map.
+            - figure:
+                children:
+                  - img:
+                      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='120'%3E%3Crect width='140' height='120' fill='%232e5a4a'/%3E%3Crect x='140' width='140' height='120' fill='%236b5f49'/%3E%3Ctext x='70' y='64' text-anchor='middle' fill='%23fff' font-size='14' font-family='sans-serif'%3Edialogs%3C/text%3E%3Ctext x='210' y='64' text-anchor='middle' fill='%23fff' font-size='14' font-family='sans-serif'%3Etables%3C/text%3E%3C/svg%3E"
+                      alt: "Two regions: dialogs and tables"
+                      width: "280"
+                      height: "120"
+                      usemap: "#quickref-regions"
+                  - map:
+                      name: "quickref-regions"
+                      children:
+                        - area:
+                            shape: "rect"
+                            coords: "0,0,140,120"
+                            href: "#dialogs"
+                            alt: "Jump to dialogs"
+                        - area:
+                            shape: "rect"
+                            coords: "140,0,280,120"
+                            href: "#tables"
+                            alt: "Jump to tables"
+                  - figcaption: "Click a half to jump. figure + figcaption caption the map; area is a void element (coords, shape, href, alt)."
+
+      - section:
+          id: "gestural"
+          children:
+            - h2: "Gestural HTML5"
+            - p: "A non-exhaustive sweep of elements Twinseed already knows as YAML keys."
+            - p:
+                children:
+                  - mark: "<mark> highlights"
+                  - span: { text: " relevant text; " }
+                  - abbr:
+                      title: "HyperText Markup Language"
+                      text: "HTML"
+                  - span: { text: " expands on hover via title; " }
+                  - time:
+                      datetime: "2026-08-05"
+                      text: "5 Aug 2026"
+                  - span: { text: " is machine-dated." }
+            - p:
+                children:
+                  - span: { text: "<meter> within a known range: " }
+                  - meter:
+                      value: "0.7"
+                      min: "0"
+                      max: "1"
+                      low: "0.3"
+                      high: "0.8"
+                      optimum: "0.9"
+                      text: "70%"
+                  - span: { text: " · <progress> for task completion: " }
+                  - progress:
+                      value: "55"
+                      max: "100"
+                      text: "55%"
+            - figure:
+                children:
+                  - picture:
+                      children:
+                        - source:
+                            media: "(min-width: 700px)"
+                            srcset: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ccircle cx='28' cy='28' r='26' fill='%232e5a4a'/%3E%3C/svg%3E"
+                        - img:
+                            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Crect width='56' height='56' fill='%23b3541e'/%3E%3C/svg%3E"
+                            alt: "Green circle on wide viewports; rust square on narrow"
+                            width: "56"
+                            height: "56"
+                  - figcaption: "<picture> + <source> art-direct; resize the window."
+            - search:
+                children:
+                  - form:
+                      action: "/exemplar/quickref.html"
+                      method: "get"
+                      children:
+                        - input:
+                            type: "search"
+                            name: "q"
+                            placeholder: "<search> wraps this form"
+                        - button:
+                            type: "submit"
+                            text: "Search"
+
+      - section:
+          id: "type"
+          children:
+            - h2: "Local type · PracticeCanvas"
+            - p: |
+                This leaf asserts PracticeCanvas from /exemplar/schema.jsonld —
+                a local vocabulary for the scratchpad (name, description, purpose,
+                author, status, relatedDocs, skeletons). Prefer it over commerce
+                types when practicing here.
+            - details:
+                children:
+                  - summary: "Wire a practice convention"
+                  - pre: |
+                      "@context": "/exemplar/schema.jsonld"
+                      conventions:
+                        practice:
+                          type: PracticeCanvas
+                          fields:
+                            name: ".name"
+                            description: ".description"
+                            purpose: ".purpose"
+                            author: ".author"
+                            status: ".status"
+
+      - footer:
+          children:
+            - p:
+                children:
+                  - span: { text: "Roughly " }
+                  - span:
+                      text: { key: specimen-count }
+                  - span: { text: " specimens in one YAML tree. " }
+                  - a:
+                      href: "/exemplar/canvas.html"
+                      text: "Open the canvas →"
+                  - span: { text: " · " }
+                  - a:
+                      href: "/live/exotic.html"
+                      text: "exotic field guide"

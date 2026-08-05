@@ -1,0 +1,25 @@
+/* blank.css — your practice sheet for the exemplar canvas
+   Loaded into the preview iframe. Nothing here yet — that's the point.
+   Edit it in the canvas itself (the CSS panel) or here on disk. */
+
+/* tokens — rename and revalue freely */
+:root {
+  --ink: #221d15;
+  --paper: #ffffff;
+  --muted: #66705c;
+  --accent: #2e5a4a;
+}
+
+/* the canvas wraps your render in .canvas-view — scope rules to it
+   if you want them to apply only inside the preview */
+
+/* .canvas-view { } */
+
+/* Twinseed-emitted classes worth styling on this canvas:
+     .practice .specimen                 local convention triggers (PracticeCanvas / Skeleton)
+     .name .description .purpose         harvested fields → graph
+     .author .status .focus              more PracticeCanvas / Skeleton fields
+     .sortable                           host wires header-click sorting
+     .verso-related .verso-pager         map furniture
+     .flag-<value>                       from flag: profiles
+*/

@@ -1,0 +1,192 @@
+# HTML5 practice skeleton — dialogs, description lists, tables, map/area, et al.
+# Load this in the canvas and edit freely. See also /exemplar/quickref.html.
+
+"@context": "/exemplar/schema.jsonld"
+
+keys:
+  canvas-name: "HTML5 practice leaf"
+
+conventions:
+  practice:
+    type: PracticeCanvas
+    fields:
+      name: ".name"
+      description: ".description"
+      purpose: ".purpose"
+      status: ".status"
+
+practice:
+  id: "leaf_1"
+  ld:
+    name: { key: canvas-name }
+    relatedDocs:
+      - "/exemplar/quickref.html"
+      - "/live/exotic.html"
+    skeletons:
+      - "/exemplar/templates/practice.skel.yml"
+
+  children:
+    - h1:
+        class: "name"
+        text: { key: canvas-name }
+    - p:
+        class: "description"
+        text: "Gestural tour of elements Twinseed can emit from YAML."
+    - p:
+        class: "purpose"
+        text: "Practice dialogs, description lists, sortable tables, and image maps."
+    - span:
+        class: "status"
+        text: "practicing"
+
+body:
+  main:
+    children:
+      - section:
+          id: "dialogs"
+          children:
+            - h2: "Dialog"
+            - p: "A native <dialog> is a top-layer modal. Wire showModal/close in the host page (the quickref and canvas do this for you)."
+            - div:
+                class: "specimen"
+                children:
+                  - button:
+                      id: "open-dialog"
+                      text: "Open dialog"
+                  - dialog:
+                      id: "practice-dialog"
+                      children:
+                        - h3: "Practice modal"
+                        - p: "Backdrop, focus trap, Esc to close — all built in. Close with the button or Esc."
+                        - button:
+                            id: "close-dialog"
+                            text: "Close"
+
+      - section:
+          id: "description"
+          children:
+            - h2: "Description"
+            - p: |
+                Two Twinseed “description” surfaces:
+                (1) a harvested .description field on a convention class → graph property;
+                (2) HTML description lists (<dl>/<dt>/<dd>) for term–definition pairs.
+            - dl:
+                children:
+                  - dt: "description (field)"
+                  - dd: "Presentational class harvested by a convention into the JSON-LD graph."
+                  - dt: "dialog"
+                  - dd: "Native modal element; pair with a button and a little host JS."
+                  - dt: "details / summary"
+                  - dd: "Disclosure widget with no JavaScript."
+            - details:
+                children:
+                  - summary: "Open for a nested note"
+                  - p: "details/summary nest cleanly under description-list practice."
+
+      - section:
+          id: "tables"
+          children:
+            - h2: "Sortable table"
+            - p: "Mark a table class sortable; the canvas/quickref host sorts on header click."
+            - table:
+                class: "sortable"
+                children:
+                  - caption: "Practice specimens (click a column header)"
+                  - thead:
+                      children:
+                        - tr:
+                            children:
+                              - th: { scope: "col", text: "Element" }
+                              - th: { scope: "col", text: "Kind" }
+                              - th: { scope: "col", text: "Notes" }
+                  - tbody:
+                      children:
+                        - tr:
+                            children:
+                              - td: "dialog"
+                              - td: "interactive"
+                              - td: "showModal / close"
+                        - tr:
+                            children:
+                              - td: "map / area"
+                              - td: "media"
+                              - td: "nest under figure — top-level map: is composition"
+                        - tr:
+                            children:
+                              - td: "meter"
+                              - td: "gauge"
+                              - td: "known range"
+
+      - section:
+          id: "image-map"
+          children:
+            - h2: "Image map"
+            - p: "HTML <map> + <area> must be nested (a top-level map: key is Twinseed’s composition document)."
+            - figure:
+                children:
+                  - img:
+                      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120'%3E%3Crect width='120' height='120' fill='%232e5a4a'/%3E%3Crect x='120' width='120' height='120' fill='%23b3541e'/%3E%3Ctext x='60' y='64' text-anchor='middle' fill='%23fff' font-size='14' font-family='sans-serif'%3Ewest%3C/text%3E%3Ctext x='180' y='64' text-anchor='middle' fill='%23fff' font-size='14' font-family='sans-serif'%3Eeast%3C/text%3E%3C/svg%3E"
+                      alt: "Two clickable regions: west and east"
+                      width: "240"
+                      height: "120"
+                      usemap: "#practice-regions"
+                  - map:
+                      name: "practice-regions"
+                      children:
+                        - area:
+                            shape: "rect"
+                            coords: "0,0,120,120"
+                            href: "#dialogs"
+                            alt: "West — jump to dialogs"
+                        - area:
+                            shape: "rect"
+                            coords: "120,0,240,120"
+                            href: "#tables"
+                            alt: "East — jump to tables"
+                  - figcaption: "Click west → dialogs; east → tables. figure + figcaption caption the map."
+
+      - section:
+          id: "gestural"
+          children:
+            - h2: "Gestural HTML5"
+            - p:
+                children:
+                  - mark: "mark"
+                  - span: { text: " highlights, " }
+                  - abbr:
+                      title: "HyperText Markup Language"
+                      text: "HTML"
+                  - span: { text: " abbreviates, and " }
+                  - time:
+                      datetime: "2026-08-05"
+                      text: "August 5, 2026"
+                  - span: { text: " carries a machine datetime." }
+            - p:
+                children:
+                  - span: { text: "Gauge: " }
+                  - meter:
+                      value: "0.65"
+                      min: "0"
+                      max: "1"
+                      low: "0.3"
+                      high: "0.8"
+                      optimum: "0.9"
+                      text: "65%"
+                  - span: { text: " · progress: " }
+                  - progress:
+                      value: "40"
+                      max: "100"
+                      text: "40%"
+            - figure:
+                children:
+                  - picture:
+                      children:
+                        - source:
+                            media: "(min-width: 700px)"
+                            srcset: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Ccircle cx='24' cy='24' r='22' fill='%232e5a4a'/%3E%3C/svg%3E"
+                        - img:
+                            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Crect width='48' height='48' fill='%23b3541e'/%3E%3C/svg%3E"
+                            alt: "Circle on wide viewports, square on narrow"
+                            width: "48"
+                            height: "48"
+                  - figcaption: "picture + source art-directs; resize the window."

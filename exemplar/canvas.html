@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · exemplar canvas</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .desk { max-width: 100rem; margin: 0 auto; display: grid; gap: 1.25rem; }
+    @media (min-width: 1100px) { .desk { grid-template-columns: 34% 33% 33%; } }
+    .sheets { display: flex; flex-direction: column; gap: 1.25rem; }
+    .sheet { background: var(--paper); border-radius: 3px; box-shadow: 0 18px 50px rgba(0,0,0,0.35); overflow: hidden; display: flex; flex-direction: column; }
+    .sheet .running-head { margin: 0; padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--rule); }
+    .sheet textarea {
+      font-family: var(--mono); font-size: 0.78rem; line-height: 1.55;
+      border: none; outline: none; resize: none; width: 100%; flex: 1;
+      padding: 0.9rem 1.1rem; color: var(--ink);
+      background-origin: content-box; background-attachment: local;
+      background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(1.55em - 1px), var(--rule) calc(1.55em - 1px), var(--rule) 1.55em);
+    }
+    #yaml { min-height: 20rem; }
+    #css { min-height: 9rem; }
+    .strip { display: flex; gap: 0.5rem; align-items: center; padding: 0.55rem 1.1rem; border-top: 1px dashed var(--rule); font-family: var(--mono); font-size: 0.68rem; flex-wrap: wrap; }
+    .strip select, .strip button {
+      font: inherit; padding: 0.25rem 0.55rem; border: 1px solid var(--rule);
+      background: #fff; border-radius: 2px; color: var(--ink); cursor: pointer;
+    }
+    #status { color: var(--accent); min-height: 1em; }
+    #frame { width: 100%; height: 100%; min-height: 30rem; border: none; background: #fff; }
+    .profiles button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+    .profiles button { font: inherit; letter-spacing: 0.04em; padding: 0.3rem 0.65rem; border: 1px solid #6b5f49; background: transparent; color: #d8cdb4; border-radius: 2px; cursor: pointer; }
+    .view-toggle { display: flex; gap: 0.3rem; }
+    .view-toggle button {
+      font: inherit; letter-spacing: 0.1em; padding: 0.15rem 0.5rem;
+      border: 1px solid var(--rule); background: transparent; color: var(--ink-soft);
+      border-radius: 2px; cursor: pointer; text-transform: uppercase; font-size: 0.6rem;
+    }
+    .view-toggle button.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+    .graph-diagram { overflow: auto; max-height: 34rem; }
+    .graph-diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .graph-diagram .diagram-status { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">exemplar — a scratch canvas for the flow</p>
+    <nav>
+      <span class="profiles" id="profiles">
+        profile:
+        <button data-profile="" class="active">none</button>
+        <button data-profile='{"audience":"admin"}'>audience=admin</button>
+        <button data-profile='{"audience":"novice"}'>audience=novice</button>
+      </span>
+      <a href="/exemplar/quickref.html">quickref</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/">reading room</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+  </header>
+
+  <main class="desk">
+    <div class="sheets">
+      <section class="sheet">
+        <div class="running-head"><span>manuscript</span><span>yaml</span></div>
+        <textarea id="yaml" spellcheck="false" wrap="off"></textarea>
+        <div class="strip">
+          <select id="template">
+            <option value="practice">practice.skel.yml</option>
+            <option value="card">card.skel.yml</option>
+            <option value="page">page.skel.yml</option>
+            <option value="entity">entity.skel.yml</option>
+            <option value="map">map.skel.yml</option>
+          </select>
+          <button id="load-template">load skeleton</button>
+          <span id="status"></span>
+        </div>
+      </section>
+      <section class="sheet">
+        <div class="running-head"><span>style sheet</span><span>css</span></div>
+        <textarea id="css" spellcheck="false" wrap="off"></textarea>
+        <div class="strip"><span>applies to the recto preview instantly — no server involved</span></div>
+      </section>
+    </div>
+
+    <section class="page page--verso sheet">
+      <div class="running-head">
+        <span class="face">Verso</span>
+        <span class="view-toggle" id="view-toggle">
+          <button data-view="json" class="active">json</button>
+          <button data-view="diagram">diagram</button>
+        </span>
+      </div>
+      <pre class="graph-json" id="graph" style="margin: 1rem 1.1rem 1.4rem;">…</pre>
+      <div class="graph-diagram" id="diagram" style="margin: 1rem 1.1rem 1.4rem; display: none;"></div>
+    </section>
+
+    <section class="page page--recto sheet">
+      <div class="running-head"><span>the presentation</span><span class="face">Recto</span></div>
+      <iframe id="frame" title="preview"></iframe>
+    </section>
+  </main>
+
+  <div class="colophon">
+    <p class="folio"><span>twinseed press — exemplar</span><span>PracticeCanvas</span></p>
+  </div>
+
+  <script type="module">
+    const yamlEl = document.getElementById('yaml');
+    const cssEl = document.getElementById('css');
+    const graphEl = document.getElementById('graph');
+    const diagramEl = document.getElementById('diagram');
+    const frameEl = document.getElementById('frame');
+    const statusEl = document.getElementById('status');
+    const templateEl = document.getElementById('template');
+    const profilesEl = document.getElementById('profiles');
+    const toggleEl = document.getElementById('view-toggle');
+
+    let versoView = 'json';
+    let diagramSeq = 0;
+
+    const IFRAME_BASE_CSS = `
+      body { font-family: Georgia, serif; color: #221d15; margin: 0; padding: 1.5rem 1.75rem; line-height: 1.55; }
+      h1, h2, h3 { line-height: 1.25; }
+      code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+      ul { padding-left: 1.3rem; }
+      details { margin: 0.75rem 0; border: 1px solid #d8cdb4; border-radius: 2px; padding: 0.5rem 0.75rem; }
+      summary { cursor: pointer; font-weight: 600; }
+      dialog { border: none; border-radius: 4px; padding: 1.25rem 1.5rem; max-width: 22rem; box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
+      dialog::backdrop { background: rgba(34,29,21,0.45); }
+      button { font: inherit; padding: 0.4rem 0.8rem; cursor: pointer; }
+      table { border-collapse: collapse; margin: 0.75rem 0; width: 100%; }
+      th, td { border: 1px solid #d8cdb4; padding: 0.35rem 0.7rem; text-align: left; }
+      thead th { background: #f3eee3; }
+      table.sortable thead th { cursor: pointer; user-select: none; }
+      table.sortable thead th[aria-sort="ascending"]::after { content: " ↑"; }
+      table.sortable thead th[aria-sort="descending"]::after { content: " ↓"; }
+      mark { background: #f0e3a0; padding: 0 0.15rem; }
+      meter, progress { width: 8rem; height: 0.9rem; vertical-align: middle; }
+      figure { margin: 0.75rem 0; }
+      figcaption { font-size: 0.9rem; color: #66705c; font-style: italic; margin-top: 0.35rem; }
+      dt { font-weight: 600; margin-top: 0.6rem; }
+      dd { margin-left: 1rem; color: #66705c; }
+    `;
+
+    const IFRAME_WIRE_JS = `
+      (function () {
+        const root = document;
+        const dlg = root.querySelector('#practice-dialog, #demo-dialog');
+        root.querySelector('#open-dialog')?.addEventListener('click', () => dlg?.showModal());
+        root.querySelector('#close-dialog')?.addEventListener('click', () => dlg?.close());
+        root.querySelectorAll('table.sortable').forEach((table) => {
+          const thead = table.tHead;
+          const tbody = table.tBodies[0];
+          if (!thead || !tbody) return;
+          thead.querySelectorAll('th').forEach((th, colIdx) => {
+            th.addEventListener('click', () => {
+              const asc = th.getAttribute('aria-sort') !== 'ascending';
+              thead.querySelectorAll('th').forEach((h) => h.removeAttribute('aria-sort'));
+              th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+              const rows = Array.from(tbody.rows);
+              rows.sort((a, b) => {
+                const av = a.cells[colIdx]?.textContent.trim() ?? '';
+                const bv = b.cells[colIdx]?.textContent.trim() ?? '';
+                const an = Number(av), bn = Number(bv);
+                let cmp;
+                if (!Number.isNaN(an) && !Number.isNaN(bn) && av !== '' && bv !== '') cmp = an - bn;
+                else cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+                return asc ? cmp : -cmp;
+              });
+              rows.forEach((row) => tbody.appendChild(row));
+            });
+          });
+        });
+      })();
+    `;
+
+    let currentProfile = '';
+    let lastGood = { html: '', ld: null };
+    let seq = 0;
+
+    function paint() {
+      const doc = `<!doctype html><html><head><meta charset="utf-8"><style>${IFRAME_BASE_CSS}</style><style>${cssEl.value}</style></head><body><main class="canvas-view">${lastGood.html}</main><script>${IFRAME_WIRE_JS.replace(/<\/script>/gi, '<\\/script>')}</script></body></html>`;
+      frameEl.srcdoc = doc;
+    }
+
+    async function render() {
+      const mySeq = ++seq;
+      const params = { yaml: yamlEl.value };
+      if (currentProfile) params.profile = JSON.parse(currentProfile);
+      let res;
+      try {
+        res = await fetch('/rpc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', method: 'renderInline', params, id: Date.now() }),
+        }).then((r) => r.json());
+      } catch (err) {
+        statusEl.textContent = `network: ${err.message}`;
+        return;
+      }
+      if (mySeq !== seq) return;
+      if (res.error) {
+        statusEl.textContent = res.error.message.split('\n')[0];
+        return;
+      }
+      statusEl.textContent = '';
+      lastGood = { html: res.result.html, ld: res.result.ldJson };
+      graphEl.textContent = JSON.stringify(lastGood.ld, null, 2);
+      paint();
+      renderDiagram();
+    }
+
+    async function renderDiagram() {
+      if (versoView !== 'diagram') return;
+      const mySeq = ++diagramSeq;
+      diagramEl.innerHTML = '<p class="diagram-status">drawing…</p>';
+      const params = { yaml: yamlEl.value };
+      if (currentProfile) params.profile = JSON.parse(currentProfile);
+      try {
+        const resp = await fetch('/diagram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        if (mySeq !== diagramSeq) return;
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          diagramEl.innerHTML = `<p class="diagram-status">diagram unavailable: ${err.error ?? resp.status}</p>`;
+          return;
+        }
+        diagramEl.innerHTML = await resp.text();
+      } catch (err) {
+        if (mySeq === diagramSeq) {
+          diagramEl.innerHTML = `<p class="diagram-status">diagram unavailable: ${err.message}</p>`;
+        }
+      }
+    }
+
+    toggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      versoView = btn.dataset.view;
+      toggleEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      graphEl.style.display = versoView === 'json' ? '' : 'none';
+      diagramEl.style.display = versoView === 'diagram' ? '' : 'none';
+      if (versoView === 'diagram') renderDiagram();
+    });
+
+    function debounce(fn, ms) {
+      let t;
+      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    }
+    const renderSoon = debounce(render, 300);
+
+    yamlEl.addEventListener('input', renderSoon);
+    cssEl.addEventListener('input', paint);
+
+    document.getElementById('load-template').addEventListener('click', async () => {
+      const name = templateEl.value;
+      const text = await fetch(`/exemplar/templates/${name}.skel.yml`).then((r) => r.text());
+      yamlEl.value = text;
+      render();
+    });
+
+    profilesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      profilesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      currentProfile = btn.dataset.profile;
+      render();
+    });
+
+    // starter: practice skeleton (PracticeCanvas) + blank.css
+    const [skel, blank] = await Promise.all([
+      fetch('/exemplar/templates/practice.skel.yml').then((r) => r.text()),
+      fetch('/exemplar/blank.css').then((r) => r.text()),
+    ]);
+    yamlEl.value = skel;
+    cssEl.value = blank;
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://twinseed.local/exemplar#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "PracticeCanvas": {
+      "@id": "https://twinseed.local/exemplar#PracticeCanvas",
+      "@type": "@id"
+    },
+    "Skeleton": {
+      "@id": "https://twinseed.local/exemplar#Skeleton",
+      "@type": "@id"
+    },
+    "name": {
+      "@id": "https://twinseed.local/exemplar#name",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "https://twinseed.local/exemplar#description",
+      "@type": "xsd:string"
+    },
+    "purpose": {
+      "@id": "https://twinseed.local/exemplar#purpose",
+      "@type": "xsd:string"
+    },
+    "author": {
+      "@id": "https://twinseed.local/exemplar#author",
+      "@type": "xsd:string"
+    },
+    "status": {
+      "@id": "https://twinseed.local/exemplar#status",
+      "@type": "xsd:string"
+    },
+    "relatedDocs": {
+      "@id": "https://twinseed.local/exemplar#relatedDocs",
+      "@container": "@list"
+    },
+    "skeletons": {
+      "@id": "https://twinseed.local/exemplar#skeletons",
+      "@container": "@list"
+    },
+    "focus": {
+      "@id": "https://twinseed.local/exemplar#focus",
+      "@type": "xsd:string"
+    },
+    "label": "rdfs:label",
+    "comment": "rdfs:comment",
+    "subClassOf": {
+      "@id": "rdfs:subClassOf",
+      "@type": "@id"
+    },
+    "domain": {
+      "@id": "rdfs:domain",
+      "@type": "@id"
+    },
+    "range": {
+      "@id": "rdfs:range",
+      "@type": "@id"
+    }
+  },
+  "@graph": [
+    {
+      "@id": "https://twinseed.local/exemplar#PracticeCanvas",
+      "@type": "rdfs:Class",
+      "label": "PracticeCanvas",
+      "comment": "A personal Twinseed scratchpad: YAML manuscript, practice stylesheet, and live HTML + JSON-LD preview for learning markup and linked data — not a commercial catalog."
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#Skeleton",
+      "@type": "rdfs:Class",
+      "label": "Skeleton",
+      "comment": "A skeletal starting document meant to be copied and filled in on the practice canvas."
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#name",
+      "@type": "rdf:Property",
+      "label": "name",
+      "comment": "Human-readable title of the canvas or skeleton.",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas",
+      "range": "xsd:string"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#description",
+      "@type": "rdf:Property",
+      "label": "description",
+      "comment": "Short prose describing what this canvas practices.",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas",
+      "range": "xsd:string"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#purpose",
+      "@type": "rdf:Property",
+      "label": "purpose",
+      "comment": "Why the canvas exists (e.g. learn dialogs, image maps, conventions).",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas",
+      "range": "xsd:string"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#author",
+      "@type": "rdf:Property",
+      "label": "author",
+      "comment": "Who is practicing on this canvas.",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas",
+      "range": "xsd:string"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#status",
+      "@type": "rdf:Property",
+      "label": "status",
+      "comment": "Lifecycle note: draft, practicing, settled, archived.",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas",
+      "range": "xsd:string"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#relatedDocs",
+      "@type": "rdf:Property",
+      "label": "relatedDocs",
+      "comment": "Paths or IRIs of related reading (quickref, exotic, docs).",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#skeletons",
+      "@type": "rdf:Property",
+      "label": "skeletons",
+      "comment": "Skeleton template paths this canvas draws from.",
+      "domain": "https://twinseed.local/exemplar#PracticeCanvas"
+    },
+    {
+      "@id": "https://twinseed.local/exemplar#focus",
+      "@type": "rdf:Property",
+      "label": "focus",
+      "comment": "Current practice focus for a Skeleton (e.g. dialogs, tables).",
+      "domain": "https://twinseed.local/exemplar#Skeleton",
+      "range": "xsd:string"
+    }
+  ]
+}
