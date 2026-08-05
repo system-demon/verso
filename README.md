@@ -45,7 +45,7 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3847](http://localhost:3847) for the live demo: change state and watch the presentational tree and the JSON-LD graph update together. Then browse the reading room at [http://localhost:3847/live/](http://localhost:3847/live/).
+Open [http://localhost:3847](http://localhost:3847) for the live sync demo (DefinedTerm concept card + knowledge watches). Then browse the reading room at [http://localhost:3847/live/](http://localhost:3847/live/) — hello, exotic HTML5, Semantic Web mockup, feed, and watch lab.
 
 ```bash
 # Render a file (HTML + linked data)
@@ -57,9 +57,12 @@ node src/cli.js examples/14-map/site.map.yml --doc
 # Inspect the resolved tree the renderer consumes
 node src/cli.js examples/12-keys.yml --emit resolved
 
-# Inject graph/entity data into placeholders
-npm run render -- templates/product.yml --json \
-  id=item_1 name="Widget" price=19.99 description="A thing" finish=Steel
+# Inject concept placeholders (prefer over product.yml for docs demos)
+npm run render -- templates/concept.yml --json \
+  id=json-rpc name="JSON-RPC" description="RPC over JSON" version=2.0 status=stable
+
+# Knowledge feed from the same seed graph
+node src/cli.js examples/17-feed/knowledge.map.yml --emit atom
 ```
 
 Requires **Node.js 18+**.
@@ -70,40 +73,38 @@ Design research (DITA → Twinseed): [docs/dita-research.md](docs/dita-research.
 
 ## Example
 
-A presentational subtree that also asserts typed entities — with `keys:` binding names once and `{ key }` resolving them on both faces of the leaf (`https://schema.org` here — any JSON-LD `@context` fits the same pattern):
+A presentational subtree that also asserts a typed concept — with `keys:` binding names once and `{ key }` / `{ ref }` resolving them on both faces of the leaf (`https://schema.org` here — any JSON-LD `@context` fits the same pattern):
 
 ```yaml
 "@context": "https://schema.org"
 
 keys:
-  product-name: "WonderWidget"                  # variable text
-  support: { href: "https://example.com/support" }  # named link
+  term-name: "JSON-LD"                          # variable text
+  glossary: { href: "https://www.w3.org/TR/json-ld11/" }
 
 div:
-  class: "product"
-  id: "item_1"
+  class: "definedterm"
+  id: "json-ld"
 
   ld:
-    "@type": Product
-    name: { key: product-name }
-    offers:
-      "@type": Offer
-      price: { ref: "#item_1 .price" }
-      priceCurrency: USD
+    "@type": DefinedTerm
+    name: { key: term-name }
+    description: { ref: "#json-ld .description" }
+    termCode: "json-ld"
 
   children:
-    - h1: { class: "name", text: { key: product-name } }
-    - span: { class: "price", text: "49.99" }
-    - a: { href: { key: support }, text: "Support" }
+    - h1: { class: "name", text: { key: term-name } }
+    - p: { class: "description", text: "A JSON-based concrete syntax for RDF." }
+    - a: { href: { key: glossary }, text: "W3C JSON-LD 1.1" }
 ```
 
-The runtime renders the HTML card and a JSON-LD document: the `Product` entity from the convention, named by `{ key }`, priced by `{ ref }`. Presentation and graph share one tree — change the key once and both sides follow.
+The runtime renders the HTML and a JSON-LD document: the `DefinedTerm` entity named by `{ key }`, described by `{ ref }`. Presentation and graph share one tree — change the key once and both sides follow.
 
 ## Why this shape?
 
 HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. Twinseed keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
 
-Crawlers and rich-result consumers are one audience for that graph. Agents, datasets, and interoperable APIs are others.
+Crawlers and linked-data consumers are one audience for that graph. Agents, datasets, and interoperable APIs are others.
 
 ## JSON-RPC
 
@@ -116,35 +117,40 @@ curl -s http://localhost:3847/rpc \
     "jsonrpc": "2.0",
     "method": "renderComponent",
     "params": {
-      "componentId": "product",
+      "componentId": "concept",
       "data": {
-        "id": "item_55",
-        "name": "Quantum Headphones",
-        "price": "299.00",
-        "description": "From the future",
-        "finish": "Matte Black"
+        "id": "json-rpc",
+        "name": "JSON-RPC 2.0",
+        "description": "RPC encoded in JSON",
+        "version": "2.0",
+        "status": "stable"
       }
     },
     "id": 1
   }'
 ```
 
-Methods: `renderComponent`, `renderDocument`, `renderInline`, `updateState`, `getState`, `listTemplates`, `ping`.
+Methods: `renderComponent`, `renderDocument`, `renderInline`, `renderFeed`, `getBacklinks`, `updateState`, `addWatch`, `getState`, `listTemplates`, `ping`.
 
 - `renderInline` renders YAML supplied in the request body — no `templates/` file needed.
 - `params.item: "KEY"` on `renderComponent` / `renderInline` chunks a `map:` document into one section's HTML plus its slice of the graph.
 - `params.profile: { "audience": "admin" }` filters `if:` / `flag:` for that render.
+- `addWatch` / `knowledgeAlert` watch concept fields (version, status, …) over Socket.IO.
 
-Templates are files in `templates/<name>.yml`, selected by `componentId`.
+Templates are files in `templates/<name>.yml`, selected by `componentId`. Prefer `concept` for technical-docs demos; `product` remains for legacy callers.
 
 ## The reading room — `/live/`
 
 [http://localhost:3847/live/](http://localhost:3847/live/) is a small reading room: each leaf renders a `.yml` source live over RPC (`renderInline`) into a book spread — JSON-LD on the verso page, HTML on the recto, source in the colophon.
 
-- **hello, world** — the full arc in one file: keys, YAML conventions with `extends:`, `ld:` / `ld_if`, and profiles (switch `audience=admin` / `audience=novice` in the header and watch both pages change)
+- **sync** (`/`) — live multi-window concept card + knowledge watches
+- **hello, world** — the full arc in one file: keys, YAML conventions with `extends:`, `ld:` / `ld_if`, and profiles
 - **exotic** — a field guide to HTML5's stranger elements, every one authored as a YAML key
-- **wikipedia** — the Wikipedia “Semantic Web” article mocked up as one Twinseed tree, asserting its own article metadata
-
+- **semantic web** — the Wikipedia “Semantic Web” article mocked up as one Twinseed tree
+- **feed** — Atom/RSS knowledge stream from the same map as HTML + JSON-LD
+- **watch** — register version/status watches and see `knowledgeAlert` fire
+- **backlinks** — inverse relations from `map.relations` + JSON-LD edges (`getBacklinks`)
+- **editor** — collaborative YAML draft room
 ## Project layout
 
 | Path | Role |
