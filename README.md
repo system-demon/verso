@@ -181,4 +181,4 @@ See [examples/README.md](examples/README.md) for runnable patterns.
 
 ## License
 
-No license file yet — all rights reserved unless otherwise noted.
+[MIT](LICENSE)
