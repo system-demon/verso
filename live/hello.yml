@@ -7,7 +7,7 @@
 
 # Indirection: one fact, referenced everywhere. Change it once.
 keys:
-  product-name: "Twinseed"
+  seed-name: "Twinseed"
   tagline: { ref: "#hello .tagline" }   # ref-valued key (ld: positions)
 
 # Vocabulary declared in the file itself: greeting → Thing,
@@ -44,7 +44,7 @@ body:
           children:
             - h1:
                 class: "name"
-                text: { key: product-name }
+                text: { key: seed-name }
             - p:
                 class: "tagline"
                 text: "One seed, two leaves."

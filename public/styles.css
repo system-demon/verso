@@ -2,7 +2,7 @@
    The book itself (palette, spread, pages, running heads, colophon)
    comes from /live/twinseed.css. This file only dresses what that system
    doesn't know about: the status line, the rendered entity fragment,
-   and the update form. */
+   knowledge alerts, and the update form. */
 
 .visually-hidden {
   position: absolute;
@@ -27,11 +27,43 @@
 .half-title .status.is-live { color: #7fa08e; }
 .half-title .status.is-err { color: #b06a5a; }
 
-/* ---- the rendered entity fragment (templates/product.yml) ---- */
+.half-title nav a[aria-current="page"] {
+  color: var(--paper);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+/* knowledge alert toast — thin strip under the half-title */
+.alert-banner {
+  max-width: 52rem;
+  margin: 0 auto 1.1rem;
+  padding: 0.55rem 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  color: var(--paper);
+  background: var(--accent-2);
+  border: 1px solid rgba(245, 240, 228, 0.18);
+  border-radius: 2px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.alert-banner.is-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.alert-banner.is-fade {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ---- the rendered DefinedTerm fragment (templates/concept.yml) ---- */
 
 .mount { min-height: 8rem; }
 
-.mount .product {
+.mount .definedterm {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
@@ -40,21 +72,21 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.mount .product .name {
+.mount .definedterm .name {
   margin: 0;
   font-size: 2.4rem;
   font-weight: 600;
   line-height: 1.15;
 }
 
-.mount .product .description {
+.mount .definedterm .description {
   margin: 0;
   max-width: 34ch;
   color: var(--ink-soft);
   font-style: italic;
 }
 
-.mount .product .description::first-letter {
+.mount .definedterm .description::first-letter {
   float: left;
   font-size: 2.9em;
   line-height: 0.85;
@@ -64,19 +96,30 @@
   color: var(--accent-2);
 }
 
-.mount .product .price {
+.mount .definedterm dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.4rem 0 0;
   font-family: var(--mono);
-  font-size: 1.05rem;
+  font-size: 0.78rem;
+}
+
+.mount .definedterm dt {
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+}
+
+.mount .definedterm dd {
+  margin: 0;
   color: var(--accent-2);
 }
-.mount .product .price::before { content: "$"; }
 
-.mount .product .finish {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--ink-soft);
+.mount .definedterm .status {
+  letter-spacing: 0.04em;
 }
-.mount .product .finish:empty { display: none; }
 
 /* paper-tone pulse when a pushed update lands */
 .mount.is-flash { animation: flash 0.5s ease; }
@@ -152,6 +195,11 @@
   font-size: 0.85rem;
   font-style: italic;
   color: var(--ink-soft);
+}
+
+.hint code {
+  font-style: normal;
+  font-size: 0.8em;
 }
 
 /* the colophon sits on the dark desk, where oxblood links sink */

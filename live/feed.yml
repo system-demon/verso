@@ -1,0 +1,44 @@
+# Reading-room leaf for the knowledge feed (examples/17-feed).
+# Same map shape; includes resolve from live/ into the example fragments.
+
+"@context": "https://schema.org"
+
+map:
+  title: "Twinseed Linked-Data Notes"
+  ld:
+    "@type": CollectionPage
+    name: "Twinseed Linked-Data Notes"
+    description: "Concepts and changelog for Twinseed's presentation + graph leaves"
+    author:
+      "@type": Organization
+      name: "Twinseed"
+  head:
+    title: "Twinseed Linked-Data Notes"
+    meta:
+      description: "Technical notes: DefinedTerm concepts and a changelog stream"
+    css:
+      body: { fontFamily: "Georgia, serif", margin: "2rem auto", maxWidth: "42rem", lineHeight: "1.5" }
+      "nav ul": { listStyle: "none", paddingLeft: "1.25rem" }
+      section: { marginBottom: "2.5rem" }
+      ".verso-related ul": { display: "flex", gap: "0.75rem", paddingLeft: "0", listStyle: "none" }
+      ".verso-pager": { display: "flex", justifyContent: "space-between", borderTop: "1px solid #ccc", paddingTop: "0.75rem" }
+      "dl": { display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.35rem 1rem" }
+      "dt": { fontWeight: "600" }
+
+  keys:
+    project: "Twinseed"
+
+  items:
+    - key: rdf-graph
+      include: "../examples/17-feed/rdf-graph.yml"
+      nav: "RDF graph"
+    - key: json-ld
+      include: "../examples/17-feed/json-ld.yml"
+      nav: "JSON-LD"
+    - key: changelog
+      include: "../examples/17-feed/changelog.yml"
+      nav: "Changelog"
+
+  relations:
+    - [rdf-graph, json-ld]
+    - [json-ld, changelog]

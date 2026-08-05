@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Twinseed · backlinks</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/live/twinseed.css">
+  <style>
+    .focus-bar {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: #a89a7e;
+      flex-basis: 100%;
+      margin-top: 0.4rem;
+    }
+    .focus-bar button {
+      font: inherit;
+      letter-spacing: 0.04em;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #6b5f49;
+      background: transparent;
+      color: #d8cdb4;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .focus-bar button:hover { border-color: #cbb98f; color: #f5f0e4; }
+    .focus-bar button.active { background: #cbb98f; border-color: #cbb98f; color: #2a251d; }
+
+    .graph-json { max-height: 36rem; overflow: auto; }
+    .backlink-list { list-style: none; padding: 0; margin: 0.5rem 0 1.2rem; }
+    .backlink-list li {
+      display: flex;
+      gap: 0.6rem;
+      align-items: baseline;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 0.95rem;
+    }
+    .backlink-list .key {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      color: var(--accent-2);
+      min-width: 7rem;
+    }
+    .backlink-list .related {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--ink-soft);
+    }
+    .adj-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.6rem; }
+    .adj-table th, .adj-table td {
+      border: 1px solid var(--rule);
+      padding: 0.4rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .adj-table th {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      background: var(--paper-deep);
+    }
+    .adj-table code { font-size: 0.78em; }
+    .colophon a { color: #cbb98f; }
+  </style>
+</head>
+<body>
+  <header class="half-title">
+    <h1>Twinseed</h1>
+    <p class="imprint">backlinks — inverse relations from the same map seed</p>
+    <nav>
+      <a href="/">sync</a>
+      <a href="/live/">hello</a>
+      <a href="/live/exotic.html">exotic</a>
+      <a href="/live/semantic-web.html">semantic web</a>
+      <a href="/live/feed.html">feed</a>
+      <a href="/live/watch.html">watch</a>
+      <a href="/live/backlinks.html" aria-current="page">backlinks</a>
+      <a href="/live/editor.html">editor</a>
+    </nav>
+    <div class="focus-bar" id="focuses" role="group" aria-label="Focus concept">
+      focus:
+      <button type="button" data-id="" class="active">all</button>
+    </div>
+  </header>
+
+  <div class="book">
+    <div class="spread">
+      <section class="page page--verso">
+        <div class="running-head"><span class="face">Verso</span><span>getBacklinks</span></div>
+        <pre class="graph-json" id="raw">loading…</pre>
+        <p class="margin-note">RPC <code>getBacklinks</code> inverts <code>map.relations</code> plus JSON-LD <code>isRelatedTo</code> / <code>isBasedOn</code> / <code>about</code> edges. Same seed as the feed leaf.</p>
+      </section>
+      <section class="page page--recto">
+        <div class="running-head"><span>the adjacency</span><span class="face">Recto</span></div>
+        <div id="view">loading…</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <details open>
+      <summary>About this leaf</summary>
+      <p>
+        Backlinks fall out of composition — no second authoring surface.
+        Source: <code>examples/17-feed/knowledge.map.yml</code>
+        (<code>relations: [rdf-graph↔json-ld], [json-ld↔changelog]</code>).
+        Headless: <code>getBacklinks</code> with <code>path</code> and optional <code>id</code>.
+      </p>
+    </details>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf vi</span></p>
+  </div>
+
+  <script type="module">
+    const MAP_PATH = 'examples/17-feed/knowledge.map.yml';
+    const rawEl = document.getElementById('raw');
+    const viewEl = document.getElementById('view');
+    const focusesEl = document.getElementById('focuses');
+
+    let focusId = '';
+    let lastPayload = null;
+
+    async function rpc(method, params) {
+      const res = await fetch('/rpc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method, params, id: Date.now() }),
+      }).then((r) => r.json());
+      if (res.error) throw new Error(res.error.message);
+      return res.result;
+    }
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function renderFocusButtons(sections) {
+      const keep = focusesEl.querySelector('button[data-id=""]');
+      focusesEl.querySelectorAll('button[data-id]:not([data-id=""])').forEach((b) => b.remove());
+      for (const s of sections ?? []) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.id = s.key;
+        btn.textContent = s.navText || s.key;
+        if (s.key === focusId) btn.classList.add('active');
+        focusesEl.appendChild(btn);
+      }
+      keep.classList.toggle('active', !focusId);
+    }
+
+    function paint(payload) {
+      rawEl.textContent = JSON.stringify(payload, null, 2);
+      const related = payload.relatedByKey ?? {};
+      const keys = Object.keys(related).sort();
+
+      if (focusId) {
+        const bl = payload.backlinks;
+        const relatedList = Array.isArray(bl?.related) ? bl.related : related[focusId] ?? [];
+        viewEl.innerHTML = `
+          <h2>Focus · <code>${esc(focusId)}</code></h2>
+          <p class="margin-note" style="margin:0 0 1rem">Concepts that relate either direction.</p>
+          <ul class="backlink-list">
+            ${relatedList.length
+              ? relatedList.map((r) => `<li><span class="key">${esc(r)}</span><span class="related">related</span></li>`).join('')
+              : '<li><span class="related">No related nodes for this focus.</span></li>'}
+          </ul>`;
+        return;
+      }
+
+      const rows = keys.map((k) => {
+        const others = (related[k] ?? []).map((r) => `<code>${esc(r)}</code>`).join(' · ') || '—';
+        return `<tr><th scope="row"><code>${esc(k)}</code></th><td>${others}</td></tr>`;
+      }).join('');
+
+      viewEl.innerHTML = `
+        <h2>Undirected adjacency</h2>
+        <p style="color:var(--ink-soft);font-size:0.9rem;margin:0 0 0.8rem">
+          Every edge from <code>map.relations</code> and graph predicates appears both ways.
+        </p>
+        <table class="adj-table">
+          <thead><tr><th>Concept</th><th>Related</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="2">No relations.</td></tr>'}</tbody>
+        </table>`;
+    }
+
+    async function load() {
+      try {
+        const params = { path: MAP_PATH };
+        if (focusId) params.id = focusId;
+        lastPayload = await rpc('getBacklinks', params);
+        renderFocusButtons(lastPayload.sections);
+        paint(lastPayload);
+      } catch (err) {
+        rawEl.textContent = `error: ${err.message}`;
+        viewEl.innerHTML = `<p style="color:#7a2e2e">${esc(err.message)}</p>`;
+      }
+    }
+
+    focusesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-id]');
+      if (!btn) return;
+      focusId = btn.dataset.id ?? '';
+      focusesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
