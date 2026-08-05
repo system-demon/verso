@@ -1,280 +1,158 @@
-:root {
-  --bg: #12160f;
-  --bg-elev: #1a2116;
-  --ink: #e8efe0;
-  --muted: #8a9a7c;
-  --line: #2c3626;
-  --accent: #c4f042;
-  --accent-ink: #1a2108;
-  --warn: #f0a060;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
-  --sans: "DM Sans", system-ui, sans-serif;
-  --display: "Syne", "DM Sans", sans-serif;
+/* styles.css — page-specific styles for the landing leaf (/)
+   The book itself (palette, spread, pages, running heads, colophon)
+   comes from /live/verso.css. This file only dresses what that system
+   doesn't know about: the status line, the rendered entity fragment,
+   and the update form. */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-}
-
-body {
-  font-family: var(--sans);
-  color: var(--ink);
-  background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, #2a3a18 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, #1e2a22 0%, transparent 50%),
-    linear-gradient(165deg, #0e120c 0%, var(--bg) 40%, #161c12 100%);
-  background-attachment: fixed;
-  line-height: 1.5;
-}
-
-.noise {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  z-index: 0;
-}
-
-.top,
-.stage {
-  position: relative;
-  z-index: 1;
-}
-
-.top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 1.25rem 1.75rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.brand {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  letter-spacing: -0.03em;
-  color: var(--accent);
-}
-
-.status {
+/* connection status — a quiet line in the half-title */
+.half-title .status {
   margin: 0;
   font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--muted);
-  text-transform: lowercase;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: #8f8267;
 }
+.half-title .status.is-live { color: #7fa08e; }
+.half-title .status.is-err { color: #b06a5a; }
 
-.status.is-live {
-  color: var(--accent);
-}
+/* ---- the rendered entity fragment (templates/product.yml) ---- */
 
-.status.is-err {
-  color: var(--warn);
-}
+.mount { min-height: 8rem; }
 
-.stage {
-  display: grid;
-  gap: 2rem;
-  padding: 2rem 1.75rem 4rem;
-  max-width: 72rem;
-  margin: 0 auto;
-}
-
-@media (min-width: 900px) {
-  .stage {
-    grid-template-columns: 1.2fr 0.9fr;
-    grid-template-areas:
-      "live controls"
-      "meta meta";
-  }
-  .live { grid-area: live; }
-  .controls { grid-area: controls; }
-  .meta { grid-area: meta; }
-}
-
-.panel h1,
-.panel h2 {
-  margin: 0 0 0.35rem;
-  font-family: var(--display);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.panel h1 {
-  font-size: clamp(1.75rem, 4vw, 2.4rem);
-}
-
-.panel h2 {
-  font-size: 1.15rem;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.lede {
-  margin: 0 0 1.5rem;
-  max-width: 36ch;
-  color: var(--muted);
-}
-
-.mount {
-  min-height: 10rem;
-  padding: 1.5rem 0;
-  animation: rise 0.5s ease-out both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(0.6rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Rendered product card */
 .mount .product {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  padding-block: 0.5rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  gap: 0.7rem;
+  padding-bottom: 1.7rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .mount .product .name {
   margin: 0;
-  font-family: var(--display);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.15;
 }
 
 .mount .product .description {
   margin: 0;
-  color: var(--muted);
-  max-width: 32ch;
+  max-width: 34ch;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.mount .product .description::first-letter {
+  float: left;
+  font-size: 2.9em;
+  line-height: 0.85;
+  padding: 0.06em 0.12em 0 0;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--accent-2);
 }
 
 .mount .product .price {
   font-family: var(--mono);
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: var(--accent);
+  font-size: 1.05rem;
+  color: var(--accent-2);
 }
-
-.mount .product .price::before {
-  content: "$";
-}
+.mount .product .price::before { content: "$"; }
 
 .mount .product .finish {
   font-family: var(--mono);
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.mount .product .finish:empty { display: none; }
+
+/* paper-tone pulse when a pushed update lands */
+.mount.is-flash { animation: flash 0.5s ease; }
+@keyframes flash {
+  0% { background: rgba(46, 90, 74, 0.12); }
+  100% { background: transparent; }
 }
 
-.mount .product .finish:empty,
-.mount .product .finish:is([data-empty]) {
-  display: none;
+/* ---- the update form ---- */
+
+.edit-head {
+  margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
-.form {
-  display: grid;
-  gap: 0.85rem;
-}
+.form { display: grid; gap: 0.8rem; }
 
 .form label {
   display: grid;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: var(--muted);
+  gap: 0.3rem;
   font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .form input,
 .form textarea {
-  font: inherit;
-  font-family: var(--sans);
+  font-family: var(--serif);
   font-size: 1rem;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--ink);
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
   border-radius: 2px;
-  padding: 0.65rem 0.75rem;
+  padding: 0.55rem 0.7rem;
   outline: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
 .form input:focus,
-.form textarea:focus {
-  border-color: var(--accent);
-  background: #1f2818;
-}
+.form textarea:focus { border-color: var(--accent-2); }
+
+.form textarea { resize: vertical; }
 
 .form button {
-  margin-top: 0.35rem;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
-  color: var(--accent-ink);
-  background: var(--accent);
-  border: none;
+  justify-self: start;
+  margin-top: 0.3rem;
+  font: inherit;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--accent-2);
+  background: var(--accent-2);
+  color: #fff;
   border-radius: 2px;
-  padding: 0.75rem 1rem;
   cursor: pointer;
-  transition: transform 0.12s ease, filter 0.12s ease;
+  transition: filter 0.12s ease, transform 0.12s ease;
 }
-
-.form button:hover {
-  filter: brightness(1.05);
-}
-
-.form button:active {
-  transform: translateY(1px);
-}
+.form button:hover { filter: brightness(1.08); }
+.form button:active { transform: translateY(1px); }
 
 .hint {
-  margin: 1rem 0 0;
-  font-size: 0.8rem;
-  color: var(--muted);
+  margin: 1.1rem 0 0;
+  max-width: 38ch;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-soft);
 }
 
-.code {
-  margin: 0.75rem 0 0;
-  padding: 1rem 1.1rem;
-  overflow: auto;
-  max-height: 22rem;
-  background: #0a0d08;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  line-height: 1.55;
-  color: #b8d49a;
-}
-
-.code code {
-  font: inherit;
-}
-
-.mount.is-flash {
-  animation: flash 0.45s ease;
-}
-
-@keyframes flash {
-  0% { filter: brightness(1.35); }
-  100% { filter: none; }
-}
+/* the colophon sits on the dark desk, where oxblood links sink */
+.colophon a { color: #cbb98f; }
