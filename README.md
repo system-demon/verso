@@ -159,11 +159,12 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`. Prefer
 | `src/parser/keys.js` | `keys:` block + `{ key }` resolution |
 | `src/parser/map.js` | `map:` composition documents (sections, nav, pager, site graph) |
 | `src/parser/feed.js` | Atom / RSS knowledge feed + backlinks from the JSON-LD / map graph |
+| `src/parser/context.js` | LLM knowledge pack (`--emit context` / `renderContext`) |
 | `src/parser/profiles.js` | `if:` / `flag:` profile filtering |
 | `src/parser/includes.js` | `include:` partials and `file.yml#id` element pulls |
 | `src/parser/validate.js` | strict-mode validation |
-| `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync, knowledge watches) |
-| `src/cli.js` | Offline render; `--emit resolved|atom|rss` |
+| `src/server/` | Express JSON-RPC + Socket.IO (live graph/presentation sync) |
+| `src/cli.js` | Offline render; `--emit resolved|atom|rss|context` |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
 | `live/` | Reading room — book-spread demos and their `.yml` sources |

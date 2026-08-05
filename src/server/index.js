@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
 import { handleRpc, clampBaseDir, clampSeedPath } from './rpc.js';
 import { harmonizePlantUmlSvg, jsonDiagramText, plantUmlUrl } from './diagram.js';
+import { renderContext } from '../parser/context.js';
 import { renderFeed } from '../parser/feed.js';
 import { renderYaml, toDocument } from '../parser/yamlDom.js';
 import fs from 'node:fs';
@@ -239,6 +240,29 @@ app.post(
   },
 );
 
+/**
+ * LLM context pack — same seed as HTML / JSON-LD / feed.
+ * GET /context?path=examples/17-feed/knowledge.map.yml&promptOnly=1
+ */
+app.get('/context', (req, res) => {
+  try {
+    const filePath = clampSeedPath(req.query.path);
+    const source = fs.readFileSync(filePath, 'utf8');
+    const pack = renderContext(source, {
+      baseDir: path.dirname(filePath),
+      strict: req.query.strict === '1' || req.query.strict === 'true' ? true : undefined,
+      id: typeof req.query.id === 'string' ? req.query.id : undefined,
+    });
+    if (req.query.promptOnly === '1' || req.query.promptOnly === 'true') {
+      return res.type('text/markdown; charset=utf-8').send(pack.prompt);
+    }
+    return res.json(pack);
+  } catch (err) {
+    const status = err.code === -32001 ? 404 : err.code === -32602 ? 400 : 400;
+    return res.status(status).json({ error: err.message });
+  }
+});
+
 const httpServer = createServer(app);
 
 /** Clean 400 for malformed JSON bodies (e.g. YAML posted as application/json) */
@@ -370,6 +394,7 @@ httpServer.listen(PORT, () => {
   console.log(`  JSON-RPC  POST /rpc`);
   console.log(`  Inline    POST /render (raw YAML or { yaml, data })`);
   console.log(`  Feed      GET  /feed?path=examples/17-feed/knowledge.map.yml`);
+  console.log(`  Context   GET  /context?path=examples/17-feed/knowledge.map.yml`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);
   console.log(`  Demo      http://localhost:${PORT}/`);
   console.log(`  Live      http://localhost:${PORT}/live/  (live/)`);
