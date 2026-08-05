@@ -16,6 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '../../public');
 const LIVE_DIR = path.resolve(__dirname, '../../live');
 const EXEMPLAR_DIR = path.resolve(__dirname, '../../exemplar');
+const IA_DIR = path.resolve(__dirname, '../../ia');
 const PORT = Number(process.env.PORT) || 3847;
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(PUBLIC_DIR));
 app.use('/live', express.static(LIVE_DIR));
 app.use('/exemplar', express.static(EXEMPLAR_DIR));
+app.use('/ia', express.static(IA_DIR));
 
 /** HTTP JSON-RPC endpoint */
 app.post('/rpc', (req, res) => {

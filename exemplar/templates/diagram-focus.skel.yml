@@ -1,0 +1,67 @@
+# Diagram focus — s-ia types in a genotype
+# DiagramFocusSet + DiagramHighlight + highlightPath ("*" wildcards) + HighlightRole
+# → PlantUML #highlight lines. Open on the canvas verso, or:
+# POST /diagram?format=uml with this YAML.
+#
+# Note: quote "*" in YAML — a bare * is an alias indicator.
+
+"@context":
+  - "/exemplar/schema.jsonld"
+  - "/ia/schema.jsonld"
+
+"@graph":
+  - "@type": PracticeCanvas
+    "@id": "#canvas-primary"
+    name: "Diagram focus"
+    description: "Assert PlantUML JSON highlights from genotype types, not emit cosmetics"
+    purpose: "show DiagramFocusSet / wildcard highlightPath / HighlightRole on the verso"
+    author: "you"
+    status: "practicing"
+    relatedDocs:
+      - "/ia/schema.jsonld"
+      - "/docs/s-ia-type-nominations.md"
+  - "@type": PracticeCanvas
+    "@id": "#canvas-sibling"
+    name: "Sibling leaf"
+    status: "draft"
+    purpose: "second @graph row for wildcard fan-out"
+  - "@type": DiagramFocusSet
+    highlights:
+      - "@type": DiagramHighlight
+        highlightPath:
+          - "@graph"
+          - "*"
+          - "status"
+        role: Focus
+      - "@type": DiagramHighlight
+        highlightPath:
+          - "@graph"
+          - "0"
+          - "purpose"
+        role: Warning
+
+body:
+  main:
+    children:
+      - h1: "Diagram focus"
+      - p: |
+          This leaf’s genotype owns a DiagramFocusSet. The diagram emitter
+          strips the set, expands "*" path segments against the JSON body,
+          and emits #highlight lines with <<Focus>> / <<Warning>> stereotypes
+          (paper theme skins those roles). Quote "*" in YAML.
+      - pre: |
+          "@type": DiagramFocusSet
+          highlights:
+            - highlightPath: ["@graph", "*", "status"]
+              role: Focus
+            - highlightPath: ["@graph", "0", "purpose"]
+              role: Warning
+      - p:
+          children:
+            - a:
+                href: "/ia/schema.jsonld"
+                text: "ia vocabulary →"
+            - span: { text: " · " }
+            - a:
+                href: "/exemplar/canvas.html"
+                text: "Open the canvas →"
