@@ -6,7 +6,7 @@ body:
     margin: "2rem"
 
   main:
-    h1: "Hello, Verso"
+    h1: "Hello, Twinseed"
     p: |
       This paragraph is a YAML literal block.
       Line breaks are preserved in the source.

@@ -1,5 +1,5 @@
 /**
- * Verso profiles — presentation-side `if:` / `flag:` conditionals (P4, ditaval-lite)
+ * Twinseed profiles — presentation-side `if:` / `flag:` conditionals (P4, ditaval-lite)
  *
  * Answers "who is this rendering for?" — a different axis from `ld_if`
  * ("what does the data imply for the graph?"). Conditions are evaluated
@@ -17,7 +17,7 @@
  * No profile supplied → everything renders, unflagged (filtering is opt-in).
  */
 
-import { VersoValidationError } from './validate.js';
+import { TwinseedValidationError } from './validate.js';
 
 const PROFILE_VOCAB = new Set(['audience', 'platform', 'product']);
 
@@ -28,7 +28,7 @@ const PROFILE_VOCAB = new Set(['audience', 'platform', 'product']);
 const DATA_KEYS = new Set(['ld', 'ld_if', 'keys', 'conventions', 'head']);
 
 /** Marker for "this node failed its if: condition". */
-const EXCLUDE = Symbol('verso-profile-exclude');
+const EXCLUDE = Symbol('twinseed-profile-exclude');
 
 /**
  * String condition grammar: `attribute == 'value'` / `attribute != value`.
@@ -62,7 +62,7 @@ export function parseProfile(input) {
       const m = String(entry).match(PARAM_PAIR_RE);
       if (!m) {
         throw new Error(
-          `Verso profile entries must be key=value pairs (got "${entry}")`,
+          `Twinseed profile entries must be key=value pairs (got "${entry}")`,
         );
       }
       return [m[1], m[2]];
@@ -71,7 +71,7 @@ export function parseProfile(input) {
     pairs = Object.entries(input);
   } else {
     throw new Error(
-      'Verso profile must be a plain object or an array of key=value strings',
+      'Twinseed profile must be a plain object or an array of key=value strings',
     );
   }
 
@@ -103,7 +103,7 @@ function parseStringCondition(expr) {
 
 /**
  * Strict-mode shape validation for one `if:` / `flag:` condition.
- * Throws VersoValidationError naming the condition's path. Lenient mode
+ * Throws TwinseedValidationError naming the condition's path. Lenient mode
  * never calls this — malformed conditions are simply non-matching there.
  * @param {unknown} cond
  * @param {string} path
@@ -112,13 +112,13 @@ export function validateCondition(cond, path) {
   if (typeof cond === 'string') {
     const parsed = parseStringCondition(cond);
     if (!parsed) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         `malformed condition "${cond}" — expected: <attribute> ==|!= 'value' (== and != only)`,
         path,
       );
     }
     if (!PROFILE_VOCAB.has(parsed.name)) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         `unknown profiling attribute "${parsed.name}" — profile vocabulary: ${[...PROFILE_VOCAB].join(', ')}`,
         path,
       );
@@ -128,20 +128,20 @@ export function validateCondition(cond, path) {
   if (isPlainObject(cond)) {
     const entries = Object.entries(cond);
     if (entries.length === 0) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         'empty condition — name at least one profiling attribute (audience, platform, product)',
         path,
       );
     }
     for (const [key, value] of entries) {
       if (!PROFILE_VOCAB.has(key)) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           `unknown profiling attribute "${key}" — profile vocabulary: ${[...PROFILE_VOCAB].join(', ')}`,
           path,
         );
       }
       if (typeof value !== 'string') {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           `condition value for "${key}" must be a string (got ${Array.isArray(value) ? 'array' : typeof value})`,
           path,
         );
@@ -149,7 +149,7 @@ export function validateCondition(cond, path) {
     }
     return;
   }
-  throw new VersoValidationError(
+  throw new TwinseedValidationError(
     'condition must be a map of profiling attributes or a string like "audience == \'admin\'"',
     path,
   );

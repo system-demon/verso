@@ -1,9 +1,9 @@
 /**
- * Verso maps — `map:` composition documents (P1)
+ * Twinseed maps — `map:` composition documents (P1)
  *
  * A top-level `map:` key makes the file a composition document: it owns
  * publication STRUCTURE (order, nav, relations, pagination) while fragments —
- * ordinary Verso files pulled in through the existing include machinery —
+ * ordinary Twinseed files pulled in through the existing include machinery —
  * own content. One structure, three projections: an HTML document, a nav
  * tree, and a site-level knowledge graph (CollectionPage + hasPart).
  *
@@ -30,7 +30,7 @@ import {
 import { resolveIncludes } from './includes.js';
 import { isKeyRef, resolveKeys } from './keys.js';
 import {
-  VersoValidationError,
+  TwinseedValidationError,
   strictFromEnv,
   validateTree,
 } from './validate.js';
@@ -171,13 +171,13 @@ export function resolveMapTree(raw, options = {}) {
  */
 function buildMapModel(map, options) {
   if (!isPlainObject(map)) {
-    throw new VersoValidationError(
-      'Verso "map" must be a mapping of { title, ld, head, keys, conventions, items, relations }',
+    throw new TwinseedValidationError(
+      'Twinseed "map" must be a mapping of { title, ld, head, keys, conventions, items, relations }',
       'map',
     );
   }
   if (map.items !== undefined && !Array.isArray(map.items)) {
-    throw new VersoValidationError(
+    throw new TwinseedValidationError(
       '"items" must be a list of { key, include, nav, items }',
       'map.items',
     );
@@ -231,32 +231,32 @@ function buildMapModel(map, options) {
 function validateMapBlock(map) {
   for (const k of Object.keys(map)) {
     if (!MAP_KEYS.has(k)) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         `unknown map key "${k}" — maps support: ${[...MAP_KEYS].join(', ')}`,
         `map.${k}`,
       );
     }
   }
   if (map.ld !== undefined && !isPlainObject(map.ld)) {
-    throw new VersoValidationError(
+    throw new TwinseedValidationError(
       '"ld" must be a mapping of JSON-LD properties — it describes the publication node',
       'map.ld',
     );
   }
   if (map.keys !== undefined && !isPlainObject(map.keys)) {
-    throw new VersoValidationError(
+    throw new TwinseedValidationError(
       '"keys" must be a mapping — it cascades into every fragment',
       'map.keys',
     );
   }
   if (map.conventions !== undefined && !isPlainObject(map.conventions)) {
-    throw new VersoValidationError(
+    throw new TwinseedValidationError(
       '"conventions" must be a mapping — it cascades into every fragment',
       'map.conventions',
     );
   }
   if (map.title !== undefined && typeof map.title !== 'string') {
-    throw new VersoValidationError('"title" must be a string', 'map.title');
+    throw new TwinseedValidationError('"title" must be a string', 'map.title');
   }
 }
 
@@ -277,7 +277,7 @@ function normalizeItems(list, path, state, options) {
     const ipath = `${path}[${i}]`;
     if (!isPlainObject(rawItem)) {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           'map items must be mappings of { key, include, nav, items }',
           ipath,
         );
@@ -288,7 +288,7 @@ function normalizeItems(list, path, state, options) {
     let key = rawItem.key;
     if (key === undefined || key === null || key === '') {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           'map item requires a "key" — sections are addressed by it (nav, relations, params.item)',
           `${ipath}.key`,
         );
@@ -296,7 +296,7 @@ function normalizeItems(list, path, state, options) {
       key = `item-${state.sections.length + 1}`;
     } else if (typeof key !== 'string') {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           '"key" must be a string',
           `${ipath}.key`,
         );
@@ -305,7 +305,7 @@ function normalizeItems(list, path, state, options) {
     }
     if (state.usedKeys.has(key)) {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           `duplicate map item key "${key}" — keys must be unique across the map`,
           `${ipath}.key`,
         );
@@ -320,7 +320,7 @@ function normalizeItems(list, path, state, options) {
     if (rawItem.nav !== undefined) {
       if (typeof rawItem.nav === 'string') navText = rawItem.nav;
       else if (options.strict) {
-        throw new VersoValidationError('"nav" must be a string', `${ipath}.nav`);
+        throw new TwinseedValidationError('"nav" must be a string', `${ipath}.nav`);
       }
     }
 
@@ -330,7 +330,7 @@ function normalizeItems(list, path, state, options) {
     const include = rawItem.include;
     const hasInclude = typeof include === 'string' || isKeyRef(include);
     if (include !== undefined && !hasInclude && options.strict) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         '"include" must be a path string or a { key: name } reference',
         `${ipath}.include`,
       );
@@ -341,7 +341,7 @@ function normalizeItems(list, path, state, options) {
     if (rawItem.items !== undefined) {
       if (!Array.isArray(rawItem.items)) {
         if (options.strict) {
-          throw new VersoValidationError(
+          throw new TwinseedValidationError(
             '"items" must be a list of nested items',
             `${ipath}.items`,
           );
@@ -352,7 +352,7 @@ function normalizeItems(list, path, state, options) {
     }
 
     if (!hasInclude && children.length === 0 && options.strict) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         'map item needs an "include" and/or nested "items" — an empty section publishes nothing',
         ipath,
       );
@@ -375,7 +375,7 @@ function normalizeRelations(raw, state, options) {
   if (raw === undefined) return [];
   if (!Array.isArray(raw)) {
     if (options.strict) {
-      throw new VersoValidationError(
+      throw new TwinseedValidationError(
         '"relations" must be a list of [key, key] pairs',
         'map.relations',
       );
@@ -394,7 +394,7 @@ function normalizeRelations(raw, state, options) {
       entry.every((k) => typeof k === 'string');
     if (!pair) {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           'relations entries must be [key, key] pairs of item keys',
           rpath,
         );
@@ -404,7 +404,7 @@ function normalizeRelations(raw, state, options) {
     const [a, b] = /** @type {string[]} */ (entry);
     if (a === b) {
       if (options.strict) {
-        throw new VersoValidationError(
+        throw new TwinseedValidationError(
           `relations pair "${a}" references the same key twice`,
           rpath,
         );
@@ -414,7 +414,7 @@ function normalizeRelations(raw, state, options) {
     for (const k of [a, b]) {
       if (!state.usedKeys.has(k)) {
         if (options.strict) {
-          throw new VersoValidationError(
+          throw new TwinseedValidationError(
             `relations reference unknown key "${k}"`,
             rpath,
           );
@@ -601,7 +601,7 @@ function dedupeContexts(items) {
 function extractItem(result, keyedTree, model, registry, item) {
   if (!model.sections.some((s) => s.key === item)) {
     throw new Error(
-      `Verso map item not found: "${item}" — known keys: ${model.sections.map((s) => s.key).join(', ')}`,
+      `Twinseed map item not found: "${item}" — known keys: ${model.sections.map((s) => s.key).join(', ')}`,
     );
   }
   const entry = findSectionEntry(keyedTree, item);

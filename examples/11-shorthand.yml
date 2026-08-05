@@ -8,7 +8,7 @@ product:
   children:
     - h2:
         class: "name"
-        text: "Verso Tee"
+        text: "Twinseed Tee"
     - p:
         class: "description"
         text: "Soft markup, strong opinions."

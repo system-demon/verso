@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verso · live editor</title>
+  <title>Twinseed · live editor</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/live/verso.css">
+  <link rel="stylesheet" href="/live/twinseed.css">
   <style>
     /* live editor — the desk widens to hold manuscript + book side by side */
     .half-title, .colophon, .folio { max-width: 96rem; }
@@ -134,7 +134,7 @@
 </head>
 <body>
   <header class="half-title">
-    <h1>Verso</h1>
+    <h1>Twinseed</h1>
     <p class="imprint">live editor — draft on the left, the book sets itself</p>
     <nav>
       <a href="/live/">hello</a>
@@ -177,7 +177,7 @@
   </main>
 
   <div class="colophon">
-    <p class="folio"><span>verso press — reading room</span><span>leaf iv</span></p>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf iv</span></p>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -272,7 +272,7 @@
         const starter =
           payload && typeof payload.yaml === 'string'
             ? payload.yaml
-            : await fetch('/live/hello.verso.yml').then((r) => r.text());
+            : await fetch('/live/hello.yml').then((r) => r.text());
         draftEl.value = starter;
         render(starter, { broadcast: true }); // seed the room for later joiners
       });

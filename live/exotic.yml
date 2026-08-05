@@ -1,9 +1,9 @@
-# A field guide to exotic HTML5 — authored entirely in Verso
+# A field guide to exotic HTML5 — authored entirely in Twinseed
 # Every element below was written as a YAML key; no HTML was typed.
 
 "@context": "https://schema.org"
 "@type": "WebPage"
-"@name": "Exotic HTML5, via Verso"
+"@name": "Exotic HTML5, via Twinseed"
 
 keys:
   specimen-count: "twenty"
@@ -15,14 +15,14 @@ body:
     keywords: "dialog, details, meter, datalist, output, ruby, wbr, bdi, picture, search, mark, data, time, del, ins, progress"
     about:
       "@type": "SoftwareSourceCode"
-      codeRepository: "https://github.com/system-demon/verso"
+      codeRepository: "https://github.com/system-demon/twinseed"
 
   main:
     children:
       - h1: "Exotic HTML5"
       - p: |
           A field guide to the elements nobody uses, authored entirely
-          in Verso. Each specimen below was a YAML key a moment ago.
+          in Twinseed. Each specimen below was a YAML key a moment ago.
 
       - section:
           id: "interactive"

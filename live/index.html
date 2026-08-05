@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verso · hello, world</title>
+  <title>Twinseed · hello, world</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/live/verso.css">
+  <link rel="stylesheet" href="/live/twinseed.css">
   <style>
     /* hello, world — the fragment on the recto page */
     #view .name { font-size: 2.6rem; margin: 0 0 0.3rem; font-weight: 600; }
@@ -26,7 +26,7 @@
 </head>
 <body>
   <header class="half-title">
-    <h1>Verso</h1>
+    <h1>Twinseed</h1>
     <p class="imprint">hello, world — one tree, two projections, rendered live via <code>renderInline</code></p>
     <nav>
       <span class="profiles" id="profiles">
@@ -56,10 +56,10 @@
 
   <div class="colophon">
     <details>
-      <summary>Source · hello.verso.yml</summary>
+      <summary>Source · hello.yml</summary>
       <pre id="src">loading…</pre>
     </details>
-    <p class="folio"><span>verso press — reading room</span><span>leaf i</span></p>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf i</span></p>
   </div>
 
   <script type="module">
@@ -68,7 +68,7 @@
     const graphEl = document.getElementById('graph');
     const profilesEl = document.getElementById('profiles');
 
-    const source = await fetch('/live/hello.verso.yml').then((r) => r.text());
+    const source = await fetch('/live/hello.yml').then((r) => r.text());
     srcEl.textContent = source;
 
     async function render(profile) {

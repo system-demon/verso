@@ -1,5 +1,5 @@
 /**
- * Verso core parser
+ * Twinseed core parser
  * Recursive YAML object → HTML (presentation) + ContentMap + JSON-LD (graph)
  */
 
@@ -217,7 +217,7 @@ export function preprocessYaml(source) {
 function parseRoot(yamlSource) {
   const raw = yaml.load(preprocessYaml(yamlSource));
   if (!raw || typeof raw !== 'object') {
-    throw new Error('Verso root must be a mapping');
+    throw new Error('Twinseed root must be a mapping');
   }
   return /** @type {Record<string, unknown>} */ (raw);
 }
@@ -266,7 +266,7 @@ function prepareDocument(raw, options, profile) {
  * @param {string} yamlSource
  * @param {{ params?: Record<string, unknown>, baseDir?: string, strict?: boolean, item?: string, profile?: Record<string, unknown> | string[] }} [options]
  *   baseDir enables `include: "file.yml"` resolution (relative to the source file).
- *   strict (or VERSO_STRICT=1) validates the resolved tree before rendering —
+ *   strict (or TWINSEED_STRICT=1) validates the resolved tree before rendering —
  *   pass strict: false to ignore the env var.
  *   profile: a map of profiling attributes ({ audience: 'admin' }) or CLI-style
  *   key=value pairs. When supplied, elements whose `if:` condition fails are
@@ -817,7 +817,7 @@ function openClose(tag, attrs, inner, ctx, opts = {}) {
  */
 export function toDocument(result, meta = {}) {
   const head = result.head;
-  const title = head?.title ?? meta.title ?? 'Verso';
+  const title = head?.title ?? meta.title ?? 'Twinseed';
   const headHtml = head?.html ?? '';
 
   const lines = ['<!DOCTYPE html>', '<html lang="en">', '<head>'];

@@ -1,20 +1,20 @@
-# HN post draft — Show HN: Verso
+# HN post draft — Show HN: Twinseed
 
 Working draft. Delete before posting or keep for the archive; do not link from the README.
 
 ## Title (pick one)
 
-1. `Show HN: Verso – YAML that renders HTML and publishes JSON-LD from the same tree`
-2. `Show HN: Verso – a markup language where the page and its linked data are one tree`
-3. `Show HN: Verso – the other side of the page is meaning`
+1. `Show HN: Twinseed – YAML that renders HTML and publishes JSON-LD from the same tree`
+2. `Show HN: Twinseed – a markup language where the page and its linked data are one tree`
+3. `Show HN: Twinseed – one seed, two leaves`
 
 Recommendation: **#1** — concrete, says what it does, no poetry tax. #3 is the brand line; save it for the first comment.
 
 ## Post body (if text post) or first comment (if link post)
 
-> Verso is a small YAML-based markup language where one tree renders to HTML for browsers and JSON-LD for the Semantic Web — the two projections can never drift, because they're derived from the same structure.
+> Twinseed is a small YAML-based markup language where one tree renders to HTML for browsers and JSON-LD for the Semantic Web — the two projections can never drift, because they're derived from the same structure.
 >
-> The problem: most pages maintain what humans see and what machines read as separate artifacts (HTML here, Schema.org blob there). They drift. Verso treats the presentational tree and the knowledge graph as two faces of one leaf — in bookbinding, *verso* is the other side of the page.
+> The problem: most pages maintain what humans see and what machines read as separate artifacts (HTML here, Schema.org blob there). They drift. Twinseed treats the presentational tree and the knowledge graph as two leaves of one seed — the YAML tree is the seed, and HTML and JSON-LD are the leaves that grow from it.
 >
 > How the graph stays honest:
 >
@@ -55,7 +55,7 @@ One YAML tree renders the card as HTML and asserts `Product` (fields harvested f
 ## Anticipated comments — pre-loaded replies
 
 **"Why not JSX / MDX / Astro?"**
-You'd wire Schema.org by hand in all of them. Verso's difference is that linked data is first-class: refs bind assertions to rendered text, conditionals read the content map, conventions map classes to vocabulary types. It's closer to "Pug with a semantic layer" than to a framework.
+You'd wire Schema.org by hand in all of them. Twinseed's difference is that linked data is first-class: refs bind assertions to rendered text, conditionals read the content map, conventions map classes to vocabulary types. It's closer to "Pug with a semantic layer" than to a framework.
 
 **"YAML for markup? Whitespace sensitivity, really?"**
 Fair. It's for structure-shaped documents — entity cards, docs, publications — not freeform prose. Prose goes in block scalars (`|`). The tree shape is the feature: indentation *is* the hierarchy.
@@ -64,13 +64,13 @@ Fair. It's for structure-shaped documents — entity cards, docs, publications �
 Schema.org is one `@context`; swap in your own vocabulary. The point isn't rich results — it's that the machine-readable claim and the human-readable page are the same fact. Crawlers, agents, and datasets all read the graph; Google is just the loudest consumer.
 
 **"The Semantic Web is dead."**
-Its tooling says otherwise in 2026 — structured-data editors now ship AI-friendly output formats, and agents are the fastest-growing consumers of machine-readable pages. Verso's bet: the audience for the graph is growing, and it deserves better than a blob nobody maintains.
+Its tooling says otherwise in 2026 — structured-data editors now ship AI-friendly output formats, and agents are the fastest-growing consumers of machine-readable pages. Twinseed's bet: the audience for the graph is growing, and it deserves better than a blob nobody maintains.
 
 **"Live sync is a framework's job."**
-Agreed — Verso is deliberately a fragment/entity renderer with a sync channel, not an app shell. It plugs into a page rather than owning it.
+Agreed — Twinseed is deliberately a fragment/entity renderer with a sync channel, not an app shell. It plugs into a page rather than owning it.
 
 **"DITA? Really?"**
-The OASIS committee's own lightweight variant (LwDITA) kept typed topics, maps, conref, and keys — and dropped the machinery. Verso takes the same five ideas as data in the tree, never as a build pipeline. There's a research doc in the repo (`docs/dita-research.md`) with the anti-goal list.
+The OASIS committee's own lightweight variant (LwDITA) kept typed topics, maps, conref, and keys — and dropped the machinery. Twinseed takes the same five ideas as data in the tree, never as a build pipeline. There's a research doc in the repo (`docs/dita-research.md`) with the anti-goal list.
 
 ## Posting notes
 

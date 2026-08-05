@@ -9,7 +9,7 @@ node examples/05-register-convention.js
 node examples/06-custom-rpc.js
 ```
 
-These samples show how **Verso** grows the **presentational tree** and the **linked-data graph** together — not as separate authoring passes.
+These samples show how **Twinseed** grows the **presentational tree** and the **linked-data graph** together — not as separate authoring passes.
 
 ---
 
@@ -233,7 +233,7 @@ Semantics:
 
 ## 13. Maps — `examples/14-map/`
 
-A top-level `map:` key makes the file a **composition document**: it owns publication structure (order, nav, relations, pagination) while fragments — ordinary Verso files — own content. One structure, three projections: an HTML document, a nav tree, and a site-level knowledge graph.
+A top-level `map:` key makes the file a **composition document**: it owns publication structure (order, nav, relations, pagination) while fragments — ordinary Twinseed files — own content. One structure, three projections: an HTML document, a nav tree, and a site-level knowledge graph.
 
 ```yaml
 "@context": "https://schema.org"

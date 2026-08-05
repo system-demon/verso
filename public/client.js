@@ -2,7 +2,7 @@
  * Browser client — JSON-RPC over Socket.IO + pushUpdate listener
  */
 
-const SESSION_KEY = 'verso-session';
+const SESSION_KEY = 'twinseed-session';
 const ITEM_ID = 'item_55';
 const TEMPLATE = 'product';
 

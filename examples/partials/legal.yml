@@ -9,7 +9,7 @@ footer:
     - p:
         id: "copyright"
         class: "legal"
-        text: "© 2026 Verso"
+        text: "© 2026 Twinseed"
     - p:
         id: "license"
         text: "Released under the MIT License"

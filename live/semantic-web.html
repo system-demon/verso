@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verso · Semantic Web (Wikipedia, mocked up)</title>
+  <title>Twinseed · Semantic Web (Wikipedia, mocked up)</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/live/verso.css">
+  <link rel="stylesheet" href="/live/twinseed.css">
   <style>
     /* wikipedia mockup — the skin is the point; it lives on a single leaf */
     .book.single { max-width: 54rem; }
@@ -38,7 +38,7 @@
 </head>
 <body>
   <header class="half-title">
-    <h1>Verso</h1>
+    <h1>Twinseed</h1>
     <p class="imprint">mockup: “Semantic Web” — presentation + real JSON-LD, one tree</p>
     <nav>
       <a href="https://en.wikipedia.org/wiki/Semantic_Web">original ↗</a>
@@ -57,14 +57,14 @@
 
   <div class="colophon">
     <details>
-      <summary>Source · semantic-web.verso.yml</summary>
+      <summary>Source · semantic-web.yml</summary>
       <pre id="src">loading…</pre>
     </details>
     <details>
       <summary>Graph · JSON-LD (compare with the original article’s structured data)</summary>
       <pre id="graph"></pre>
     </details>
-    <p class="folio"><span>verso press — reading room</span><span>leaf iii</span></p>
+    <p class="folio"><span>twinseed press — reading room</span><span>leaf iii</span></p>
   </div>
 
   <script type="module">
@@ -72,7 +72,7 @@
     const srcEl = document.getElementById('src');
     const graphEl = document.getElementById('graph');
 
-    const source = await fetch('/live/semantic-web.verso.yml').then((r) => r.text());
+    const source = await fetch('/live/semantic-web.yml').then((r) => r.text());
     srcEl.textContent = source;
 
     const res = await fetch('/rpc', {

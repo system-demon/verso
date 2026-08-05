@@ -1,18 +1,18 @@
-# Verso
+# Twinseed
 
 YAML structural markup that renders to HTML — and publishes **JSON-LD** from the same tree.
 
-The web has always had two layers that rarely stay aligned: a **presentational tree** (what browsers paint) and a **knowledge graph** (what machines can interpret). Verso treats them as two faces of one leaf. You author an indentation-based structure; the runtime emits DOM for humans and linked data for the Semantic Web.
+The web has always had two layers that rarely stay aligned: a **presentational tree** (what browsers paint) and a **knowledge graph** (what machines can interpret). Twinseed treats them as two faces of one leaf. You author an indentation-based structure; the runtime emits DOM for humans and linked data for the Semantic Web.
 
 Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, so presentation and assertions update together.
 
-> The other side of the page is meaning.
+> One seed, two leaves.
 
 ## Features
 
 **Language**
 
-- **Verso markup** — keys are tags; indentation is the tree; `children:` for ordered siblings
+- **Twinseed markup** — keys are tags; indentation is the tree; `children:` for ordered siblings
 - **Includes** — `include: "file.yml"` inlines a partial; `file.yml#id` pulls a single element (conref-lite), `include: { key: name }` makes it a conkeyref
 - **Keys** — a `keys:` block binds symbolic names; `{ key: name }` resolves them in text, attributes, `ld:` values, and `include:` paths — late-bound from one place
 - **Presentation profiles** — `if:` / `flag:` filter or mark content per render against an `audience` / `platform` / `product` profile; excluded content never asserts into the graph
@@ -34,7 +34,7 @@ Optional JSON-RPC and WebSockets re-evaluate that pipeline when state changes, s
 
 - **CLI** — render, `--json`, `--doc`, `--watch`, `--strict`, `--profile`, `KEY=value` params, and `--emit resolved` to inspect the resolved intermediate tree
 - **Live graph views** — JSON-RPC renders fragments and map sections; Socket.IO pushes HTML + JSON-LD on update
-- **Reading room** — `/live/` serves book-spread demos rendered straight from `.verso.yml` sources
+- **Reading room** — `/live/` serves book-spread demos rendered straight from `.yml` sources
 
 ## Quick start
 
@@ -64,7 +64,7 @@ Requires **Node.js 18+**.
 
 Full walkthrough: [QUICKSTART.md](QUICKSTART.md)
 Extend & customize: [examples/README.md](examples/README.md)
-Design research (DITA → Verso): [docs/dita-research.md](docs/dita-research.md)
+Design research (DITA → Twinseed): [docs/dita-research.md](docs/dita-research.md)
 
 ## Example
 
@@ -99,7 +99,7 @@ The runtime renders the HTML card and a JSON-LD document: the `Product` entity f
 
 ## Why this shape?
 
-HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. Verso keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
+HTML alone is weak as a knowledge carrier. Separate RDF/JSON-LD files drift from the page. Twinseed keeps **structure, presentation, and assertion** in one authoring pass — closer to the Semantic Web’s original bet that the web of documents and the web of data should be the same web.
 
 Crawlers and rich-result consumers are one audience for that graph. Agents, datasets, and interoperable APIs are others.
 
@@ -137,11 +137,11 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 
 ## The reading room — `/live/`
 
-[http://localhost:3847/live/](http://localhost:3847/live/) is a small reading room: each leaf renders a `.verso.yml` source live over RPC (`renderInline`) into a book spread — JSON-LD on the verso page, HTML on the recto, source in the colophon.
+[http://localhost:3847/live/](http://localhost:3847/live/) is a small reading room: each leaf renders a `.yml` source live over RPC (`renderInline`) into a book spread — JSON-LD on the verso page, HTML on the recto, source in the colophon.
 
 - **hello, world** — the full arc in one file: keys, YAML conventions with `extends:`, `ld:` / `ld_if`, and profiles (switch `audience=admin` / `audience=novice` in the header and watch both pages change)
 - **exotic** — a field guide to HTML5's stranger elements, every one authored as a YAML key
-- **wikipedia** — the Wikipedia “Semantic Web” article mocked up as one Verso tree, asserting its own article metadata
+- **wikipedia** — the Wikipedia “Semantic Web” article mocked up as one Twinseed tree, asserting its own article metadata
 
 ## Project layout
 
@@ -157,9 +157,9 @@ Templates are files in `templates/<name>.yml`, selected by `componentId`.
 | `src/cli.js` | Offline render; `--emit resolved` prints the resolved tree |
 | `templates/` | Named components for RPC |
 | `public/` | Live demo client |
-| `live/` | Reading room — book-spread demos and their `.verso.yml` sources |
+| `live/` | Reading room — book-spread demos and their `.yml` sources |
 | `examples/` | Syntax and extension samples |
-| `docs/` | Research notes (DITA concepts mapped onto Verso) |
+| `docs/` | Research notes (DITA concepts mapped onto Twinseed) |
 
 ## Extend
 

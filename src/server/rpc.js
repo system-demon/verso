@@ -1,5 +1,5 @@
 /**
- * JSON-RPC 2.0 method handlers for Verso
+ * JSON-RPC 2.0 method handlers for Twinseed
  */
 
 import fs from 'node:fs';

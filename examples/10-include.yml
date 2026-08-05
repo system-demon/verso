@@ -3,7 +3,7 @@
 # Map partials merge as defaults (local keys win); list partials become children.
 
 head:
-  title: "Verso — Include Demo"
+  title: "Twinseed — Include Demo"
 
 body:
   main:

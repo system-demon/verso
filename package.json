@@ -1,12 +1,12 @@
 {
-  "name": "verso",
+  "name": "twinseed",
   "version": "0.1.0",
-  "description": "The other side of the page is meaning — YAML markup that renders HTML and publishes JSON-LD from the same tree",
+  "description": "One seed, two leaves — YAML markup that renders HTML and publishes JSON-LD from the same tree",
   "type": "module",
   "main": "src/server/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/system-demon/verso.git"
+    "url": "https://github.com/system-demon/twinseed.git"
   },
   "scripts": {
     "start": "node src/server/index.js",

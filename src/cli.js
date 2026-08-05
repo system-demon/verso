@@ -5,7 +5,7 @@
  *
  *   --json     print { html, ldJson, contentMap } as JSON
  *   --doc      print a full HTML document
- *   --strict   validate the tree first (also VERSO_STRICT=1)
+ *   --strict   validate the tree first (also TWINSEED_STRICT=1)
  *   --watch    re-render on file change; keeps stdout parseable (markers on stderr)
  *   --emit resolved
  *              print the resolved intermediate tree as YAML instead of
@@ -49,11 +49,11 @@ if (emitIdx !== -1) {
   emitValueIdx = emitIdx + 1;
   const value = args[emitValueIdx];
   if (value === undefined || value.startsWith('--')) {
-    console.error('verso: --emit needs a target (available: resolved)');
+    console.error('twinseed: --emit needs a target (available: resolved)');
     process.exit(1);
   }
   if (value !== 'resolved') {
-    console.error(`verso: unknown --emit target "${value}" (available: resolved)`);
+    console.error(`twinseed: unknown --emit target "${value}" (available: resolved)`);
     process.exit(1);
   }
   emitTarget = value;
@@ -66,7 +66,7 @@ const strict = args.includes('--strict') ? true : undefined;
 const watch = args.includes('--watch');
 
 if (emitTarget && (asJson || asDoc)) {
-  console.error('verso: --emit resolved is mutually exclusive with --json and --doc');
+  console.error('twinseed: --emit resolved is mutually exclusive with --json and --doc');
   process.exit(1);
 }
 
@@ -120,7 +120,7 @@ function renderOnce() {
 try {
   renderOnce();
 } catch (err) {
-  console.error(`verso: ${err.message}`);
+  console.error(`twinseed: ${err.message}`);
   if (!watch) process.exit(1);
 }
 
@@ -147,14 +147,14 @@ if (watch) {
     if (filename && filename !== base) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      console.error(`\n[verso] re-rendered at ${new Date().toLocaleTimeString()}`);
+      console.error(`\n[twinseed] re-rendered at ${new Date().toLocaleTimeString()}`);
       try {
         renderOnce();
       } catch (err) {
-        console.error(`[verso] render error: ${err.message}`);
+        console.error(`[twinseed] render error: ${err.message}`);
       }
     }, 60);
   });
 
-  console.error(`[verso] watching ${watched} — Ctrl+C to stop`);
+  console.error(`[twinseed] watching ${watched} — Ctrl+C to stop`);
 }

@@ -1,7 +1,7 @@
 # Static demo: presentational tree + implicit Product / Review graph entities
 "@context": "https://schema.org"
 "@type": "WebPage"
-"@name": "Verso Demo"
+"@name": "Twinseed Demo"
 
 body:
   style:
@@ -17,9 +17,9 @@ body:
       padding: "0 1.5rem"
 
     children:
-      - h1: "Verso"
+      - h1: "Twinseed"
       - p: |
-          The other side of the page is meaning.
+          One seed, two leaves.
           One tree for presentation and for linked data.
       - div:
           class: "product"

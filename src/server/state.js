@@ -1,5 +1,5 @@
 /**
- * In-memory session / item state for real-time Verso updates
+ * In-memory session / item state for real-time Twinseed updates
  */
 
 /** @type {Map<string, Record<string, Record<string, unknown>>>} */

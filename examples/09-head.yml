@@ -3,12 +3,12 @@
 # css as a raw string or a selector → declarations map (one level, no pipeline)
 
 head:
-  title: "Verso — Head Demo"
+  title: "Twinseed — Head Demo"
   meta:
     description: "A page whose <head> is declared in YAML"
     viewport: "width=device-width, initial-scale=1"
   link:
-    stylesheet: "https://example.com/verso.css"
+    stylesheet: "https://example.com/twinseed.css"
   css:
     body:
       margin: "0"

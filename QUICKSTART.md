@@ -1,8 +1,8 @@
 # Quickstart
 
-**Verso** turns a YAML tree into HTML for browsers and **JSON-LD** for the Semantic Web — from the same source. Optional JSON-RPC and WebSockets keep the presentational view and the linked-data graph in sync when state changes.
+**Twinseed** turns a YAML tree into HTML for browsers and **JSON-LD** for the Semantic Web — from the same source. Optional JSON-RPC and WebSockets keep the presentational view and the linked-data graph in sync when state changes.
 
-> The other side of the page is meaning.
+> One seed, two leaves.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ node src/cli.js templates/demo.yml            # HTML fragment + JSON-LD script (
 node src/cli.js templates/demo.yml --json     # { html, ldJson, contentMap } as JSON
 node src/cli.js templates/demo.yml --doc      # full HTML document, JSON-LD in <head>
 node src/cli.js templates/demo.yml --watch    # re-render on file change (markers on stderr)
-node src/cli.js templates/demo.yml --strict   # validate first (also VERSO_STRICT=1)
+node src/cli.js templates/demo.yml --strict   # validate first (also TWINSEED_STRICT=1)
 
 # Fill {{placeholders}} with entity / graph data
 node src/cli.js templates/product.yml --json id=item_1 name="Widget" price=19.99
@@ -42,7 +42,7 @@ node src/cli.js examples/12-keys.yml --emit resolved
 
 Via npm: `npm run render -- templates/demo.yml --json`, `npm run watch -- examples/12-keys.yml`.
 
-## Minimal Verso file
+## Minimal Twinseed file
 
 ```yaml
 body:
@@ -258,7 +258,7 @@ The result includes both `html` (presentation) and `ldJson` (graph). Templates l
 
 ## The reading room
 
-[http://localhost:3847/live/](http://localhost:3847/live/) renders `.verso.yml` sources live into a book spread — JSON-LD on the verso page, HTML on the recto. `hello.verso.yml` tours the whole language in one file (keys, conventions, `ld_if`, profiles — switchable in the header); `exotic` is a field guide to exotic HTML5; `semantic-web` mocks up the Wikipedia article.
+[http://localhost:3847/live/](http://localhost:3847/live/) renders `.yml` sources live into a book spread — JSON-LD on the verso page, HTML on the recto. `hello.yml` tours the whole language in one file (keys, conventions, `ld_if`, profiles — switchable in the header); `exotic` is a field guide to exotic HTML5; `semantic-web` mocks up the Wikipedia article.
 
 ## Project map
 

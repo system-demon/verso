@@ -1,5 +1,5 @@
 /**
- * Verso server — Express HTTP JSON-RPC + Socket.IO
+ * Twinseed server — Express HTTP JSON-RPC + Socket.IO
  * Serves presentational HTML and linked-data (JSON-LD) from the same tree
  */
 
@@ -32,7 +32,7 @@ app.post('/rpc', (req, res) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'verso', port: PORT });
+  res.json({ ok: true, service: 'twinseed', port: PORT });
 });
 
 /**
@@ -177,7 +177,7 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`Verso listening on http://localhost:${PORT}`);
+  console.log(`Twinseed listening on http://localhost:${PORT}`);
   console.log(`  JSON-RPC  POST /rpc`);
   console.log(`  Inline    POST /render (raw YAML or { yaml, data })`);
   console.log(`  Socket.IO ws://localhost:${PORT}`);

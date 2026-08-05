@@ -11,7 +11,7 @@
 #   node src/cli.js examples/16-profiles.yml --profile audience=novice platform=web
 
 head:
-  title: "Verso — Profiles"
+  title: "Twinseed — Profiles"
 
 body:
   main:

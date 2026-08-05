@@ -1,10 +1,10 @@
 # Mocked up from https://en.wikipedia.org/wiki/Semantic_Web
-# A Wikipedia article recreated as one Verso tree — presentation AND
+# A Wikipedia article recreated as one Twinseed tree — presentation AND
 # the article's own linked-data claims, from the same source.
 
 "@context": "https://schema.org"
 "@type": "WebPage"
-"@name": "Semantic Web — mocked up in Verso"
+"@name": "Semantic Web — mocked up in Twinseed"
 
 keys:
   source-url: "https://en.wikipedia.org/wiki/Semantic_Web"
@@ -107,7 +107,7 @@ body:
             - div:
                 id: "example-person"
 
-                # The article teaches RDFa; Verso just says it.
+                # The article teaches RDFa; Twinseed just says it.
                 ld:
                   "@type": "Person"
                   name: { ref: "#example-person .person-name" }
@@ -152,7 +152,7 @@ body:
           children:
             - p:
                 children:
-                  - span: { text: "Condensed and mocked up in Verso from the Wikipedia article " }
+                  - span: { text: "Condensed and mocked up in Twinseed from the Wikipedia article " }
                   - a:
                       href: { key: source-url }
                       text: "Semantic Web"
