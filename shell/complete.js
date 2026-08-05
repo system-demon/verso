@@ -35,7 +35,7 @@ const wantSurface = args.includes('--surface');
 
 /** Fixed CLI / profile vocabulary — keep sparse and correct. */
 const SURFACE = {
-  flags: ['--json', '--doc', '--strict', '--watch', '--emit', '--profile'],
+  flags: ['--json', '--doc', '--strict', '--watch', '--emit', '--profile', '--help'],
   emit: ['resolved'],
   profileKeys: ['audience', 'platform', 'product'],
   profileValues: {

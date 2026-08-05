@@ -21,11 +21,14 @@ npm scripts: `start` (server), `dev` (server with `--watch` auto-restart), `rend
 
 ## CLI
 
+Render a seed — the YAML genome is the source of truth; flags only choose how the leaves are shown.
+
 ```bash
+node src/cli.js --help
 node src/cli.js templates/demo.yml            # HTML fragment + JSON-LD script (default)
 node src/cli.js templates/demo.yml --json     # { html, ldJson, contentMap } as JSON
 node src/cli.js templates/demo.yml --doc      # full HTML document, JSON-LD in <head>
-node src/cli.js templates/demo.yml --watch    # re-render on file change (markers on stderr)
+node src/cli.js templates/demo.yml --watch    # re-render on change (status on stderr)
 node src/cli.js templates/demo.yml --strict   # validate first (also TWINSEED_STRICT=1)
 
 # Fill {{placeholders}} with entity / graph data
@@ -41,6 +44,8 @@ node src/cli.js examples/12-keys.yml --emit resolved
 `--emit resolved` shows exactly what the renderer consumes: the document after include inlining, profile filtering, `{{param}}` injection, and `{ key }` substitution. It composes with `KEY=value` params and `--profile`; for `map:` documents it prints the assembled tree (sections, nav) pre-render.
 
 Via npm: `npm run render -- templates/demo.yml --json`, `npm run watch -- examples/12-keys.yml`.
+
+Shell helpers (prompt chrome + tab completion): [`shell/README.md`](shell/README.md).
 
 ## Minimal Twinseed file
 

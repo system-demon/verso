@@ -51,7 +51,7 @@ twinseed-status-line() {
 
 twinseed-use() {
   if [ -z "${1:-}" ]; then
-    echo "twinseed: usage: twinseed-use <file.yml>" >&2
+    echo "twinseed: usage: twinseed-use <seed.yml>" >&2
     return 1
   fi
   local seed
@@ -68,6 +68,10 @@ twinseed-use() {
 twinseed-basedir() {
   if [ -z "${1:-}" ]; then
     echo "twinseed: usage: twinseed-basedir <dir>" >&2
+    return 1
+  fi
+  if [ ! -d "$1" ]; then
+    echo "twinseed: baseDir not found: $1" >&2
     return 1
   fi
   export TWINSEED_BASEDIR="$(cd "$1" && pwd)"
@@ -127,7 +131,7 @@ twinseed-render() {
     seed="${TWINSEED_SEED:-}"
   fi
   if [ -z "$seed" ]; then
-    echo "twinseed: no seed — twinseed-use <file.yml> or pass a path" >&2
+    echo "twinseed: no seed — twinseed-use <seed.yml> or pass a path" >&2
     return 1
   fi
   if ! node "$cli" "$seed" "$@"; then

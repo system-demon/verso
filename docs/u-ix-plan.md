@@ -2,7 +2,7 @@
 
 Shell UX for Twinseed — drive the genome from the prompt. Not a second canvas.
 
-**Parity.** PowerShell, bash, and zsh share one status helper and the same metaphor. No shell is an afterthought.
+**Parity.** PowerShell, bash, and zsh share one status helper, one completion emitter, and the same metaphor. No shell is an afterthought.
 
 Taste skill was not found under Cursor skills; phase 3 uses Twinseed voice (sparse, paper/ink) and the thrust in `docs/u-ix.md`.
 
@@ -32,3 +32,10 @@ Done when: tab on seed / profile / render helpers suggests Twinseed nouns on PS 
 ## 3 — Taste pass
 
 Help text, errors, defaults, naming — CLI as hands, genome as truth. Restraint over chrome.
+
+- CLI: `--help`, seed-first usage, consistent `twinseed:` stderr (no bracket chrome), quieter watch lines
+- Parser/CLI errors: drop redundant “Twinseed …” prefixes (CLI already prefixes)
+- Shell helpers: `seed.yml` / `baseDir` wording aligned with completion nouns
+- Docs: `QUICKSTART.md`, `shell/README.md`, this plan
+
+Done when: help and errors read like Twinseed — sparse, paper/ink, genetics where already used — without decorating the type system.

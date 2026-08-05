@@ -90,7 +90,7 @@ function harvestFileRoot(node, collect) {
 function walk(node, baseDir, chain, depth, collect) {
   if (depth > MAX_DEPTH) {
     throw new Error(
-      `Twinseed include depth exceeded ${MAX_DEPTH}: ${chain.join(' → ')}`,
+      `include depth exceeded ${MAX_DEPTH}: ${chain.join(' → ')}`,
     );
   }
 
@@ -219,12 +219,12 @@ function splitFragment(rel) {
   const id = rel.slice(hash + 1);
   if (file === '') {
     throw new Error(
-      `Twinseed include "${rel}" has no file path — element-level includes address one element in another file: "file.yml#id"`,
+      `include "${rel}" has no file path — element-level includes address one element in another file: "file.yml#id"`,
     );
   }
   if (id === '') {
     throw new Error(
-      `Twinseed include "${rel}" has an empty fragment — use "${file}" for the whole file or "${file}#id" for one element`,
+      `include "${rel}" has an empty fragment — use "${file}" for the whole file or "${file}#id" for one element`,
     );
   }
   return { file, id };
@@ -270,7 +270,7 @@ function selectElementById(tree, id, rel, file) {
   if (found.element) return found.element;
   const available = [...new Set(found.ids)];
   throw new Error(
-    `Twinseed include #id not found: "${id}" in ${file} (from "${rel}")` +
+    `include #id not found: "${id}" in ${file} (from "${rel}")` +
       (available.length
         ? ` — available ids: ${available.join(', ')}`
         : ' — the partial declares no id: attributes'),
@@ -335,17 +335,17 @@ function mergeClassValues(base, extra) {
 function loadResolved(rel, baseDir, chain, depth, collect) {
   if (!baseDir) {
     throw new Error(
-      `Twinseed include "${rel}" needs a base directory — render from a file (CLI) or pass { baseDir }`,
+      `include "${rel}" needs a base directory — render from a file (CLI) or pass { baseDir }`,
     );
   }
   const filePath = path.resolve(baseDir, rel);
   if (chain.includes(filePath)) {
     throw new Error(
-      `Twinseed include cycle: ${[...chain, filePath].join(' → ')}`,
+      `include cycle: ${[...chain, filePath].join(' → ')}`,
     );
   }
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Twinseed include not found: ${rel} (resolved: ${filePath})`);
+    throw new Error(`include not found: ${rel} (resolved: ${filePath})`);
   }
   const parsed = yaml.load(preprocessYaml(fs.readFileSync(filePath, 'utf8')));
   if (parsed === null || parsed === undefined) return {};

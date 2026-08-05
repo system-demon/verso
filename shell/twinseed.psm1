@@ -54,6 +54,8 @@ function Use-TwinseedSeed {
   <#
   .SYNOPSIS
     Set the active genome (YAML seed) and default baseDir for this shell session.
+  .EXAMPLE
+    Use-TwinseedSeed exemplar/templates/practice.skel.yml
   #>
   param(
     [Parameter(Mandatory = $true, Position = 0)]
@@ -76,6 +78,10 @@ function Set-TwinseedBaseDir {
     [string]$Path
   )
   $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+  if (-not (Test-Path -LiteralPath $resolved)) {
+    Write-Error "twinseed: baseDir not found: $Path"
+    return
+  }
   $env:TWINSEED_BASEDIR = $resolved
 }
 
@@ -167,7 +173,7 @@ function Invoke-TwinseedRender {
     }
   }
   if (-not $seed) {
-    Write-Error 'twinseed: no seed — Use-TwinseedSeed <file.yml> or pass a path'
+    Write-Error 'twinseed: no seed — Use-TwinseedSeed <seed.yml> or pass a path'
     return
   }
   $cli = Join-Path (Split-Path -Parent $script:TwinseedShellDir) 'src\cli.js'
