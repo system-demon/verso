@@ -80,6 +80,17 @@ app.post(
 );
 
 const httpServer = createServer(app);
+
+/** Clean 400 for malformed JSON bodies (e.g. YAML posted as application/json) */
+app.use((err, _req, res, next) => {
+  if (err?.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      error:
+        'Invalid JSON body. Send valid JSON, or raw YAML with Content-Type: text/yaml.',
+    });
+  }
+  next(err);
+});
 const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
